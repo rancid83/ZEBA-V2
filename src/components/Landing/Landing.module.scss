@@ -237,47 +237,43 @@ $grayBorder: #d6dde4;
 
 .flowSteps {
   margin-top: 20px;
-  display: grid;
-  gap: 12px;
-  @media (min-width: 768px) {
-    grid-template-columns: repeat(5, 1fr);
-  }
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
 }
 
 .flowStep {
-  position: relative;
-  padding: 16px;
+  flex: 1;
+  min-width: 80px;
+  padding: 14px 16px;
   background: $white;
   border: 1px solid #e5ebf1;
-  border-radius: 20px;
+  border-radius: 16px;
 }
 
 .flowStepNum {
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.18em;
-  color: #8b95a1;
+  color: $teal;
 }
 
 .flowStepText {
-  margin-top: 8px;
-  font-size: 14px;
+  margin-top: 6px;
+  font-size: 13px;
   font-weight: 500;
-  line-height: 1.5;
+  line-height: 1.45;
   color: #27303a;
+  word-break: keep-all;
 }
 
 .flowStepArrow {
-  display: none;
-  position: absolute;
-  right: -12px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 20px;
-  color: #9ba6b2;
-  @media (min-width: 768px) {
-    display: block;
-  }
+  flex-shrink: 0;
+  font-size: 14px;
+  color: #c5cdd6;
+  line-height: 1;
+  padding: 0 2px;
 }
 
 // Hero right
