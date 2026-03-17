@@ -239,19 +239,19 @@ $gradientEnd: #00c9c9;
 
 .flowSteps {
   margin-top: 20px;
-  display: grid;
-  gap: 12px;
-  @media (min-width: 768px) {
-    grid-template-columns: repeat(5, 1fr);
-  }
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
 }
 
 .flowStep {
-  position: relative;
-  padding: 16px;
+  flex: 1;
+  min-width: 80px;
+  padding: 14px 16px;
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 20px;
+  border-radius: 16px;
 }
 
 .flowStepNum {
@@ -262,24 +262,20 @@ $gradientEnd: #00c9c9;
 }
 
 .flowStepText {
-  margin-top: 8px;
-  font-size: 14px;
+  margin-top: 6px;
+  font-size: 13px;
   font-weight: 500;
-  line-height: 1.5;
+  line-height: 1.45;
   color: rgba(255, 255, 255, 0.9);
+  word-break: keep-all;
 }
 
 .flowStepArrow {
-  display: none;
-  position: absolute;
-  right: -12px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 20px;
-  color: rgba(255, 255, 255, 0.4);
-  @media (min-width: 768px) {
-    display: block;
-  }
+  flex-shrink: 0;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.3);
+  line-height: 1;
+  padding: 0 2px;
 }
 
 .heroRight {

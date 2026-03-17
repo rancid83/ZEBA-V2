@@ -246,48 +246,44 @@ $glassBorder: rgba(255, 255, 255, 0.1);
 
 .flowSteps {
   margin-top: 20px;
-  display: grid;
-  gap: 12px;
-  @media (min-width: 768px) {
-    grid-template-columns: repeat(5, 1fr);
-  }
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
 }
 
 .flowStep {
-  position: relative;
-  padding: 16px;
+  flex: 1;
+  min-width: 80px;
+  padding: 14px 16px;
   background: $glass;
   border: 1px solid $glassBorder;
-  border-radius: 20px;
+  border-radius: 16px;
   backdrop-filter: blur(6px);
 }
 
 .flowStepNum {
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.18em;
   color: $teal;
 }
 
 .flowStepText {
-  margin-top: 8px;
-  font-size: 14px;
+  margin-top: 6px;
+  font-size: 13px;
   font-weight: 500;
-  line-height: 1.5;
+  line-height: 1.45;
   color: #c0c8d2;
+  word-break: keep-all;
 }
 
 .flowStepArrow {
-  display: none;
-  position: absolute;
-  right: -12px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 20px;
-  color: rgba(0, 212, 212, 0.4);
-  @media (min-width: 768px) {
-    display: block;
-  }
+  flex-shrink: 0;
+  font-size: 14px;
+  color: rgba(0, 212, 212, 0.35);
+  line-height: 1;
+  padding: 0 2px;
 }
 
 .heroRight {

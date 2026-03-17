@@ -4,7 +4,6 @@ import React, { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
-  RightOutlined,
   BarChartOutlined,
   DownOutlined,
   CloseOutlined,
@@ -184,13 +183,15 @@ export default function LandingStyleA() {
               </div>
               <div className={styles.flowSteps}>
                 {flow.map((step, idx) => (
-                  <div key={step} className={styles.flowStep}>
-                    <div className={styles.flowStepNum}>0{idx + 1}</div>
-                    <div className={styles.flowStepText}>{step}</div>
+                  <React.Fragment key={step}>
+                    <div className={styles.flowStep}>
+                      <div className={styles.flowStepNum}>0{idx + 1}</div>
+                      <div className={styles.flowStepText}>{step}</div>
+                    </div>
                     {idx < flow.length - 1 && (
-                      <RightOutlined className={styles.flowStepArrow} />
+                      <div className={styles.flowStepArrow}>→</div>
                     )}
-                  </div>
+                  </React.Fragment>
                 ))}
               </div>
             </div>
