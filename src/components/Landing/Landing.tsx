@@ -212,11 +212,9 @@ export default function Landing() {
       <div className={styles.container}>
         {/* Header */}
         <header className={styles.header}>
-          <div>
-            <div className={styles.headerBadge}>ZEBA MVP LANDING</div>
-            <div className={styles.headerTitle}>
-              세움터 이전 단계의 설계 판단 플랫폼
-            </div>
+          <div className={styles.headerLogo}>
+            <img src="/assets/zeba-logo.png" alt="ZEBA" className={styles.headerLogoImg} />
+            <div className={styles.headerLogoTagline}>세움터 이전 단계의 설계 판단 플랫폼</div>
           </div>
           <div className={styles.headerActions}>
             <button

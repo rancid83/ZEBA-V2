@@ -36,27 +36,36 @@ $grayBorder: #d6dde4;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 24px;
-  padding: 16px 24px;
+  padding: 12px 28px;
   background: $white;
   border: 1px solid $border;
-  border-radius: 28px;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04);
-  backdrop-filter: blur(4px);
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06);
+  backdrop-filter: blur(8px);
+  position: sticky;
+  top: 16px;
+  z-index: 100;
 }
 
-.headerBadge {
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.24em;
-  color: $teal;
+.headerLogo {
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 
-.headerTitle {
-  margin-top: 4px;
-  font-size: 26px;
-  font-weight: 600;
-  letter-spacing: -0.03em;
-  color: $text;
+.headerLogoImg {
+  height: 36px;
+  width: auto;
+  object-fit: contain;
+}
+
+.headerLogoTagline {
+  font-size: 13px;
+  font-weight: 500;
+  color: $gray;
+  padding-left: 16px;
+  border-left: 1px solid $border;
+  white-space: nowrap;
 }
 
 .headerActions {
