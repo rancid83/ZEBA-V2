@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import styles from './PresentationSlides.module.scss';
+import Head from 'next/head';
 
 const TOTAL = 8;
 const AUTO_ADVANCE_MS = 6000;
@@ -97,6 +98,12 @@ export default function PresentationSlides() {
   const progress = ((current + 1) / TOTAL) * 100;
 
   return (
+    <>
+    <Head>
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+      <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    </Head>
     <div className={styles.wrapper}>
       {/* Progress bar */}
       <div className={styles.progressBar} style={{ width: `${progress}%` }} />
@@ -343,5 +350,6 @@ export default function PresentationSlides() {
         <button className={styles.navBtn} onClick={next} disabled={current === TOTAL - 1}>›</button>
       </div>
     </div>
+    </>
   );
 }
