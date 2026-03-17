@@ -28,6 +28,7 @@ import {
   computeBars,
 } from './landingData';
 import styles from './LandingStyleC.module.scss';
+import StyleNav from './StyleNav';
 
 function InfoCard({
   title,
@@ -103,6 +104,7 @@ export default function LandingStyleC() {
 
   return (
     <div className={styles.page}>
+      <StyleNav />
       <div className={styles.container}>
         <header className={styles.header}>
           <div className={styles.headerLogo}>
