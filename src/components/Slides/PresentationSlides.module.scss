@@ -1,0 +1,900 @@
+// ─── Keyframes ───────────────────────────────────────────────────────────────
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(32px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-48px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(48px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.88); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes lineGrow {
+  from { width: 0; }
+  to   { width: 100%; }
+}
+
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(20px) scale(0.9); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.6; }
+  50%       { opacity: 1; }
+}
+
+// ─── Wrapper ─────────────────────────────────────────────────────────────────
+
+.wrapper {
+  position: fixed;
+  inset: 0;
+  background: #07111f;
+  overflow: hidden;
+  font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
+}
+
+// ─── Slide ───────────────────────────────────────────────────────────────────
+
+.slide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 6vh 8vw;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.6s ease;
+
+  &.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+// ─── Shared Animation Utilities ───────────────────────────────────────────────
+
+.animFadeUp {
+  animation: fadeUp 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.animFadeIn {
+  animation: fadeIn 0.7s ease both;
+}
+.animSlideLeft {
+  animation: slideInLeft 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.animSlideRight {
+  animation: slideInRight 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.animScaleIn {
+  animation: scaleIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.delay1 { animation-delay: 0.15s; }
+.delay2 { animation-delay: 0.3s; }
+.delay3 { animation-delay: 0.45s; }
+.delay4 { animation-delay: 0.6s; }
+.delay5 { animation-delay: 0.75s; }
+.delay6 { animation-delay: 0.9s; }
+
+// ─── Navigation ──────────────────────────────────────────────────────────────
+
+.nav {
+  position: fixed;
+  bottom: 4vh;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  z-index: 100;
+}
+
+.navBtn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+  backdrop-filter: blur(8px);
+
+  &:hover {
+    background: rgba(0, 201, 201, 0.2);
+    border-color: rgba(0, 201, 201, 0.4);
+    color: #00c9c9;
+  }
+
+  &:disabled {
+    opacity: 0.3;
+    cursor: default;
+    &:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.15);
+      color: rgba(255, 255, 255, 0.7);
+    }
+  }
+}
+
+.dots {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.25);
+  cursor: pointer;
+  transition: background 0.3s, transform 0.3s, width 0.3s;
+
+  &.dotActive {
+    background: #00c9c9;
+    width: 20px;
+    border-radius: 3px;
+  }
+
+  &:hover:not(.dotActive) {
+    background: rgba(255, 255, 255, 0.5);
+  }
+}
+
+// Progress bar
+.progressBar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #00c9c9, #e91e8c);
+  transition: width 0.5s ease;
+  z-index: 100;
+}
+
+// Slide counter
+.counter {
+  position: fixed;
+  top: 3vh;
+  right: 5vw;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.35);
+  letter-spacing: 0.1em;
+  z-index: 100;
+}
+
+// ─── SLIDE 1: Title ───────────────────────────────────────────────────────────
+
+.s1Bg {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 80% 80% at 60% 40%, rgba(0, 118, 118, 0.18) 0%, transparent 70%),
+              radial-gradient(ellipse 50% 60% at 15% 70%, rgba(233, 30, 140, 0.1) 0%, transparent 60%),
+              linear-gradient(135deg, #07111f 0%, #0c1d2e 100%);
+}
+
+.s1Grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0, 201, 201, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 201, 201, 0.04) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
+.s1Content {
+  position: relative;
+  z-index: 2;
+  text-align: left;
+  width: 100%;
+  max-width: 900px;
+}
+
+.s1Logo {
+  height: 52px;
+  width: auto;
+  object-fit: contain;
+  margin-bottom: 4vh;
+  filter: brightness(1.1);
+}
+
+.s1Eyebrow {
+  font-size: 1.1vw;
+  font-weight: 600;
+  letter-spacing: 0.25em;
+  color: #00c9c9;
+  text-transform: uppercase;
+  margin-bottom: 2.5vh;
+}
+
+.s1Title {
+  font-size: 5.5vw;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  color: #fff;
+  margin-bottom: 3vh;
+
+  span {
+    background: linear-gradient(90deg, #00c9c9, #e91e8c);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}
+
+.s1Desc {
+  font-size: 1.6vw;
+  color: rgba(255, 255, 255, 0.5);
+  line-height: 1.7;
+  max-width: 560px;
+  font-weight: 400;
+}
+
+.s1Deco {
+  position: absolute;
+  right: 6vw;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 28vw;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 201, 201, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &::before {
+    content: '';
+    position: absolute;
+    width: 75%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    border: 1px solid rgba(0, 201, 201, 0.08);
+  }
+}
+
+.s1DecoInner {
+  width: 50%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0, 201, 201, 0.15) 0%, transparent 70%);
+  border: 1px solid rgba(0, 201, 201, 0.18);
+}
+
+// ─── SLIDE 2: Problem ─────────────────────────────────────────────────────────
+
+.s2Bg {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(160deg, #0c1a1a 0%, #07111f 50%, #0f0a18 100%);
+}
+
+.s2Layout {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6vw;
+  align-items: center;
+}
+
+.s2Left {
+  h2 {
+    font-size: 1vw;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    color: #e91e8c;
+    text-transform: uppercase;
+    margin-bottom: 2.5vh;
+  }
+
+  h3 {
+    font-size: 3.8vw;
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    color: #fff;
+    margin-bottom: 2.5vh;
+  }
+
+  p {
+    font-size: 1.45vw;
+    color: rgba(255, 255, 255, 0.5);
+    line-height: 1.75;
+  }
+}
+
+.s2Right {
+  display: flex;
+  flex-direction: column;
+  gap: 2vh;
+}
+
+.s2Card {
+  padding: 2.2vh 2vw;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 1.2vw;
+}
+
+.s2CardIcon {
+  font-size: 1.8vw;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.s2CardText {
+  h4 {
+    font-size: 1.3vw;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 0.5vh;
+  }
+
+  p {
+    font-size: 1.2vw;
+    color: rgba(255, 255, 255, 0.45);
+    line-height: 1.55;
+  }
+}
+
+// ─── SLIDE 3: Solution ────────────────────────────────────────────────────────
+
+.s3Bg {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #00352e 0%, #07111f 60%, #1a0a12 100%);
+}
+
+.s3Content {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  text-align: center;
+}
+
+.s3Eyebrow {
+  font-size: 1vw;
+  font-weight: 700;
+  letter-spacing: 0.25em;
+  color: #00c9c9;
+  text-transform: uppercase;
+  margin-bottom: 2.5vh;
+}
+
+.s3Title {
+  font-size: 4.5vw;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  color: #fff;
+  margin-bottom: 2vh;
+
+  span {
+    color: #00c9c9;
+  }
+}
+
+.s3Sub {
+  font-size: 1.55vw;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 6vh;
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.s3Cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2vw;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.s3Card {
+  padding: 3vh 2vw;
+  background: rgba(0, 201, 201, 0.06);
+  border: 1px solid rgba(0, 201, 201, 0.18);
+  border-radius: 20px;
+  text-align: left;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #00c9c9, transparent);
+  }
+}
+
+.s3CardNum {
+  font-size: 2.5vw;
+  font-weight: 900;
+  color: rgba(0, 201, 201, 0.2);
+  line-height: 1;
+  margin-bottom: 1.5vh;
+}
+
+.s3CardTitle {
+  font-size: 1.4vw;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 1vh;
+}
+
+.s3CardDesc {
+  font-size: 1.15vw;
+  color: rgba(255, 255, 255, 0.45);
+  line-height: 1.6;
+}
+
+// ─── SLIDE 4: Flow ────────────────────────────────────────────────────────────
+
+.s4Bg {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #07111f 0%, #0a1a2a 100%);
+}
+
+.s4Content {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  text-align: center;
+}
+
+.slideEyebrow {
+  font-size: 1vw;
+  font-weight: 700;
+  letter-spacing: 0.25em;
+  color: #00c9c9;
+  text-transform: uppercase;
+  margin-bottom: 2vh;
+}
+
+.slideTitle {
+  font-size: 3.8vw;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+  color: #fff;
+  margin-bottom: 2vh;
+
+  span {
+    color: #00c9c9;
+  }
+}
+
+.slideSub {
+  font-size: 1.4vw;
+  color: rgba(255, 255, 255, 0.45);
+  margin-bottom: 5vh;
+}
+
+.s4Steps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.s4Step {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5vh;
+  padding: 3vh 1.5vw;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 20px;
+  position: relative;
+}
+
+.s4StepNum {
+  font-size: 0.9vw;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  color: #00c9c9;
+}
+
+.s4StepCircle {
+  width: 4vw;
+  height: 4vw;
+  border-radius: 50%;
+  background: rgba(0, 201, 201, 0.1);
+  border: 1.5px solid rgba(0, 201, 201, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8vw;
+}
+
+.s4StepText {
+  font-size: 1.15vw;
+  font-weight: 600;
+  color: #fff;
+  text-align: center;
+  line-height: 1.45;
+}
+
+.s4Arrow {
+  font-size: 1.2vw;
+  color: rgba(0, 201, 201, 0.35);
+  padding: 0 0.6vw;
+  flex-shrink: 0;
+}
+
+// ─── SLIDE 5: Feature ZEB ─────────────────────────────────────────────────────
+
+.s5Bg {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #001a2e 0%, #07111f 70%);
+}
+
+.s5Layout {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6vw;
+  align-items: center;
+}
+
+.s5Left {
+  .s5Eyebrow {
+    font-size: 1vw;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    color: #00c9c9;
+    text-transform: uppercase;
+    margin-bottom: 2vh;
+  }
+
+  h3 {
+    font-size: 3.6vw;
+    font-weight: 800;
+    line-height: 1.15;
+    color: #fff;
+    margin-bottom: 2.5vh;
+    letter-spacing: -0.02em;
+
+    span { color: #00c9c9; }
+  }
+
+  p {
+    font-size: 1.4vw;
+    color: rgba(255, 255, 255, 0.5);
+    line-height: 1.75;
+    margin-bottom: 3vh;
+  }
+}
+
+.s5Tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8vh;
+}
+
+.s5Tag {
+  padding: 0.6vh 1.2vw;
+  background: rgba(0, 201, 201, 0.1);
+  border: 1px solid rgba(0, 201, 201, 0.25);
+  border-radius: 100px;
+  font-size: 1.1vw;
+  font-weight: 600;
+  color: #00c9c9;
+}
+
+.s5Right {
+  display: flex;
+  flex-direction: column;
+  gap: 2vh;
+}
+
+.s5StatCard {
+  padding: 2.5vh 2vw;
+  background: rgba(0, 201, 201, 0.06);
+  border: 1px solid rgba(0, 201, 201, 0.15);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  gap: 1.5vw;
+}
+
+.s5StatNum {
+  font-size: 3.5vw;
+  font-weight: 900;
+  color: #00c9c9;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.s5StatDesc {
+  h4 {
+    font-size: 1.3vw;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 0.3vh;
+  }
+
+  p {
+    font-size: 1.1vw;
+    color: rgba(255, 255, 255, 0.45);
+    margin: 0;
+    line-height: 1.5;
+  }
+}
+
+// ─── SLIDE 6: Features Grid ───────────────────────────────────────────────────
+
+.s6Bg {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #1a0a12 0%, #07111f 50%, #0a1a2a 100%);
+}
+
+.s6Content {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  text-align: center;
+}
+
+.s6Grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2vw;
+  margin-top: 4vh;
+}
+
+.s6Card {
+  padding: 3vh 2vw;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 20px;
+  text-align: left;
+  position: relative;
+  overflow: hidden;
+
+  &.pink::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #e91e8c, transparent);
+  }
+
+  &.teal::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #00c9c9, transparent);
+  }
+
+  &.white::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.4), transparent);
+  }
+}
+
+.s6CardEmoji {
+  font-size: 2.2vw;
+  margin-bottom: 1.5vh;
+  display: block;
+}
+
+.s6CardTitle {
+  font-size: 1.4vw;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 1vh;
+}
+
+.s6CardBadge {
+  display: inline-block;
+  padding: 0.3vh 0.8vw;
+  border-radius: 100px;
+  font-size: 1vw;
+  font-weight: 600;
+  margin-bottom: 1.5vh;
+
+  &.pinkBadge {
+    background: rgba(233, 30, 140, 0.15);
+    color: #e91e8c;
+  }
+  &.tealBadge {
+    background: rgba(0, 201, 201, 0.15);
+    color: #00c9c9;
+  }
+  &.whiteBadge {
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.6);
+  }
+}
+
+.s6CardDesc {
+  font-size: 1.15vw;
+  color: rgba(255, 255, 255, 0.45);
+  line-height: 1.65;
+}
+
+// ─── SLIDE 7: Big Stat ────────────────────────────────────────────────────────
+
+.s7Bg {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 90% 80% at 50% 50%, rgba(0, 118, 118, 0.22) 0%, transparent 65%),
+              linear-gradient(135deg, #07111f 0%, #0c1d2e 100%);
+}
+
+.s7Content {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  text-align: center;
+}
+
+.s7Stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4vw;
+  margin-top: 5vh;
+}
+
+.s7Stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1vh;
+}
+
+.s7StatNum {
+  font-size: 9vw;
+  font-weight: 900;
+  line-height: 1;
+  background: linear-gradient(135deg, #00c9c9 0%, #00f0f0 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: countUp 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.s7StatUnit {
+  font-size: 2vw;
+  font-weight: 700;
+  color: rgba(0, 201, 201, 0.6);
+  margin-left: 0.3vw;
+}
+
+.s7StatLabel {
+  font-size: 1.3vw;
+  font-weight: 600;
+  color: #fff;
+  margin-top: 0.5vh;
+}
+
+.s7StatSub {
+  font-size: 1.1vw;
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.s7Divider {
+  width: 1px;
+  height: 12vh;
+  background: rgba(255, 255, 255, 0.08);
+  align-self: center;
+}
+
+// ─── SLIDE 8: Closing ─────────────────────────────────────────────────────────
+
+.s8Bg {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #001a12 0%, #07111f 50%, #1a0212 100%);
+}
+
+.s8Glow {
+  position: absolute;
+  width: 50vw;
+  height: 50vw;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0, 201, 201, 0.12) 0%, transparent 70%);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation: pulse 3s ease-in-out infinite;
+}
+
+.s8Content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+}
+
+.s8Logo {
+  height: 48px;
+  width: auto;
+  object-fit: contain;
+  margin-bottom: 4vh;
+  filter: brightness(1.1);
+}
+
+.s8Title {
+  font-size: 4.5vw;
+  font-weight: 800;
+  line-height: 1.15;
+  color: #fff;
+  letter-spacing: -0.03em;
+  margin-bottom: 2.5vh;
+
+  span {
+    background: linear-gradient(90deg, #00c9c9, #e91e8c);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}
+
+.s8Sub {
+  font-size: 1.6vw;
+  color: rgba(255, 255, 255, 0.4);
+  margin-bottom: 5vh;
+}
+
+.s8Url {
+  font-size: 1.5vw;
+  font-weight: 600;
+  color: #00c9c9;
+  letter-spacing: 0.05em;
+  padding: 1.2vh 2.5vw;
+  border: 1px solid rgba(0, 201, 201, 0.3);
+  border-radius: 100px;
+  display: inline-block;
+  background: rgba(0, 201, 201, 0.07);
+}
