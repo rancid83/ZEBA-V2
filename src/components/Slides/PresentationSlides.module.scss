@@ -215,8 +215,7 @@
   position: relative;
   z-index: 2;
   text-align: left;
-  width: 100%;
-  max-width: 900px;
+  width: 62%;
 }
 
 .s1Logo {
@@ -242,6 +241,7 @@
   line-height: 1.15;
   letter-spacing: -0.03em;
   color: #fff;
+  white-space: nowrap;
   margin-bottom: 3vh;
 
   span {
