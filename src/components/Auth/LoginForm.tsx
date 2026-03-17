@@ -12,12 +12,21 @@ type LoginFormProps = {
 
 const LoginForm = ({ embedded, onSwitchToSignup }: LoginFormProps) => {
   const onFinish = () => {
-    // DB 연동 전이므로 화면만 동작
     console.log('로그인 제출 (미연동)');
   };
 
   return (
     <div className={styles.cardWrap}>
+      <div className={styles.brandBar} />
+      <div className={styles.brandHeader}>
+        <img
+          src="/assets/images/zeba_logo.png"
+          alt="ZEBA"
+          className={styles.brandLogo}
+        />
+        <p className={styles.brandTagline}>세움터 이전 단계의 설계 판단 플랫폼</p>
+      </div>
+      <div className={styles.divider} />
       <h1 className={styles.title}>로그인</h1>
       <p className={styles.subtitle}>ZEBA 서비스 이용을 위해 로그인해 주세요.</p>
       <Form

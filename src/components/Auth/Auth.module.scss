@@ -1,3 +1,6 @@
+$teal: #007676;
+$teal-light: #009e9e;
+
 .wrapper {
   min-height: 100%;
   background-image: url('../../../public/assets/images/bg.png');
@@ -33,40 +36,95 @@
   gap: 6px;
 
   &:hover {
-    color: #007676;
+    color: $teal;
   }
 }
 
 .cardWrap {
   max-width: 440px;
   margin: 0 auto;
-  padding: 48px 40px;
   background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.brandBar {
+  height: 5px;
+  background: linear-gradient(90deg, $teal 0%, $teal-light 50%, #e91e7b 100%);
+}
+
+.brandHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 40px 0;
+}
+
+.brandLogo {
+  height: 40px;
+  width: auto;
+  object-fit: contain;
+}
+
+.brandTagline {
+  margin-top: 8px;
+  font-size: 13px;
+  color: #888;
+  letter-spacing: -0.2px;
+}
+
+.divider {
+  height: 1px;
+  background: #e8e8e8;
+  margin: 20px 40px 0;
 }
 
 .title {
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 700;
-  color: #333;
-  margin-bottom: 8px;
+  color: #222;
+  margin-bottom: 6px;
   text-align: center;
+  padding: 24px 40px 0;
 }
 
 .subtitle {
   font-size: 14px;
-  color: #666;
-  margin-bottom: 32px;
+  color: #888;
+  margin-bottom: 28px;
   text-align: center;
+  padding: 0 40px;
 }
 
 .form {
+  padding: 0 40px 32px;
+
   :global(.ant-form-item) {
     margin-bottom: 20px;
   }
   :global(.ant-form-item-explain-error) {
     font-size: 12px;
+  }
+  :global(.ant-input-affix-wrapper) {
+    border-radius: 8px;
+    border-color: #d9d9d9;
+    transition: all 0.2s;
+
+    &:hover {
+      border-color: $teal;
+    }
+    &:focus,
+    &:global(.ant-input-affix-wrapper-focused) {
+      border-color: $teal;
+      box-shadow: 0 0 0 2px rgba(0, 118, 118, 0.15);
+    }
+  }
+  :global(.ant-input) {
+    &:focus {
+      border-color: $teal;
+      box-shadow: 0 0 0 2px rgba(0, 118, 118, 0.15);
+    }
   }
 }
 
@@ -77,17 +135,25 @@
   font-weight: 600;
   border-radius: 8px;
   margin-top: 8px;
+  background: $teal;
+  border-color: $teal;
+
+  &:hover {
+    background: $teal-light !important;
+    border-color: $teal-light !important;
+  }
 }
 
 .footerLink {
-  margin-top: 24px;
+  margin: 0;
+  padding: 0 40px 32px;
   text-align: center;
   font-size: 14px;
-  color: #666;
+  color: #888;
 
   a {
-    color: #007676;
-    font-weight: 500;
+    color: $teal;
+    font-weight: 600;
     margin-left: 4px;
     text-decoration: none;
 
@@ -101,8 +167,8 @@
   margin-left: 4px;
   padding: 0;
   font-size: 14px;
-  font-weight: 500;
-  color: #007676;
+  font-weight: 600;
+  color: $teal;
   background: none;
   border: none;
   cursor: pointer;

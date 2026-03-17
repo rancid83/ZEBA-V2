@@ -1088,19 +1088,24 @@ $grayBorder: #d6dde4;
   :global(.ant-modal-content) {
     border-radius: 16px;
     overflow: hidden;
+    padding: 0;
   }
   :global(.ant-modal-body) {
     padding: 0;
   }
+  :global(.ant-modal-close) {
+    top: 12px;
+    right: 12px;
+    color: #999;
+  }
 }
 
 .authModalBody {
-  padding: 24px 0 0;
-
   > div {
     margin: 0;
-    padding: 24px 40px 32px;
+    border-radius: 0;
     box-shadow: none;
+    max-width: 100%;
   }
 }
 
