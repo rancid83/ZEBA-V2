@@ -1,0 +1,30 @@
+[
+  {
+    "name": "외벽",
+    "regulation": "89,392",
+    "mandatory": "89,392",
+    "target": "89,392",
+    "combined": "89,392"
+  },
+  {
+    "name": "창호",
+    "regulation": "170,452",
+    "mandatory": "170,452",
+    "target": "170,452",
+    "combined": "170,452"
+  },
+  {
+    "name": "지붕",
+    "regulation": "112,723",
+    "mandatory": "112,723",
+    "target": "112,723",
+    "combined": "112,723"
+  },
+  {
+    "name": "바닥",
+    "regulation": "643,134",
+    "mandatory": "643,134",
+    "target": "643,134",
+    "combined": "643,134"
+  }
+]

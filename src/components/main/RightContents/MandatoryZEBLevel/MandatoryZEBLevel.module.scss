@@ -1,0 +1,154 @@
+// right.module.scss에서 MandatoryZEBLevel에서 사용하는 스타일을 옮김
+.mandatoryGradeContainer {
+  background: #ffffff;
+  padding: 41px 35px;
+  box-sizing: border-box;
+  mix-blend-mode: normal;
+  box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.08);
+  border-radius: 0px 12px 12px 12px;
+
+  .mandatoryGrade {
+    border: 1px solid #cecece;
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+    border-radius: 12px;
+    padding: 42px 34px;
+    box-sizing: border-box;
+  }
+
+  .mandatoryGradeHeader {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    .icon {
+      width: 24px;
+      height: 24px;
+    }
+    .title {
+      font-weight: 700;
+      font-size: 24px;
+      color: #444;
+    }
+  }
+
+  .mandatoryGradeAddr {
+    display: flex;
+    gap: 8px;
+    justify-content: right;
+  }
+
+  .mapContainer {
+    width: 395px;
+    height: 306px;
+  }
+
+  .addressContainer {
+    flex: 1;
+    .addressSection {
+      margin-bottom: 16px;
+      .addressTitle {
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 16px;
+        color: #333;
+      }
+      .inputGroup {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+        &:last-child {
+          margin-bottom: 0;
+        }
+        .inputLabel {
+          font-size: 14px;
+          color: #666;
+          min-width: 60px;
+          flex-shrink: 0;
+        }
+        .addressInput {
+          height: 40px;
+          flex: 1;
+        }
+      }
+    }
+  }
+
+  .buildingInfoContainer {
+    margin-top: 55px;
+    display: flex;
+    gap: 40px;
+    .buildingInfoSection {
+      flex: 1;
+      .buildingInfoTitle {
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 16px;
+        color: #333;
+      }
+      .infoRow {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+        &:last-child {
+          margin-bottom: 0;
+        }
+        .infoLabel {
+          font-size: 14px;
+          color: #666;
+          min-width: 60px;
+          flex-shrink: 0;
+        }
+        .infoInput {
+          height: 32px;
+          flex: 1;
+        }
+        .infoSelect {
+          height: 32px;
+          flex: 1;
+        }
+        .unitText {
+          font-size: 14px;
+          color: #666;
+        }
+      }
+    }
+  }
+
+  .infoRow {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+  }
+
+  .zebGradeInputLabel {
+    font-size: 13px;
+    color: #4e4e4e;
+  }
+}
+
+.standardModelPerformanceEdit {
+  background: #ffffff;
+  padding: 41px 35px;
+  box-sizing: border-box;
+  mix-blend-mode: normal;
+  box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.08);
+  border-radius: 0px 12px 12px 12px;
+}
+
+.standardModelPerformanceEditTitle {
+  font-size: 24px;
+  font-weight: bold;
+  color: #4e4e4e;
+}
+.standardModelPerformanceEditContentWrapper {
+  padding: 45px 0 0 38px;
+  box-sizing: border-box;
+}
+
+.standardModelPerformanceEditSubtitle {
+  font-size: 14px;
+  line-height: 24px;
+  color: #7e7e7e;
+}

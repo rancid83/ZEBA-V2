@@ -1,0 +1,37 @@
+[
+  {
+    "name": "[급탕] 전기 보일러 효율 <%>",
+    "regulation": "88.00",
+    "mandatory": "96.00",
+    "target": "88.00",
+    "combined": "88.00"
+  },
+  {
+    "name": "[냉방] EHP(전기히트펌프) 효율 <COP>",
+    "regulation": "3.20",
+    "mandatory": "3.60",
+    "target": "3.60",
+    "combined": "3.60"
+  },
+  {
+    "name": "[난방] EHP(전기히트펌프) 효율 <COP>",
+    "regulation": "3.50",
+    "mandatory": "4.20",
+    "target": "4.20",
+    "combined": "4.20"
+  },
+  {
+    "name": "[난방] GHP(가스히트펌프) 효율 <COP>",
+    "regulation": "1.30",
+    "mandatory": "1.50",
+    "target": "1.50",
+    "combined": "1.50"
+  },
+  {
+    "name": "[조명] 평균 조명밀도 <W/㎡>",
+    "regulation": "6.30",
+    "mandatory": "5.00",
+    "target": "4.00",
+    "combined": "4.00"
+  }
+]

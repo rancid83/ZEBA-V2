@@ -1,0 +1,25 @@
+.wrap {
+  position: relative;
+}
+
+.fuelCellRadio {
+  position: absolute;
+  top: 17px;
+  left: 160px;
+}
+
+.positionSelect {
+  position: absolute;
+  bottom: 37px;
+  left: 27px;
+  gap: 8px;
+  > span {
+    margin-right: 10px;
+  }
+}
+
+.editSlider {
+  > div {
+    height: 217px;
+  }
+}

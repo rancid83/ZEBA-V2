@@ -1,0 +1,189 @@
+// EnergySelfSufficiencyContent에서 사용하는 스타일 복사
+.mandatoryGradeContainer {
+  background: #ffffff;
+  padding: 41px 35px;
+  box-sizing: border-box;
+  mix-blend-mode: normal;
+  box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.08);
+  border-radius: 0px 12px 12px 12px;
+
+  .mandatoryGrade {
+    border: 1px solid #cecece;
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+    border-radius: 12px;
+    padding: 42px 34px;
+    box-sizing: border-box;
+  }
+
+  .mandatoryGradeHeader {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    .icon {
+      width: 24px;
+      height: 24px;
+    }
+    .title {
+      font-weight: 700;
+      font-size: 24px;
+      color: #444;
+    }
+  }
+
+  .chartContainer {
+    margin-top: 52px;
+  }
+
+  .gradeWrap {
+    margin-top: 141.81px;
+  }
+
+  .gradeBox {
+    border: 1px solid #cecece;
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+    border-radius: 12px;
+    min-width: 229px;
+    //width: 229px;
+    //height: 374px;
+    padding: 21px 27px;
+    box-sizing: border-box;
+  }
+
+  .gradePieWrap {
+    position: relative;
+  }
+
+  .gradePie {
+    position: relative;
+    border: 1px solid #cecece;
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+    border-radius: 12px;
+    width: 229px;
+    height: 400px;
+  }
+
+  .gradeLabel {
+    > div {
+      text-align: center;
+      span:first-child {
+        font-weight: bold;
+        font-size: 17px;
+        color: #4e4e4e;
+      }
+      span:last-child {
+        font-size: 12px;
+        color: #7e7e7e;
+      }
+    }
+  }
+
+  .gradeValue {
+    text-align: center;
+  }
+
+  .gradeFlex {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 20px;
+  }
+
+  .gradeFlexText {
+    padding: 30px 16px 0 24px;
+    > span {
+      font-size: 14px;
+      color: #7e7e7e;
+    }
+    > span:nth-child(2) {
+      font-size: 19px;
+      color: #2a4e51;
+      font-weight: bold;
+      > span {
+        font-size: 14px;
+        color: #7e7e7e;
+        font-weight: normal;
+        margin-left: 5px;
+      }
+    }
+  }
+
+  .gradeText {
+    display: block;
+    font-weight: bold;
+    font-size: 29px;
+    color: #2a4e51;
+    > span {
+      font-size: 18px;
+      color: #7e7e7e;
+      font-weight: normal;
+      margin-left: 3px;
+    }
+  }
+
+  .won {
+    font-size: 14px;
+    color: #7e7e7e;
+    margin-left: 2px;
+  }
+
+  .zebGrade {
+    border-radius: 18px;
+    background: #007676;
+    padding: 1.5px 14px;
+    color: #fff;
+    line-height: 28.95px;
+  }
+
+  .zebGradeNum {
+    color: #007676;
+    font-weight: bold;
+    font-size: 19px;
+    margin-left: 5px;
+  }
+
+  .zebGradeText {
+    margin: 16px 0;
+  }
+
+  .creatorText {
+    color: #7e7e7e;
+    font-size: 14px;
+    margin-top: 15px;
+    > div {
+      > span {
+        color: #2a4e51;
+        font-size: 19px;
+        font-weight: bold;
+      }
+    }
+  }
+
+  .zebGradeTextSub {
+    margin-top: 3px;
+    color: #7e7e7e;
+    font-size: 14px;
+    align-items: center;
+    gap: 5px;
+    > span:nth-child(2) {
+      text-align: right;
+      flex: 1;
+      font-size: 19px;
+      color: #2a4e51;
+      font-weight: bold;
+    }
+  }
+
+  .divider {
+    position: absolute;
+    bottom: -55px;
+  }
+
+  .descriptionText {
+    position: absolute;
+    font-size: 17px;
+    color: #7e7e7e;
+    text-align: center;
+    width: 100%;
+    bottom: -100px;
+  }
+}

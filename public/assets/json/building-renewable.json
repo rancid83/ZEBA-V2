@@ -1,0 +1,37 @@
+[
+  {
+    "name": "태양광(BAPV)",
+    "regulation": "89,392",
+    "mandatory": "89,392",
+    "target": "89,392",
+    "combined": "89,392"
+  },
+  {
+    "name": "태양광(BIPV)",
+    "regulation": "170,452",
+    "mandatory": "170,452",
+    "target": "170,452",
+    "combined": "170,452"
+  },
+  {
+    "name": "연료전지",
+    "regulation": "112,723",
+    "mandatory": "112,723",
+    "target": "112,723",
+    "combined": "112,723"
+  },
+  {
+    "name": "GSHP(지열히트펌프)",
+    "regulation": "643,134",
+    "mandatory": "643,134",
+    "target": "643,134",
+    "combined": "643,134"
+  },
+  {
+    "name": "태양열",
+    "regulation": "112,723",
+    "mandatory": "112,723",
+    "target": "112,723",
+    "combined": "112,723"
+  }
+]

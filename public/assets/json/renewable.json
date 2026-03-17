@@ -1,0 +1,30 @@
+[
+  {
+    "name": "태양광(BAPV)_용량 <kW>",
+    "regulation": "88.00",
+    "mandatory": "96.00",
+    "target": "88.00",
+    "combined": "88.00"
+  },
+  {
+    "name": "태양광(BAPV)_효율 <%>",
+    "regulation": "15.00",
+    "mandatory": "22.00",
+    "target": "22.00",
+    "combined": "22.00"
+  },
+  {
+    "name": "태양광(BIPV)_용량 <kW>",
+    "regulation": "88.00",
+    "mandatory": "96.00",
+    "target": "88.00",
+    "combined": "88.00"
+  },
+  {
+    "name": "연료전지_용량 <kW>",
+    "regulation": "-",
+    "mandatory": "-",
+    "target": "-",
+    "combined": "-"
+  }
+]

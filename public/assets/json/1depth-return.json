@@ -1,0 +1,306 @@
+{
+  "gradeBuildingData": [
+    {
+      "label": {
+        "title": "법규 기준(regulation)",
+        "subTitle": "에너지 자립률"
+      },
+      "zebGrade": 0,
+      "grade": 7.14,
+      "renewable": 13545,
+      "active": 179810,
+      "passive": 1011569,
+      "increase": 0,
+      "benefit": 0
+    },
+    {
+      "label": {
+        "title": "ZEB 사전 진단(mandatory)",
+        "subTitle": "에너지 자립률"
+      },
+      "zebGrade": 5,
+      "grade": 6.25,
+      "renewable": 46636,
+      "active": 227056,
+      "passive": 114246,
+      "increase": 93016,
+      "benefit": 0
+    },
+    {
+      "label": {
+        "title": "ZEB 목표 설정(target)",
+        "subTitle": "시공 비용 합계"
+      },
+      "zebGrade": 0,
+      "grade": 0,
+      "renewable": 0,
+      "active": 0,
+      "passive": 0,
+      "increase": 0,
+      "benefit": 0
+    },
+    {
+      "label": {
+        "title": "ZEB 성능 편집(combined)",
+        "subTitle": "시공 비용 합계"
+      },
+      "zebGrade": 0,
+      "grade": 0,
+      "renewable": 0,
+      "active": 0,
+      "passive": 0,
+      "increase": 0,
+      "benefit": 0
+    }
+  ],
+  "gradeData": [
+    {
+      "label": {
+        "title": "법규 기준",
+        "subTitle": "에너지 자립률"
+      },
+      "grade": 7.14,
+      "zebGrade": 0,
+      "creator": 13.37,
+      "consume": 173.79
+    },
+    {
+      "label": {
+        "title": "ZEB 사전 진단",
+        "subTitle": "에너지 자립률"
+      },
+      "grade": 6.25,
+      "zebGrade": 0,
+      "creator": 10.54,
+      "consume": 157.98
+    },
+    {
+      "label": {
+        "title": "ZEB 목표 설정",
+        "subTitle": "에너지 자립률"
+      },
+      "grade": 0,
+      "zebGrade": 0,
+      "creator": 0,
+      "consume": 0
+    },
+    {
+      "label": {
+        "title": "ZEB 성능 편집",
+        "subTitle": "에너지 자립률"
+      },
+      "grade": 0,
+      "zebGrade": 0,
+      "creator": 0,
+      "consume": 0
+    }
+  ],
+  "active": [
+    {
+      "name": "[급탕] 전기 보일러 효율 <%>",
+      "regulation": "88.00",
+      "mandatory": "96.00",
+      "target": "-",
+      "combined": "-"
+    },
+    {
+      "name": "[냉방] EHP(전기히트펌프) 효율 <COP>",
+      "regulation": "3.20",
+      "mandatory": "3.60",
+      "target": "-",
+      "combined": "-"
+    },
+    {
+      "name": "[난방] EHP(전기히트펌프) 효율 <COP>",
+      "regulation": "3.50",
+      "mandatory": "4.20",
+      "target": "-",
+      "combined": "-"
+    },
+    {
+      "name": "[난방] GHP(가스히트펌프) 효율 <COP>",
+      "regulation": "1.30",
+      "mandatory": "1.50",
+      "target": "-",
+      "combined": "-"
+    },
+    {
+      "name": "[조명] 평균 조명밀도 <W/㎡>",
+      "regulation": "6.30",
+      "mandatory": "5.00",
+      "target": "-",
+      "combined": "-"
+    }
+  ],
+  "passive": [
+    {
+      "name": "외벽 열관류율 <W/㎡·K>",
+      "regulation": "0.24",
+      "mandatory": "0.19",
+      "target": "-",
+      "combined": "-"
+    },
+    {
+      "name": "창호 열관류율 <W/㎡·K>",
+      "regulation": "1.50",
+      "mandatory": "1.20",
+      "target": "-",
+      "combined": "-"
+    },
+    {
+      "name": "지붕 열관류율 <W/㎡·K>",
+      "regulation": "0.15",
+      "mandatory": "0.12",
+      "target": "-",
+      "combined": "-"
+    },
+    {
+      "name": "바닥 열관류율 <W/㎡·K>",
+      "regulation": "0.20",
+      "mandatory": "0.16",
+      "target": "-",
+      "combined": "-"
+    }
+  ],
+  "renewable": [
+    {
+      "name": "태양광(BAPV)_용량 <kW>",
+      "regulation": "132.00",
+      "mandatory": "1320.00",
+      "target": "-",
+      "combined": "-"
+    },
+    {
+      "name": "태양광(BAPV)_효율 <%>",
+      "regulation": "12.00",
+      "mandatory": "14.40",
+      "target": "-",
+      "combined": "-"
+    },
+    {
+      "name": "태양광(BIPV)_용량 <kW>",
+      "regulation": "0.00",
+      "mandatory": "0.00",
+      "target": "-",
+      "combined": "-"
+    },
+    {
+      "name": "연료전지_용량 <kW>",
+      "regulation": "-",
+      "mandatory": "-",
+      "target": "-",
+      "combined": "-"
+    }
+  ],
+  "activeCost": [
+    {
+      "name": "[급탕] 보일러_가스",
+      "regulation": "89,392",
+      "mandatory": "89,392",
+      "target": "-",
+      "combined": "-"
+    },
+    {
+      "name": "[급탕] 보일러_전기",
+      "regulation": "170,452",
+      "mandatory": "170,452",
+      "target": "-",
+      "combined": "-"
+    },
+    {
+      "name": "[냉난방] EHP(전기히트펌프)",
+      "regulation": "112,723",
+      "mandatory": "112,723",
+      "target": "-",
+      "combined": "-"
+    },
+    {
+      "name": "[냉난방] GHP(가스히트펌프)",
+      "regulation": "643,134",
+      "mandatory": "643,134",
+      "target": "-",
+      "combined": "-"
+    },
+    {
+      "name": "전열교환기",
+      "regulation": "112,723",
+      "mandatory": "112,723",
+      "target": "-",
+      "combined": "-"
+    },
+    {
+      "name": "조명",
+      "regulation": "643,134",
+      "mandatory": "643,134",
+      "target": "-",
+      "combined": "-"
+    }
+  ],
+  "passiveCost": [
+    {
+      "name": "외벽",
+      "regulation": "89,392",
+      "mandatory": "89,392",
+      "target": "-",
+      "combined": "-"
+    },
+    {
+      "name": "창호",
+      "regulation": "170,452",
+      "mandatory": "170,452",
+      "target": "-",
+      "combined": "-"
+    },
+    {
+      "name": "지붕",
+      "regulation": "112,723",
+      "mandatory": "112,723",
+      "target": "-",
+      "combined": "-"
+    },
+    {
+      "name": "바닥",
+      "regulation": "643,134",
+      "mandatory": "643,134",
+      "target": "-",
+      "combined": "-"
+    }
+  ],
+  "renewableCost": [
+    {
+      "name": "태양광(BAPV)",
+      "regulation": "89,392",
+      "mandatory": "1,234,567",
+      "target": "-",
+      "combined": "-"
+    },
+    {
+      "name": "태양광(BIPV)",
+      "regulation": "170,452",
+      "mandatory": "170,452",
+      "target": "-",
+      "combined": "-"
+    },
+    {
+      "name": "연료전지",
+      "regulation": "112,723",
+      "mandatory": "112,723",
+      "target": "-",
+      "combined": "-"
+    },
+    {
+      "name": "GSHP(지열히트펌프)",
+      "regulation": "643,134",
+      "mandatory": "643,134",
+      "target": "-",
+      "combined": "-"
+    },
+    {
+      "name": "태양열",
+      "regulation": "112,723",
+      "mandatory": "112,723",
+      "target": "-",
+      "combined": "-"
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+[
+  {
+    "name": "외벽 열관류율 <W/㎡·K>",
+    "regulation": "0.24",
+    "mandatory": "0.19",
+    "target": "0.24",
+    "combined": "0.24"
+  },
+  {
+    "name": "창호 열관류율 <W/㎡·K>",
+    "regulation": "0.24",
+    "mandatory": "0.19",
+    "target": "0.24",
+    "combined": "0.24"
+  },
+  {
+    "name": "지붕 열관류율 <W/㎡·K>",
+    "regulation": "0.24",
+    "mandatory": "0.19",
+    "target": "0.24",
+    "combined": "0.24"
+  },
+  {
+    "name": "바닥 열관류율 <W/㎡·K>",
+    "regulation": "0.24",
+    "mandatory": "0.19",
+    "target": "0.24",
+    "combined": "0.24"
+  }
+]

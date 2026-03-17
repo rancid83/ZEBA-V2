@@ -1,0 +1,313 @@
+.mandatoryGradeContainer {
+  background: #ffffff;
+  //border: 1px solid #CECECE;
+  //box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+  //border-radius: 12px;
+  padding: 41px 35px;
+  box-sizing: border-box;
+
+  /* Rectangle 604 */
+  mix-blend-mode: normal;
+  /* Shadow/8 */
+  box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.08);
+  border-radius: 0px 12px 12px 12px;
+
+  .mandatoryGrade {
+    border: 1px solid #cecece;
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+    border-radius: 12px;
+    padding: 42px 34px;
+    box-sizing: border-box;
+  }
+
+  .mandatoryGradeHeader {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    .icon {
+      width: 24px;
+      height: 24px;
+    }
+
+    .title {
+      font-weight: 700;
+      font-size: 24px;
+      color: #444;
+    }
+  }
+
+  .mandatoryGradeAddr {
+    display: flex;
+    gap: 8px;
+    justify-content: right;
+  }
+
+  .mapContainer {
+    width: 395px;
+    height: 306px;
+  }
+
+  .addressContainer {
+    flex: 1;
+
+    .addressSection {
+      margin-bottom: 16px;
+
+      .addressTitle {
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 16px;
+        color: #333;
+      }
+
+      .inputGroup {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+
+        &:last-child {
+          margin-bottom: 0;
+        }
+
+        .inputLabel {
+          font-size: 14px;
+          color: #666;
+          min-width: 60px;
+          flex-shrink: 0;
+        }
+
+        .addressInput {
+          height: 40px;
+          flex: 1;
+        }
+      }
+    }
+  }
+
+  .buildingInfoContainer {
+    margin-top: 55px;
+    display: flex;
+    gap: 40px;
+
+    .buildingInfoSection {
+      flex: 1;
+
+      .buildingInfoTitle {
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 16px;
+        color: #333;
+      }
+
+      .infoRow {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+
+        &:last-child {
+          margin-bottom: 0;
+        }
+
+        .infoLabel {
+          font-size: 14px;
+          color: #666;
+          min-width: 60px;
+          flex-shrink: 0;
+        }
+
+        .infoInput {
+          height: 32px;
+          flex: 1;
+        }
+
+        .infoSelect {
+          height: 32px;
+          flex: 1;
+        }
+
+        .unitText {
+          font-size: 14px;
+          color: #666;
+        }
+      }
+    }
+  }
+
+  .infoRow {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+  }
+
+  .chartContainer {
+    margin-top: 52px;
+  }
+
+  .gradeWrap {
+    margin-top: 71.81px;
+  }
+
+  .gradeBox {
+    border: 1px solid #cecece;
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+    border-radius: 12px;
+    width: 229px;
+    height: 374px;
+    padding: 21px 27px;
+    box-sizing: border-box;
+  }
+
+  .gradePie {
+    border: 1px solid #cecece;
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+    border-radius: 12px;
+    width: 255px;
+    height: 374px;
+  }
+
+  .gradeLabel {
+    > div {
+      text-align: center;
+      span:first-child {
+        font-size: 17px;
+        color: #4e4e4e;
+      }
+      span:last-child {
+        font-size: 14px;
+        color: #7e7e7e;
+      }
+    }
+  }
+
+  .gradeValue {
+    text-align: center;
+  }
+
+  .gradeFlex {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 11px;
+  }
+
+  .gradeFlexText {
+    padding: 10px 16px 0 24px;
+
+    > span {
+      font-size: 14px;
+      color: #7e7e7e;
+    }
+    > span:nth-child(2) {
+      font-size: 19px;
+      color: #2a4e51;
+      font-weight: bold;
+      > span {
+        font-size: 14px;
+        color: #7e7e7e;
+        font-weight: normal;
+        margin-left: 5px;
+      }
+    }
+  }
+
+  .gradeText {
+    display: block;
+    font-weight: bold;
+    font-size: 29px;
+    color: #2a4e51;
+  }
+
+  .won {
+    font-size: 14px;
+    color: #7e7e7e;
+    margin-left: 2px;
+  }
+
+  .zebGrade {
+    border-radius: 18px;
+    background: #007676;
+    padding: 1.5px 14px;
+    color: #fff;
+  }
+
+  .zebGradeNum {
+    color: #007676;
+    font-weight: bold;
+    font-size: 19px;
+    margin-left: 5px;
+  }
+
+  .zebGradeText {
+    margin: 16px 0;
+  }
+
+  .consumeText {
+    font-size: 14px;
+  }
+
+  .creatorText {
+    color: #7e7e7e;
+    font-size: 14px;
+    margin-top: 15px;
+    > div {
+      > span {
+        color: #2a4e51;
+        font-size: 19px;
+        font-weight: bold;
+      }
+    }
+  }
+
+  .energyDetailCollapse {
+    box-sizing: border-box;
+    background: #ffffff;
+    border: 1px solid #cecece;
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+    border-radius: 12px;
+    margin-top: 17px;
+  }
+
+  .collapseTitle {
+    position: relative;
+    font-size: 15px;
+    line-height: 24px;
+    color: #4e4e4e;
+    > div {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      opacity: 0.5;
+      font-size: 13px;
+    }
+  }
+
+  .detailDescription {
+    color: #7e7e7e;
+    font-size: 14px;
+    margin-top: 45px;
+  }
+
+  .EnergyDetailTitle {
+    padding-left: 42px;
+    box-sizing: border-box;
+  }
+
+  .zebGradeTextSub {
+    margin-top: 3px;
+    color: #7e7e7e;
+    font-size: 14px;
+    align-items: center;
+    gap: 5px;
+    > span:nth-child(2) {
+      text-align: right;
+      flex: 1;
+      font-size: 19px;
+      color: #2a4e51;
+      font-weight: bold;
+    }
+  }
+}

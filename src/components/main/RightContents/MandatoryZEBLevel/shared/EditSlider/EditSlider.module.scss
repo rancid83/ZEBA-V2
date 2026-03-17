@@ -1,0 +1,105 @@
+.editWrap {
+  border: 1px solid #cecece;
+  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+  border-radius: 12px;
+  width: 511px;
+  height: 200px;
+  padding: 21px 27px;
+  box-sizing: border-box;
+}
+
+.editWrapTemplate2 {
+  box-shadow: unset;
+  border: unset;
+  padding-top: unset;
+  padding-bottom: unset;
+  height: 160px;
+}
+
+.editWrapVentilator {
+  padding-left: 0;
+  padding-right: 0;
+  &:first-child {
+    padding-right: 27px;
+  }
+  &:last-child {
+    padding-left: 27px;
+  }
+}
+
+.editTitle {
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.sliderWrapper {
+  position: relative;
+  gap: 26px;
+  margin-top: 45px;
+  > div {
+    &:first-child {
+      width: 100%;
+    }
+    &:last-child {
+      position: relative;
+    }
+  }
+}
+
+.typeTextWrapper {
+  color: #ffffff;
+  border-radius: 18px;
+  font-size: 10px;
+  padding: 0 8px;
+  box-sizing: border-box;
+}
+
+.sliderClass {
+  //margin-top: 45px;
+  :global(.ant-slider-dot) {
+    width: 12px !important;
+    height: 12px !important;
+    border-width: 3px !important;
+    background-color: #fff !important;
+    margin-top: -2px;
+  }
+}
+
+.typeTextEfficiency {
+  position: absolute;
+  color: #2a4e51;
+  background: #ffffff;
+  border: 1px solid #2a4e51;
+  bottom: -30%;
+  left: 0;
+}
+
+.sliderNumberUnit {
+  position: absolute;
+  color: #7e7e7e;
+  font-size: 12px;
+  top: -25px;
+  right: 0;
+}
+
+.controller {
+  margin-top: 8px;
+}
+
+.enhance {
+  background: #007676;
+  padding: 2px 10px;
+  box-sizing: border-box;
+  color: #fff;
+  border-radius: 18px;
+  font-size: 12px;
+  > span {
+    font-size: 11px;
+    margin-right: 5px;
+    font-weight: bold;
+  }
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
