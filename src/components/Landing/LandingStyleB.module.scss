@@ -1,0 +1,1240 @@
+$bg: #fafafa;
+$text: #111827;
+$border: #e5e7eb;
+$teal: #0f766e;
+$tealLight: #f0fdfa;
+$tealBorder: #ccfbf1;
+$title: #030712;
+$body: #6b7280;
+$muted: #9ca3af;
+$cardBorder: #e5e7eb;
+$cardBg: #ffffff;
+$white: #fff;
+$dark: #111827;
+$gray: #4b5563;
+$grayBorder: #d1d5db;
+
+.page {
+  min-height: 100vh;
+  background: $bg;
+  color: $text;
+}
+
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 32px;
+  @media (min-width: 1024px) {
+    padding: 32px 48px;
+  }
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 32px;
+  padding: 16px 32px;
+  background: $white;
+  border-bottom: 1px solid $border;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.headerLogo {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.headerLogoImg {
+  height: 32px;
+  width: auto;
+  object-fit: contain;
+}
+
+.headerLogoTagline {
+  font-size: 13px;
+  font-weight: 500;
+  color: $muted;
+  padding-left: 16px;
+  border-left: 1px solid $border;
+  white-space: nowrap;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.headerLinkText {
+  padding: 8px 12px;
+  font-size: 14px;
+  font-weight: 500;
+  color: $gray;
+  background: none;
+  border: none;
+  cursor: pointer;
+  &:hover {
+    color: $teal;
+  }
+}
+
+.headerBtnSecondary {
+  padding: 8px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  color: $gray;
+  border: 1px solid $grayBorder;
+  border-radius: 6px;
+  text-decoration: none;
+  &:hover {
+    color: $teal;
+    border-color: $teal;
+  }
+}
+
+.headerBtnPrimary {
+  border-radius: 6px !important;
+  padding: 10px 24px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  background: $dark !important;
+  border: none !important;
+}
+
+.heroGrid {
+  margin-top: 40px;
+  display: grid;
+  gap: 40px;
+  align-items: stretch;
+  @media (min-width: 1024px) {
+    grid-template-columns: 1.1fr 0.9fr;
+  }
+}
+
+.heroLeft {
+  padding: 40px;
+  background: $white;
+  border: 1px solid $border;
+  border-radius: 8px;
+}
+
+.badgeTeal {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: $teal;
+  background: $tealLight;
+  border: 1px solid $tealBorder;
+  border-radius: 4px;
+}
+
+.heroTitle {
+  margin-top: 24px;
+  font-size: 44px;
+  font-weight: 700;
+  line-height: 1.12;
+  letter-spacing: -0.03em;
+  color: $title;
+}
+
+.heroTitleAccent {
+  color: $teal;
+}
+
+.heroDesc {
+  margin-top: 24px;
+  max-width: 640px;
+  font-size: 16px;
+  line-height: 1.8;
+  color: $body;
+}
+
+.platformCards {
+  margin-top: 40px;
+  display: grid;
+  gap: 20px;
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.platformCard {
+  padding: 24px;
+  background: $bg;
+  border: 1px solid $cardBorder;
+  border-radius: 8px;
+  transition: box-shadow 0.2s;
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  }
+}
+
+.platformCardIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: $tealLight;
+  color: $teal;
+  border-radius: 8px;
+  font-size: 20px;
+}
+
+.platformCardTitle {
+  margin-top: 16px;
+  font-size: 16px;
+  font-weight: 600;
+  color: $title;
+}
+
+.platformCardBody {
+  margin-top: 8px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: $body;
+}
+
+.flowBox {
+  margin-top: 40px;
+  padding: 32px;
+  background: $bg;
+  border: 1px solid $border;
+  border-radius: 8px;
+}
+
+.flowLabel {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: $muted;
+}
+
+.flowTitle {
+  margin-top: 12px;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: $title;
+}
+
+.flowSteps {
+  margin-top: 24px;
+  display: grid;
+  gap: 12px;
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+.flowStep {
+  position: relative;
+  padding: 16px;
+  background: $white;
+  border: 1px solid $cardBorder;
+  border-radius: 6px;
+}
+
+.flowStepNum {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: $muted;
+}
+
+.flowStepText {
+  margin-top: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.5;
+  color: $text;
+}
+
+.flowStepArrow {
+  display: none;
+  position: absolute;
+  right: -12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 16px;
+  color: $muted;
+  @media (min-width: 768px) {
+    display: block;
+  }
+}
+
+.heroRight {
+  padding: 32px;
+  background: $white;
+  border: 1px solid $border;
+  border-radius: 8px;
+}
+
+.quickEntryHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.quickEntryLabel {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: $muted;
+}
+
+.quickEntryTitle {
+  margin-top: 4px;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: $title;
+}
+
+.quickEntryBtn {
+  border-radius: 6px !important;
+  padding: 8px 20px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  background: $dark !important;
+  border: none !important;
+}
+
+.quickEntryDesc {
+  margin-top: 16px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: $body;
+}
+
+.quickEntryCards {
+  margin-top: 24px;
+  display: grid;
+  gap: 16px;
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.infoCard {
+  padding: 20px;
+  background: $bg;
+  border: 1px solid $border;
+  border-radius: 6px;
+}
+
+.infoCardTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: $title;
+  padding-bottom: 12px;
+  border-bottom: 1px solid $border;
+}
+
+.infoCardList {
+  margin-top: 12px;
+  font-size: 14px;
+  color: $body;
+  & > div {
+    margin-bottom: 6px;
+    padding-left: 12px;
+    position: relative;
+    &::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 8px;
+      width: 4px;
+      height: 4px;
+      background: $muted;
+      border-radius: 50%;
+    }
+  }
+}
+
+.quickEntryNote {
+  margin-top: 24px;
+  padding: 20px;
+  background: $bg;
+  border-left: 3px solid $teal;
+  border-radius: 0 6px 6px 0;
+}
+
+.quickEntryNoteTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: $text;
+}
+
+.quickEntryNoteBody {
+  margin-top: 8px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: $body;
+}
+
+.collabBox {
+  margin-top: 24px;
+  padding: 24px;
+  background: $white;
+  border: 1px solid $border;
+  border-radius: 8px;
+}
+
+.collabBoxTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: $title;
+  :global(.anticon) {
+    color: $teal;
+    font-size: 18px;
+  }
+}
+
+.collabBoxBody {
+  margin-top: 12px;
+  font-size: 14px;
+  line-height: 1.7;
+  color: $body;
+}
+
+.collabBoxGrid {
+  margin-top: 20px;
+  display: grid;
+  gap: 12px;
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.collabBoxItem {
+  padding: 16px;
+  background: $bg;
+  border: 1px solid $border;
+  border-radius: 6px;
+}
+
+.collabBoxItemTitle {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: $teal;
+}
+
+.collabBoxItemBody {
+  margin-top: 8px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: $body;
+}
+
+.sectionGrid {
+  margin-top: 32px;
+  display: grid;
+  gap: 32px;
+  @media (min-width: 1024px) {
+    grid-template-columns: 0.9fr 1.1fr;
+  }
+}
+
+.sectionLabel {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: $muted;
+}
+
+.sectionTitle {
+  margin-top: 8px;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: $title;
+}
+
+.serviceStructure {
+  padding: 40px;
+  background: $white;
+  border: 1px solid $border;
+  border-radius: 8px;
+}
+
+.serviceList {
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.serviceItem {
+  padding: 20px;
+  background: $bg;
+  border: 1px solid $border;
+  border-radius: 6px;
+  border-left: 3px solid $teal;
+}
+
+.serviceItemTitle {
+  font-size: 15px;
+  font-weight: 600;
+  color: $title;
+}
+
+.serviceItemBody {
+  margin-top: 8px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: $body;
+}
+
+.resultPanel {
+  padding: 32px;
+  background: $white;
+  border: 1px solid $border;
+  border-radius: 8px;
+}
+
+.resultPanelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.resultToggleBtn {
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: $gray;
+  border: 1px solid $grayBorder;
+}
+
+.resultPlaceholder {
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 640px;
+  background: $bg;
+  border: 1px dashed $grayBorder;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.resultPlaceholderIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  margin: 0 auto;
+  background: $tealLight;
+  color: $teal;
+  border-radius: 8px;
+  font-size: 28px;
+}
+
+.resultPlaceholderTitle {
+  margin-top: 16px;
+  font-size: 18px;
+  font-weight: 600;
+  color: $title;
+}
+
+.resultPlaceholderDesc {
+  margin-top: 8px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: $body;
+}
+
+.resultContent {
+  margin-top: 24px;
+  padding: 24px;
+  background: $bg;
+  border: 1px solid $border;
+  border-radius: 8px;
+}
+
+.resultKpis {
+  display: grid;
+  gap: 16px;
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.resultKpi {
+  padding: 24px;
+  background: $white;
+  border: 1px solid $border;
+  border-radius: 6px;
+  transition: box-shadow 0.2s;
+  &:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  }
+}
+
+.resultKpiLabel {
+  font-size: 13px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: $muted;
+}
+
+.resultKpiValue {
+  margin-top: 12px;
+  font-size: 36px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: $title;
+}
+
+.resultKpiValueAccent {
+  margin-top: 12px;
+  font-size: 36px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: $teal;
+}
+
+.energyChartBox {
+  margin-top: 24px;
+  padding: 24px;
+  background: $white;
+  border: 1px solid $border;
+  border-radius: 8px;
+}
+
+.energyChartHeader {
+  margin-bottom: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.energyChartTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: $title;
+  :global(.anticon) {
+    color: $teal;
+    font-size: 18px;
+  }
+}
+
+.energyChartBadges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.badge {
+  padding: 4px 10px;
+  font-weight: 600;
+  color: $white;
+  background: $teal;
+  border-radius: 4px;
+}
+
+.badgeLight {
+  padding: 4px 10px;
+  font-weight: 600;
+  color: $teal;
+  background: $tealLight;
+  border: 1px solid $tealBorder;
+  border-radius: 4px;
+}
+
+.barsRow {
+  padding: 20px;
+  background: $bg;
+  border: 1px solid $border;
+  border-radius: 6px;
+  display: grid;
+  gap: 16px;
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.barCol {
+  text-align: center;
+}
+
+.barChart {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  min-height: 240px;
+  max-width: 220px;
+  margin: 0 auto;
+  padding: 16px;
+  background: $white;
+  border: 1px solid $border;
+  border-radius: 6px;
+}
+
+.barGroup {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 16px;
+  width: 100%;
+}
+
+.barWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  width: 64px;
+}
+
+.barValue {
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: $title;
+}
+
+.barFill {
+  width: 100%;
+  min-height: 24px;
+  background: $teal;
+  border-radius: 4px 4px 0 0;
+}
+
+.barFillLight {
+  width: 100%;
+  min-height: 48px;
+  background: $tealLight;
+  border: 1px solid $tealBorder;
+  border-radius: 4px 4px 0 0;
+}
+
+.barSubtitle {
+  margin-top: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  color: $gray;
+}
+
+.barCards {
+  margin-top: 24px;
+  display: grid;
+  gap: 16px;
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.barCard {
+  padding: 24px;
+  background: $white;
+  border: 1px solid $border;
+  border-radius: 6px;
+  transition: box-shadow 0.2s;
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  }
+}
+
+.barCardLabel {
+  font-size: 18px;
+  font-weight: 700;
+  color: $title;
+}
+
+.barCardSub {
+  margin-top: 4px;
+  font-size: 13px;
+  color: $muted;
+}
+
+.barCardRatio {
+  margin-top: 12px;
+  font-size: 44px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: $title;
+}
+
+.barCardGradeBadge {
+  margin-top: 16px;
+  display: inline-block;
+  padding: 4px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: $white;
+  background: $teal;
+  border-radius: 4px;
+}
+
+.barCardGrade {
+  margin-top: 8px;
+  font-size: 24px;
+  font-weight: 700;
+  color: $teal;
+}
+
+.barCardMetrics {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid $border;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 14px;
+  color: $body;
+}
+
+.metricRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.metricRowValue {
+  font-weight: 600;
+  color: $title;
+}
+
+.specBox {
+  margin-top: 24px;
+  padding: 24px;
+  background: $white;
+  border: 1px solid $border;
+  border-radius: 8px;
+}
+
+.specBoxTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: $title;
+  :global(.anticon) {
+    color: $teal;
+    font-size: 18px;
+  }
+}
+
+.specBoxDesc {
+  margin-top: 12px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: $body;
+}
+
+.specAccordions {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.specAccordion {
+  background: $bg;
+  border: 1px solid $border;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.specAccordionBtn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+
+.specAccordionTitle {
+  font-size: 15px;
+  font-weight: 600;
+  color: $title;
+}
+
+.specAccordionSummary {
+  margin-top: 4px;
+  font-size: 14px;
+  color: $body;
+}
+
+.specAccordionMeta {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 14px;
+  color: $muted;
+}
+
+.specChevron {
+  font-size: 14px;
+  transition: transform 0.2s;
+}
+
+.specAccordionBody {
+  padding: 12px 16px;
+  border-top: 1px solid $border;
+  font-size: 14px;
+  line-height: 1.6;
+  color: $body;
+  & > div {
+    margin-bottom: 4px;
+  }
+}
+
+.guidanceBox {
+  margin-top: 24px;
+  padding: 24px;
+  background: $tealLight;
+  border-left: 3px solid $teal;
+  border-radius: 0 6px 6px 0;
+}
+
+.guidanceText {
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.7;
+  color: $text;
+}
+
+.guidanceNote {
+  margin-top: 8px;
+  font-size: 14px;
+  color: $body;
+}
+
+.guidanceActions {
+  margin-top: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.guidanceBtnPrimary {
+  border-radius: 6px !important;
+  padding: 12px 24px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  background: $dark !important;
+  border: none !important;
+}
+
+.guidanceBtnSecondary {
+  border-radius: 6px !important;
+  padding: 12px 24px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  color: $gray !important;
+  border: 1px solid $grayBorder !important;
+  background: $white !important;
+}
+
+.sectionGrid2 {
+  margin-top: 32px;
+  display: grid;
+  gap: 32px;
+  @media (min-width: 1024px) {
+    grid-template-columns: 1.15fr 0.85fr;
+  }
+}
+
+.coreServices {
+  padding: 40px;
+  background: $white;
+  border: 1px solid $border;
+  border-radius: 8px;
+}
+
+.coreCards {
+  margin-top: 24px;
+  display: grid;
+  gap: 16px;
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.coreCard {
+  padding: 24px;
+  background: $bg;
+  border: 1px solid $border;
+  border-radius: 6px;
+  transition: box-shadow 0.2s;
+  &:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  }
+}
+
+.coreCardBadge {
+  display: inline-block;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: $teal;
+  background: $tealLight;
+  border: 1px solid $tealBorder;
+  border-radius: 4px;
+}
+
+.coreCardTitle {
+  margin-top: 16px;
+  font-size: 18px;
+  font-weight: 700;
+  color: $title;
+}
+
+.coreCardBody {
+  margin-top: 12px;
+  font-size: 14px;
+  line-height: 1.7;
+  color: $body;
+}
+
+.collabOutlook {
+  padding: 40px;
+  background: $white;
+  border: 1px solid $border;
+  border-radius: 8px;
+}
+
+.collabOutlookLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: $muted;
+  :global(.anticon) {
+    font-size: 14px;
+  }
+}
+
+.collabOutlookBody {
+  margin-top: 16px;
+  font-size: 14px;
+  line-height: 1.7;
+  color: $body;
+}
+
+.collabOutlookList {
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.collabOutlookItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  background: $bg;
+  border: 1px solid $border;
+  border-radius: 6px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: $body;
+}
+
+.collabOutlookDot {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  margin-top: 7px;
+  background: $teal;
+  border-radius: 50%;
+}
+
+.authModal {
+  :global(.ant-modal-content) {
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  :global(.ant-modal-body) {
+    padding: 0;
+  }
+}
+
+.authModalBody {
+  padding: 24px 0 0;
+  > div {
+    margin: 0;
+    padding: 24px 40px 32px;
+    box-shadow: none;
+  }
+}
+
+.quickModal {
+  :global(.ant-modal-content) {
+    border-radius: 8px;
+    overflow: hidden;
+    padding: 32px;
+  }
+  :global(.ant-modal-body) {
+    padding: 0;
+  }
+}
+
+.quickModalInner {
+  padding: 0;
+}
+
+.quickModalHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.quickModalTitle {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: $title;
+}
+
+.quickModalDesc {
+  margin-top: 8px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: $body;
+}
+
+.quickModalClose {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  color: $muted;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+  &:hover {
+    background: $bg;
+  }
+}
+
+.quickModalFields {
+  margin-top: 24px;
+  display: grid;
+  gap: 16px;
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.quickModalField,
+.quickModalFieldFull {
+  label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: $gray;
+  }
+}
+
+.quickModalFieldFull {
+  margin-top: 16px;
+}
+
+.quickModalInput {
+  width: 100%;
+  border-radius: 6px !important;
+  :global(.ant-select-selector),
+  :global(.ant-input) {
+    border-radius: 6px !important;
+    border: 1px solid $grayBorder !important;
+    padding: 12px 16px !important;
+    font-size: 15px !important;
+  }
+}
+
+.quickModalNote {
+  margin-top: 16px;
+  padding: 12px 16px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: $body;
+  background: $bg;
+  border-radius: 6px;
+  border-left: 3px solid $teal;
+}
+
+.quickModalFooter {
+  margin-top: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.quickModalCancel {
+  border-radius: 6px !important;
+  padding: 12px 24px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  color: $gray !important;
+  border: 1px solid $grayBorder !important;
+  background: $white !important;
+}
+
+.quickModalSubmit {
+  border-radius: 6px !important;
+  padding: 12px 24px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  background: $dark !important;
+  border: none !important;
+}

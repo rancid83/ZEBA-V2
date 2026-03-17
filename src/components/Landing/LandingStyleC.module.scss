@@ -1,0 +1,1260 @@
+$bg: #f0fafa;
+$text: #0c3d3d;
+$border: #b8e6e6;
+$teal: #007676;
+$tealDark: #005a5a;
+$tealLight: rgba(0, 201, 201, 0.1);
+$tealBorder: rgba(0, 201, 201, 0.25);
+$title: #003d3d;
+$body: #3d6b6b;
+$muted: #5a8a8a;
+$cardBorder: #a8d8d8;
+$cardBg: rgba(255, 255, 255, 0.8);
+$white: #fff;
+$dark: #003d3d;
+$gray: #3d6b6b;
+$grayBorder: #a8d8d8;
+$gradientStart: #007676;
+$gradientEnd: #00c9c9;
+
+.page {
+  min-height: 100vh;
+  background: $bg;
+  color: $text;
+}
+
+.container {
+  max-width: 1480px;
+  margin: 0 auto;
+  padding: 24px;
+  @media (min-width: 1024px) {
+    padding: 24px 40px;
+  }
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  padding: 14px 28px;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid $border;
+  border-radius: 20px;
+  box-shadow: 0 4px 24px rgba(0, 118, 118, 0.08);
+  backdrop-filter: blur(10px);
+  position: sticky;
+  top: 16px;
+  z-index: 100;
+}
+
+.headerLogo {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.headerLogoImg {
+  height: 36px;
+  width: auto;
+  object-fit: contain;
+}
+
+.headerLogoTagline {
+  font-size: 13px;
+  font-weight: 500;
+  color: $muted;
+  padding-left: 16px;
+  border-left: 1px solid $border;
+  white-space: nowrap;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.headerLinkText {
+  padding: 8px 12px;
+  font-size: 14px;
+  font-weight: 500;
+  color: $gray;
+  background: none;
+  border: none;
+  cursor: pointer;
+  &:hover {
+    color: $teal;
+  }
+}
+
+.headerBtnSecondary {
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: $teal;
+  border: 1px solid $border;
+  border-radius: 12px;
+  text-decoration: none;
+  &:hover {
+    background: $tealLight;
+    border-color: $teal;
+  }
+}
+
+.headerBtnPrimary {
+  border-radius: 12px !important;
+  padding: 10px 22px !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  background: linear-gradient(135deg, $gradientStart, $gradientEnd) !important;
+  border: none !important;
+  color: $white !important;
+  box-shadow: 0 4px 16px rgba(0, 118, 118, 0.3);
+}
+
+.heroGrid {
+  margin-top: 32px;
+  display: grid;
+  gap: 32px;
+  align-items: stretch;
+  @media (min-width: 1024px) {
+    grid-template-columns: 1.08fr 0.92fr;
+  }
+}
+
+.heroLeft {
+  padding: 40px;
+  background: linear-gradient(145deg, $gradientStart, $gradientEnd);
+  border-radius: 32px;
+  box-shadow: 0 16px 48px rgba(0, 118, 118, 0.2);
+  color: $white;
+}
+
+.badgeTeal {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: $white;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 9999px;
+}
+
+.heroTitle {
+  margin-top: 24px;
+  font-size: 50px;
+  font-weight: 800;
+  line-height: 1.08;
+  letter-spacing: -0.04em;
+  color: $white;
+}
+
+.heroTitleAccent {
+  color: #a0fff0;
+  text-shadow: 0 0 20px rgba(160, 255, 240, 0.4);
+}
+
+.heroDesc {
+  margin-top: 24px;
+  max-width: 720px;
+  font-size: 16px;
+  line-height: 2;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.platformCards {
+  margin-top: 36px;
+  display: grid;
+  gap: 16px;
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.platformCard {
+  padding: 22px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 24px;
+  backdrop-filter: blur(8px);
+  transition: transform 0.2s, background 0.2s;
+  &:hover {
+    transform: translateY(-4px);
+    background: rgba(255, 255, 255, 0.18);
+  }
+}
+
+.platformCardIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background: rgba(255, 255, 255, 0.2);
+  color: $white;
+  border-radius: 14px;
+  font-size: 22px;
+}
+
+.platformCardTitle {
+  margin-top: 16px;
+  font-size: 17px;
+  font-weight: 700;
+  color: $white;
+}
+
+.platformCardBody {
+  margin-top: 8px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.flowBox {
+  margin-top: 36px;
+  padding: 28px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 28px;
+}
+
+.flowLabel {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: #a0fff0;
+}
+
+.flowTitle {
+  margin-top: 12px;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: $white;
+}
+
+.flowSteps {
+  margin-top: 20px;
+  display: grid;
+  gap: 12px;
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+.flowStep {
+  position: relative;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+}
+
+.flowStepNum {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: #a0fff0;
+}
+
+.flowStepText {
+  margin-top: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.flowStepArrow {
+  display: none;
+  position: absolute;
+  right: -12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 20px;
+  color: rgba(255, 255, 255, 0.4);
+  @media (min-width: 768px) {
+    display: block;
+  }
+}
+
+.heroRight {
+  padding: 28px;
+  background: $cardBg;
+  border: 1px solid $border;
+  border-radius: 32px;
+  box-shadow: 0 12px 40px rgba(0, 118, 118, 0.1);
+}
+
+.quickEntryHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.quickEntryLabel {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  color: $teal;
+}
+
+.quickEntryTitle {
+  margin-top: 4px;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: $title;
+}
+
+.quickEntryBtn {
+  border-radius: 12px !important;
+  padding: 8px 18px !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  background: linear-gradient(135deg, $gradientStart, $gradientEnd) !important;
+  border: none !important;
+  color: $white !important;
+  box-shadow: 0 4px 14px rgba(0, 118, 118, 0.25);
+}
+
+.quickEntryDesc {
+  margin-top: 14px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: $body;
+}
+
+.quickEntryCards {
+  margin-top: 20px;
+  display: grid;
+  gap: 16px;
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.infoCard {
+  padding: 18px;
+  background: linear-gradient(135deg, rgba(0, 201, 201, 0.06), rgba(0, 118, 118, 0.04));
+  border: 1px solid $tealBorder;
+  border-radius: 22px;
+  transition: transform 0.2s;
+  &:hover {
+    transform: translateY(-2px);
+  }
+}
+
+.infoCardTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: $teal;
+}
+
+.infoCardList {
+  margin-top: 12px;
+  font-size: 14px;
+  color: $body;
+  & > div {
+    margin-bottom: 4px;
+  }
+}
+
+.quickEntryNote {
+  margin-top: 20px;
+  padding: 20px;
+  background: linear-gradient(135deg, rgba(0, 201, 201, 0.08), rgba(0, 118, 118, 0.04));
+  border: 1px solid $tealBorder;
+  border-radius: 24px;
+}
+
+.quickEntryNoteTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: $tealDark;
+}
+
+.quickEntryNoteBody {
+  margin-top: 8px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: $body;
+}
+
+.collabBox {
+  margin-top: 20px;
+  padding: 22px;
+  background: $white;
+  border: 1px solid $border;
+  border-radius: 24px;
+  box-shadow: 0 6px 20px rgba(0, 118, 118, 0.06);
+}
+
+.collabBoxTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 17px;
+  font-weight: 700;
+  color: $title;
+  :global(.anticon) {
+    color: $teal;
+    font-size: 20px;
+  }
+}
+
+.collabBoxBody {
+  margin-top: 12px;
+  font-size: 14px;
+  line-height: 1.75;
+  color: $body;
+}
+
+.collabBoxGrid {
+  margin-top: 16px;
+  display: grid;
+  gap: 12px;
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.collabBoxItem {
+  padding: 16px;
+  background: linear-gradient(135deg, rgba(0, 201, 201, 0.06), rgba(0, 118, 118, 0.03));
+  border: 1px solid $tealBorder;
+  border-radius: 18px;
+}
+
+.collabBoxItemTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: $teal;
+}
+
+.collabBoxItemBody {
+  margin-top: 8px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: $body;
+}
+
+.sectionGrid {
+  margin-top: 24px;
+  display: grid;
+  gap: 24px;
+  @media (min-width: 1024px) {
+    grid-template-columns: 0.9fr 1.1fr;
+  }
+}
+
+.sectionLabel {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  color: $teal;
+}
+
+.sectionTitle {
+  margin-top: 8px;
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: $title;
+}
+
+.serviceStructure {
+  padding: 36px;
+  background: $cardBg;
+  border: 1px solid $border;
+  border-radius: 32px;
+  box-shadow: 0 12px 40px rgba(0, 118, 118, 0.08);
+}
+
+.serviceList {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.serviceItem {
+  padding: 22px;
+  background: linear-gradient(135deg, rgba(0, 201, 201, 0.06), rgba(0, 118, 118, 0.03));
+  border: 1px solid $tealBorder;
+  border-radius: 22px;
+  transition: transform 0.2s;
+  &:hover {
+    transform: translateX(4px);
+  }
+}
+
+.serviceItemTitle {
+  font-size: 15px;
+  font-weight: 700;
+  color: $teal;
+}
+
+.serviceItemBody {
+  margin-top: 8px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: $body;
+}
+
+.resultPanel {
+  padding: 28px;
+  background: $cardBg;
+  border: 1px solid $border;
+  border-radius: 32px;
+  box-shadow: 0 12px 40px rgba(0, 118, 118, 0.08);
+}
+
+.resultPanelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.resultToggleBtn {
+  border-radius: 12px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: $teal !important;
+  border: 1px solid $border !important;
+  background: $tealLight !important;
+}
+
+.resultPlaceholder {
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 640px;
+  background: linear-gradient(135deg, rgba(0, 201, 201, 0.06), rgba(0, 118, 118, 0.03));
+  border: 2px dashed $border;
+  border-radius: 28px;
+  text-align: center;
+}
+
+.resultPlaceholderIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  margin: 0 auto;
+  background: linear-gradient(135deg, $gradientStart, $gradientEnd);
+  color: $white;
+  border-radius: 18px;
+  font-size: 28px;
+  box-shadow: 0 4px 16px rgba(0, 118, 118, 0.25);
+}
+
+.resultPlaceholderTitle {
+  margin-top: 16px;
+  font-size: 20px;
+  font-weight: 700;
+  color: $title;
+}
+
+.resultPlaceholderDesc {
+  margin-top: 8px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: $body;
+}
+
+.resultContent {
+  margin-top: 24px;
+  padding: 22px;
+  background: linear-gradient(135deg, rgba(0, 201, 201, 0.04), rgba(0, 118, 118, 0.02));
+  border: 1px solid $tealBorder;
+  border-radius: 28px;
+}
+
+.resultKpis {
+  display: grid;
+  gap: 16px;
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.resultKpi {
+  padding: 22px;
+  background: $white;
+  border: 1px solid $border;
+  border-radius: 22px;
+  box-shadow: 0 6px 20px rgba(0, 118, 118, 0.06);
+  transition: transform 0.2s;
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 28px rgba(0, 118, 118, 0.12);
+  }
+}
+
+.resultKpiLabel {
+  font-size: 14px;
+  color: $muted;
+}
+
+.resultKpiValue {
+  margin-top: 8px;
+  font-size: 36px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: $title;
+}
+
+.resultKpiValueAccent {
+  margin-top: 8px;
+  font-size: 36px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  background: linear-gradient(135deg, $gradientStart, $gradientEnd);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.energyChartBox {
+  margin-top: 20px;
+  padding: 22px;
+  background: $white;
+  border: 1px solid $border;
+  border-radius: 24px;
+  box-shadow: 0 6px 20px rgba(0, 118, 118, 0.06);
+}
+
+.energyChartHeader {
+  margin-bottom: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.energyChartTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 18px;
+  font-weight: 700;
+  color: $title;
+  :global(.anticon) {
+    color: $teal;
+    font-size: 20px;
+  }
+}
+
+.energyChartBadges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.badge {
+  padding: 6px 14px;
+  font-weight: 700;
+  color: $white;
+  background: linear-gradient(135deg, $gradientStart, $gradientEnd);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 118, 118, 0.2);
+}
+
+.badgeLight {
+  padding: 6px 14px;
+  font-weight: 700;
+  color: $teal;
+  background: $tealLight;
+  border: 1px solid $tealBorder;
+  border-radius: 8px;
+}
+
+.barsRow {
+  padding: 20px;
+  background: linear-gradient(135deg, rgba(0, 201, 201, 0.04), rgba(0, 118, 118, 0.02));
+  border: 1px solid $tealBorder;
+  border-radius: 20px;
+  display: grid;
+  gap: 16px;
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.barCol {
+  text-align: center;
+}
+
+.barChart {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  min-height: 240px;
+  max-width: 220px;
+  margin: 0 auto;
+  padding: 16px;
+  background: $white;
+  border: 1px solid $border;
+  border-radius: 18px;
+}
+
+.barGroup {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 16px;
+  width: 100%;
+}
+
+.barWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  width: 64px;
+}
+
+.barValue {
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: $title;
+}
+
+.barFill {
+  width: 100%;
+  min-height: 24px;
+  background: linear-gradient(180deg, $gradientEnd, $gradientStart);
+  border-radius: 10px 10px 0 0;
+  box-shadow: 0 0 12px rgba(0, 201, 201, 0.3);
+}
+
+.barFillLight {
+  width: 100%;
+  min-height: 48px;
+  background: $tealLight;
+  border: 1px solid $tealBorder;
+  border-radius: 10px 10px 0 0;
+}
+
+.barSubtitle {
+  margin-top: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  color: $body;
+}
+
+.barCards {
+  margin-top: 20px;
+  display: grid;
+  gap: 16px;
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.barCard {
+  padding: 22px;
+  background: $white;
+  border: 1px solid $border;
+  border-radius: 22px;
+  box-shadow: 0 6px 20px rgba(0, 118, 118, 0.06);
+  transition: transform 0.2s;
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 32px rgba(0, 118, 118, 0.12);
+  }
+}
+
+.barCardLabel {
+  font-size: 18px;
+  font-weight: 700;
+  color: $title;
+}
+
+.barCardSub {
+  margin-top: 4px;
+  font-size: 14px;
+  color: $muted;
+}
+
+.barCardRatio {
+  margin-top: 8px;
+  font-size: 46px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  background: linear-gradient(135deg, $gradientStart, $gradientEnd);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.barCardGradeBadge {
+  margin-top: 12px;
+  display: inline-block;
+  padding: 5px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  color: $white;
+  background: linear-gradient(135deg, $gradientStart, $gradientEnd);
+  border-radius: 9999px;
+  box-shadow: 0 2px 8px rgba(0, 118, 118, 0.2);
+}
+
+.barCardGrade {
+  margin-top: 8px;
+  font-size: 24px;
+  font-weight: 700;
+  color: $teal;
+}
+
+.barCardMetrics {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 14px;
+  color: $body;
+}
+
+.metricRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.metricRowValue {
+  font-weight: 700;
+  color: $title;
+}
+
+.specBox {
+  margin-top: 20px;
+  padding: 22px;
+  background: $white;
+  border: 1px solid $border;
+  border-radius: 24px;
+  box-shadow: 0 6px 20px rgba(0, 118, 118, 0.06);
+}
+
+.specBoxTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 18px;
+  font-weight: 700;
+  color: $title;
+  :global(.anticon) {
+    color: $teal;
+    font-size: 20px;
+  }
+}
+
+.specBoxDesc {
+  margin-top: 12px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: $body;
+}
+
+.specAccordions {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.specAccordion {
+  background: linear-gradient(135deg, rgba(0, 201, 201, 0.04), rgba(0, 118, 118, 0.02));
+  border: 1px solid $tealBorder;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.specAccordionBtn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+
+.specAccordionTitle {
+  font-size: 15px;
+  font-weight: 700;
+  color: $teal;
+}
+
+.specAccordionSummary {
+  margin-top: 4px;
+  font-size: 14px;
+  color: $body;
+}
+
+.specAccordionMeta {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 14px;
+  color: $muted;
+}
+
+.specChevron {
+  font-size: 16px;
+  transition: transform 0.2s;
+}
+
+.specAccordionBody {
+  padding: 12px 16px;
+  border-top: 1px solid $tealBorder;
+  font-size: 14px;
+  line-height: 1.5;
+  color: $body;
+  & > div {
+    margin-bottom: 4px;
+  }
+}
+
+.guidanceBox {
+  margin-top: 20px;
+  padding: 22px;
+  background: linear-gradient(135deg, rgba(0, 201, 201, 0.08), rgba(0, 118, 118, 0.04));
+  border: 1px solid $tealBorder;
+  border-radius: 24px;
+}
+
+.guidanceText {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.75;
+  color: $tealDark;
+}
+
+.guidanceNote {
+  margin-top: 8px;
+  font-size: 14px;
+  color: $body;
+}
+
+.guidanceActions {
+  margin-top: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.guidanceBtnPrimary {
+  border-radius: 12px !important;
+  padding: 12px 22px !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  background: linear-gradient(135deg, $gradientStart, $gradientEnd) !important;
+  border: none !important;
+  color: $white !important;
+  box-shadow: 0 4px 16px rgba(0, 118, 118, 0.25);
+}
+
+.guidanceBtnSecondary {
+  border-radius: 12px !important;
+  padding: 12px 22px !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  color: $teal !important;
+  border: 1px solid $border !important;
+  background: $white !important;
+}
+
+.sectionGrid2 {
+  margin-top: 24px;
+  display: grid;
+  gap: 24px;
+  @media (min-width: 1024px) {
+    grid-template-columns: 1.15fr 0.85fr;
+  }
+}
+
+.coreServices {
+  padding: 36px;
+  background: $cardBg;
+  border: 1px solid $border;
+  border-radius: 32px;
+  box-shadow: 0 12px 40px rgba(0, 118, 118, 0.08);
+}
+
+.coreCards {
+  margin-top: 20px;
+  display: grid;
+  gap: 16px;
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.coreCard {
+  padding: 22px;
+  background: linear-gradient(145deg, rgba(0, 201, 201, 0.06), rgba(0, 118, 118, 0.03));
+  border: 1px solid $tealBorder;
+  border-radius: 24px;
+  transition: transform 0.2s, box-shadow 0.2s;
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 28px rgba(0, 118, 118, 0.12);
+  }
+}
+
+.coreCardBadge {
+  display: inline-block;
+  padding: 5px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  color: $white;
+  background: linear-gradient(135deg, $gradientStart, $gradientEnd);
+  border-radius: 9999px;
+  box-shadow: 0 2px 6px rgba(0, 118, 118, 0.2);
+}
+
+.coreCardTitle {
+  margin-top: 16px;
+  font-size: 19px;
+  font-weight: 800;
+  color: $title;
+}
+
+.coreCardBody {
+  margin-top: 12px;
+  font-size: 14px;
+  line-height: 1.75;
+  color: $body;
+}
+
+.collabOutlook {
+  padding: 36px;
+  background: linear-gradient(145deg, $gradientStart, $gradientEnd);
+  border-radius: 32px;
+  box-shadow: 0 12px 40px rgba(0, 118, 118, 0.2);
+  color: $white;
+}
+
+.collabOutlookLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  color: #a0fff0;
+  :global(.anticon) {
+    font-size: 16px;
+  }
+}
+
+.collabOutlookBody {
+  margin-top: 16px;
+  font-size: 14px;
+  line-height: 1.75;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.collabOutlookList {
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.collabOutlookItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 18px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.collabOutlookDot {
+  flex-shrink: 0;
+  width: 10px;
+  height: 10px;
+  margin-top: 6px;
+  background: #a0fff0;
+  border-radius: 50%;
+  box-shadow: 0 0 8px rgba(160, 255, 240, 0.5);
+}
+
+.authModal {
+  :global(.ant-modal-content) {
+    border-radius: 20px;
+    overflow: hidden;
+  }
+  :global(.ant-modal-body) {
+    padding: 0;
+  }
+}
+
+.authModalBody {
+  padding: 24px 0 0;
+  > div {
+    margin: 0;
+    padding: 24px 40px 32px;
+    box-shadow: none;
+  }
+}
+
+.quickModal {
+  :global(.ant-modal-content) {
+    border-radius: 24px;
+    overflow: hidden;
+    padding: 28px;
+  }
+  :global(.ant-modal-body) {
+    padding: 0;
+  }
+}
+
+.quickModalInner {
+  padding: 0;
+}
+
+.quickModalHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.quickModalTitle {
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  background: linear-gradient(135deg, $gradientStart, $gradientEnd);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.quickModalDesc {
+  margin-top: 8px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: $body;
+}
+
+.quickModalClose {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  color: $muted;
+  background: none;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 0.2s;
+  &:hover {
+    background: $tealLight;
+  }
+}
+
+.quickModalFields {
+  margin-top: 24px;
+  display: grid;
+  gap: 16px;
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.quickModalField,
+.quickModalFieldFull {
+  label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    color: $teal;
+  }
+}
+
+.quickModalFieldFull {
+  margin-top: 16px;
+}
+
+.quickModalInput {
+  width: 100%;
+  border-radius: 14px !important;
+  :global(.ant-select-selector),
+  :global(.ant-input) {
+    border-radius: 14px !important;
+    border: 1px solid $border !important;
+    padding: 12px 16px !important;
+    font-size: 15px !important;
+  }
+}
+
+.quickModalNote {
+  margin-top: 16px;
+  padding: 14px 18px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: $body;
+  background: linear-gradient(135deg, rgba(0, 201, 201, 0.06), rgba(0, 118, 118, 0.03));
+  border: 1px solid $tealBorder;
+  border-radius: 18px;
+}
+
+.quickModalFooter {
+  margin-top: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.quickModalCancel {
+  border-radius: 12px !important;
+  padding: 12px 22px !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  color: $teal !important;
+  border: 1px solid $border !important;
+  background: $white !important;
+}
+
+.quickModalSubmit {
+  border-radius: 12px !important;
+  padding: 12px 22px !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  background: linear-gradient(135deg, $gradientStart, $gradientEnd) !important;
+  border: none !important;
+  color: $white !important;
+  box-shadow: 0 4px 16px rgba(0, 118, 118, 0.25);
+}
