@@ -1,766 +1,868 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
-  SafetyCertificateOutlined,
-  FileTextOutlined,
-  LinkOutlined,
-  BarChartOutlined,
-  DownOutlined,
-  CloseOutlined,
-  ThunderboltOutlined,
-  ApartmentOutlined,
-  TeamOutlined,
-  FolderOutlined,
-} from '@ant-design/icons';
-import { Button, Input, Modal, Select } from 'antd';
+  ArrowRight,
+  Briefcase,
+  FileText,
+  ShieldCheck,
+  Sparkles,
+  SunMedium,
+  Target,
+  X,
+} from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+import { Modal } from 'antd';
 import LoginForm from '@/components/Auth/LoginForm';
 import SignupForm from '@/components/Auth/SignupForm';
-import styles from './Landing.module.scss';
 
-const platformCards = [
-  {
-    icon: SafetyCertificateOutlined,
-    title: '설계 판단',
-    body: '설계 초기 단계에서 ZEB 목표 등급과 법규 리스크를 먼저 판단합니다.',
-  },
-  {
-    icon: FileTextOutlined,
-    title: '사전 검토',
-    body: 'EPI와 신재생 의무비율을 사후 대응이 아닌 설계 도구로 구조화합니다.',
-  },
-  {
-    icon: LinkOutlined,
-    title: '실행 연결',
-    body: '판단 이후의 용역 이행은 검증된 전문가 연계와 내역 전달로 이어집니다.',
-  },
-];
+type DiagnosisCard = {
+  label: string;
+  subtitle: string;
+  ratio: number;
+  grade: string;
+  emphasis: 'low' | 'mid' | 'high';
+  metricLabel: string;
+  metricSuffix?: string;
+  badgeLabel: string;
+  gradeLabel: string;
+  metaLabel: string;
+  metaValue: string;
+  detailRows?: Array<{ label: string; value: string }>;
+};
 
-const flow = [
-  '사업 개요 입력',
-  '표준모델 생성',
-  '법규 여유율 확인',
-  '설비 조합 비교',
-  '컨설턴트 연결',
-];
+type FieldProps = {
+  label: string;
+  children: React.ReactNode;
+};
 
-const services = [
-  {
-    title: 'ZEB 예측',
-    body: '랜딩의 간편 예측은 체험형 판단 서비스이고, 프로젝트 기반 예측은 설계 의사결정 서비스입니다.',
-    badge: '핵심 기능',
-  },
-  {
-    title: '법규 검토',
-    body: 'EPI와 신재생 의무비율을 설계 단계에서 미리 검토해 세움터 이전 판단을 돕습니다.',
-    badge: '사전 검토',
-  },
-  {
-    title: '실행 지원',
-    body: '전문가 연계와 설계 내역 전달을 통해 판단 이후의 실무 수행이 자연스럽게 이어집니다.',
-    badge: '실무 수행',
-  },
-];
+const fadeUp = {
+  hidden: { opacity: 0, y: 18 },
+  show: { opacity: 1, y: 0 },
+};
 
-const specRows = [
-  {
-    category: '패시브',
-    items: 4,
-    summary: '외피 성능 기준 충족',
-    details: ['외벽 열관류율 기준 반영', '창호 성능 기준 반영', '단열 구성 표준화'],
+const staggerContainer = {
+  hidden: {},
+  show: {
+    transition: {
+      staggerChildren: 0.08,
+    },
   },
-  {
-    category: '액티브',
-    items: 5,
-    summary: '설비 효율 중심 구성',
-    details: ['냉난방 효율 기준 반영', '급탕·환기 조건 검토', '설비 효율 보정값 적용'],
-  },
-  {
-    category: '신재생',
-    items: 4,
-    summary: '태양광 중심 제안',
-    details: ['태양광 우선 조합 제안', '목표 등급 기준 자립률 반영', '기본 의무비율 판단 지원'],
-  },
-];
+};
 
-function InfoCard({
-  title,
-  items,
-  className,
-}: {
-  title: string;
-  items: string[];
-  className?: string;
-}) {
-  return (
-    <div className={`${styles.infoCard} ${className || ''}`}>
-      <div className={styles.infoCardTitle}>{title}</div>
-      <div className={styles.infoCardList}>
-        {items.map((item) => (
-          <div key={item}>{item}</div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function ResultKpi({
-  title,
-  value,
-  accent,
-}: {
-  title: string;
-  value: string;
-  accent?: boolean;
-}) {
-  return (
-    <div className={styles.resultKpi}>
-      <div className={styles.resultKpiLabel}>{title}</div>
-      <div className={accent ? styles.resultKpiValueAccent : styles.resultKpiValue}>
-        {value}
-      </div>
-    </div>
-  );
-}
-
-function MetricRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className={styles.metricRow}>
-      <span>{label}</span>
-      <span className={styles.metricRowValue}>{value}</span>
-    </div>
-  );
-}
+const inputClassName =
+  'w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-[15px] text-slate-800 outline-none transition focus:border-teal-400 focus:ring-2 focus:ring-teal-100';
 
 export default function Landing() {
   const router = useRouter();
   const [showQuickModal, setShowQuickModal] = useState(false);
-  const [showResult, setShowResult] = useState(true);
+  const [showResult, setShowResult] = useState(false);
+  const [showTransitionModal, setShowTransitionModal] = useState(false);
   const [area, setArea] = useState('서울');
   const [usage, setUsage] = useState('업무시설');
   const [grossFloorArea, setGrossFloorArea] = useState('12000');
   const [floors, setFloors] = useState('10');
   const [targetGrade, setTargetGrade] = useState('4등급');
-  const [expandedSpec, setExpandedSpec] = useState<string | null>(null);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'login' | 'signup'>('login');
 
+  const safeArea =
+    Number.isFinite(Number(grossFloorArea)) && Number(grossFloorArea) > 0
+      ? Number(grossFloorArea)
+      : 12000;
+  const safeFloors =
+    Number.isFinite(Number(floors)) && Number(floors) > 0 ? Number(floors) : 10;
+
+  const draftProjectName = `${area}_${usage}_${safeArea}㎡`;
+
   const summary = useMemo(() => {
-    const areaNum = Number(grossFloorArea || 12000);
-    const floorNum = Number(floors || 10);
     const selfSufficiency = Math.max(
       24,
-      Math.min(48, Math.round(30 + areaNum / 1300 - floorNum * 0.2))
+      Math.min(48, Math.round(30 + safeArea / 1300 - safeFloors * 0.2)),
     );
+
     const predictedGrade =
       selfSufficiency >= 40
         ? '4등급'
         : selfSufficiency >= 28
           ? '5등급'
           : '등급 미달 우려';
+
     const production = selfSufficiency >= 40 ? 80.5 : 33.8;
     const demand = selfSufficiency >= 40 ? 120.5 : 129.0;
+    const renewableRatio = Math.max(
+      12,
+      Math.min(28, Math.round(14 + safeArea / 2200 + safeFloors * 0.35)),
+    );
+
     return {
       predictedGrade,
       selfSufficiency,
       production,
       demand,
-      stability: selfSufficiency >= 40 ? '달성 가능' : '추가 검토 필요',
+      renewableRatio,
       guidance:
         selfSufficiency >= 40
           ? '표준모델 기준으로 목표 등급 달성이 가능한 수준입니다. 상세 시나리오 비교는 프로젝트 생성 후 진행됩니다.'
           : '목표 등급 달성을 위해 신재생 설비 또는 액티브 성능에 대한 추가 검토가 필요합니다.',
     };
-  }, [grossFloorArea, floors]);
+  }, [safeArea, safeFloors]);
 
-  const bars = [
+  const diagnosisCards: (DiagnosisCard & { icon: LucideIcon })[] = [
     {
-      label: '법규 기준',
-      subtitle: '지자체 에너지 절약 기준',
-      production: 8.1,
-      demand: 185.8,
-      grade: '-',
-      ratio: 4.2,
+      label: '신재생 의무설치비율',
+      icon: SunMedium,
+      subtitle: 'Baseline',
+      ratio: summary.renewableRatio,
+      grade: '기준 충족',
+      emphasis: 'low',
+      metricLabel: '의무 설치비율',
+      metricSuffix: '%',
+      badgeLabel: '신재생 기준',
+      gradeLabel: '판단 상태',
+      metaLabel: '신재생 설비 기준',
+      metaValue: '연면적 기준 적용',
     },
     {
-      label: '의무 등급',
-      subtitle: '[STEP-1] 의무 등급',
-      production: 33.8,
-      demand: 129.0,
-      grade: '5등급',
+      label: 'ZEB 의무 등급',
+      icon: ShieldCheck,
+      subtitle: 'Required',
       ratio: 20.8,
+      grade: '5등급',
+      emphasis: 'mid',
+      metricLabel: '에너지 자립률',
+      metricSuffix: '%',
+      badgeLabel: 'ZEB 등급',
+      gradeLabel: '등급 기준',
+      metaLabel: 'ZEB 등급 기준',
+      metaValue: '공공 의무 기준',
+      detailRows: [
+        { label: '1차 에너지 생산량', value: '33.8 kWh/㎡·yr' },
+        { label: '1차 에너지 소요량', value: '129.0 kWh/㎡·yr' },
+      ],
     },
     {
-      label: '목표 등급',
-      subtitle: '[STEP-2] 목표 등급',
-      production: summary.production,
-      demand: summary.demand,
-      grade: summary.predictedGrade,
+      label: 'ZEB 목표 등급',
+      icon: Target,
+      subtitle: 'User Target',
       ratio: summary.selfSufficiency,
+      grade: summary.predictedGrade,
+      emphasis: 'high',
+      metricLabel: '에너지 자립률',
+      metricSuffix: '%',
+      badgeLabel: 'ZEB 등급',
+      gradeLabel: '목표 등급',
+      metaLabel: 'ZEB 등급 기준',
+      metaValue: '사용자 목표 입력',
+      detailRows: [
+        { label: '1차 에너지 생산량', value: `${summary.production} kWh/㎡·yr` },
+        { label: '1차 에너지 소요량', value: `${summary.demand} kWh/㎡·yr` },
+      ],
     },
   ];
 
-  const onMoveMain = () => {
+  const identityCards = [
+    { icon: ShieldCheck, title: '설계 판단', body: '초기 판단값을 먼저 고정' },
+    { icon: FileText, title: '판단 확장', body: '필요 시 법규 리스크 확장' },
+    { icon: Briefcase, title: '실행 연결', body: '전문가 연계와 내역 전달' },
+  ];
+
+  const flow = [
+    '입력값 정규화',
+    '기준 모델 생성',
+    '법규 교차 판단',
+    '시나리오 비교',
+    '실행 전환',
+  ];
+
+  const serviceLine = [
+    '간편 진단',
+    '프로젝트 기반 ZEB 예측',
+    '법규 사전 검토',
+    '전문가 연계',
+  ];
+
+  const coreServices = [
+    {
+      title: '설계 판단',
+      body: '초기 입력만으로 핵심 판단값을 빠르게 고정합니다.',
+      badge: '핵심 기능',
+    },
+    {
+      title: '사전 검토',
+      body: '필요 시 신재생, EPI, 기타 법규 검토로 확장할 수 있습니다.',
+      badge: '선택 기능',
+    },
+    {
+      title: '실행 지원',
+      body: '판단 결과를 실무 전달 구조로 연결해 용역 이행을 돕습니다.',
+      badge: '실무 수행',
+    },
+  ];
+
+  const expansionNotes = [
+    '판단 결과가 프로젝트 맥락으로 남음',
+    '법규 검토와 실행 이력이 다음 단계로 전달됨',
+    '협업 기록과 파일 축적 구조로 이어짐',
+  ];
+
+  const goMain = () => {
+    setShowTransitionModal(false);
     router.push('/main');
   };
 
   return (
-    <div className={styles.page}>
-      <div className={styles.container}>
-        {/* Header */}
-        <header className={styles.header}>
-          <div className={styles.headerLogo}>
-            <img src="/assets/zeba-logo.png" alt="ZEBA" className={styles.headerLogoImg} />
-            <div className={styles.headerLogoTagline}>세움터 이전 단계의 설계 판단 플랫폼</div>
+    <div className="min-h-screen bg-slate-100 text-slate-900">
+      <div className="mx-auto max-w-[1480px] px-6 py-6 lg:px-10">
+        <motion.header
+          initial={{ opacity: 0, y: -12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45 }}
+          className="mb-6 flex flex-col gap-4 rounded-[28px] border border-slate-200 bg-white px-6 py-4 shadow-sm md:flex-row md:items-center md:justify-between"
+        >
+          <div>
+            <div className="text-xs font-semibold tracking-[0.24em] text-teal-700">
+              ZEBA MVP LANDING
+            </div>
+            <div className="mt-1 text-[26px] font-semibold tracking-[-0.03em] text-slate-900">
+              세움터 이전 단계의 설계 판단 플랫폼
+            </div>
           </div>
-          <div className={styles.headerActions}>
-            <button
-              type="button"
-              className={styles.headerLinkText}
-              onClick={() => {
-                setAuthModalMode('login');
-                setAuthModalOpen(true);
-              }}
-            >
-              로그인
-            </button>
-            <button
-              type="button"
-              className={styles.headerLinkText}
+          <div className="flex flex-wrap items-center gap-3">
+            <HeaderButton
               onClick={() => {
                 setAuthModalMode('signup');
                 setAuthModalOpen(true);
               }}
             >
               회원가입
-            </button>
-            <Link href="/main" className={styles.headerBtnSecondary}>
-              프로젝트 현황
-            </Link>
-            <Button
-              type="primary"
-              className={styles.headerBtnPrimary}
-              onClick={() => setShowQuickModal(true)}
+            </HeaderButton>
+            <HeaderButton
+              onClick={() => {
+                setAuthModalMode('login');
+                setAuthModalOpen(true);
+              }}
             >
-              ZEB 간편 예측
-            </Button>
+              로그인
+            </HeaderButton>
+            <motion.div whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }} className="inline-block">
+              <Link
+                href="/main"
+                className="inline-block rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 no-underline"
+              >
+                프로젝트 생성
+              </Link>
+            </motion.div>
           </div>
-        </header>
+        </motion.header>
 
-        {/* Hero section: left + right */}
-        <section className={styles.heroGrid}>
-          <div className={styles.heroLeft}>
-            <div className={styles.badgeTeal}>
-              <ThunderboltOutlined />
+        <section className="mt-8 grid items-start gap-8 lg:grid-cols-[1.08fr_0.92fr]">
+          <motion.div
+            variants={fadeUp}
+            initial="hidden"
+            animate="show"
+            transition={{ duration: 0.45 }}
+            className="rounded-[32px] border border-slate-200 bg-white p-8 shadow-sm"
+          >
+            <div className="inline-flex items-center gap-2 rounded-full border border-teal-100 bg-teal-50 px-3 py-1 text-xs font-medium text-teal-700">
+              <Sparkles className="h-3.5 w-3.5" />
               Platform Identity
             </div>
-            <h1 className={styles.heroTitle}>
-              설계 판단을 안정시키고,
+
+            <h1 className="mt-5 text-[42px] font-semibold leading-[1.08] tracking-[-0.05em] text-slate-950 lg:text-[46px]">
+              설계 판단을 먼저 고정하고,
               <br />
-              판단 이후에는 <span className={styles.heroTitleAccent}>실행을 연결</span>합니다.
+              이후에는 <span className="text-teal-700">실행을 연결</span>합니다.
             </h1>
-            <p className={styles.heroDesc}>
-              ZEBA는 기술을 과시하는 분석 툴이 아니라, 설계자의 판단을 안정시키는 플랫폼입니다.
-              리스크를 구조화해서 보여주고, 컨설턴트의 용역 이행 전 단계에서 필요한 의사결정을
-              지원하며, 이후에는 전문가 연계와 실무 길잡이로 실행을 완결합니다.
+
+            <p className="mt-5 max-w-[700px] text-[16px] leading-8 text-slate-600">
+              ZEBA는 설계 초기의 불확실성을 줄이기 위해 입력값을 구조화하고, 기준 모델을 생성한 뒤,
+              핵심 판단값을 먼저 고정하는 플랫폼입니다.
             </p>
 
-            <div className={styles.platformCards}>
-              {platformCards.map((item) => {
+            <div className="mt-8 grid gap-4 md:grid-cols-3">
+              {identityCards.map((item, idx) => {
                 const Icon = item.icon;
                 return (
-                  <div key={item.title} className={styles.platformCard}>
-                    <div className={styles.platformCardIcon}>
-                      <Icon />
+                  <motion.div
+                    key={item.title}
+                    initial={{ opacity: 0, y: 14 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.28, delay: 0.08 * idx + 0.12 }}
+                    whileHover={{ y: -3 }}
+                    className="rounded-[24px] border border-slate-200 bg-slate-50 p-5"
+                  >
+                    <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-teal-50 text-teal-700">
+                      <Icon className="h-5 w-5" />
                     </div>
-                    <div className={styles.platformCardTitle}>{item.title}</div>
-                    <div className={styles.platformCardBody}>{item.body}</div>
-                  </div>
+                    <div className="mt-4 text-[16px] font-semibold text-slate-800">
+                      {item.title}
+                    </div>
+                    <div className="mt-2 text-sm leading-6 text-slate-500">{item.body}</div>
+                  </motion.div>
                 );
               })}
             </div>
 
-            <div className={styles.flowBox}>
-              <div className={styles.flowLabel}>JUDGMENT FLOW</div>
-              <div className={styles.flowTitle}>
-                감성이 아니라, 설계 판단의 흐름을 보여줍니다.
-              </div>
-              <div className={styles.flowSteps}>
-                {flow.map((step, idx) => (
-                  <React.Fragment key={step}>
-                    <div className={styles.flowStep}>
-                      <div className={styles.flowStepNum}>0{idx + 1}</div>
-                      <div className={styles.flowStepText}>{step}</div>
-                    </div>
-                    {idx < flow.length - 1 && (
-                      <div className={styles.flowStepArrow}>→</div>
-                    )}
-                  </React.Fragment>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className={styles.heroRight}>
-            <div className={styles.quickEntryHeader}>
-              <div>
-                <div className={styles.quickEntryLabel}>QUICK ENTRY</div>
-                <div className={styles.quickEntryTitle}>ZEB 간편 예측 박스</div>
-              </div>
-              <Button
-                type="primary"
-                className={styles.quickEntryBtn}
-                onClick={() => setShowQuickModal(true)}
-              >
-                예측 시작
-              </Button>
-            </div>
-            <p className={styles.quickEntryDesc}>
-              랜딩에서 바로 제공되는 체험형 판단 서비스입니다. 프로젝트 생성 전에도 설계 방향과
-              등급 가능성을 빠르게 확인할 수 있습니다.
-            </p>
-            <div className={styles.quickEntryCards}>
-              <InfoCard
-                title="입력 항목"
-                items={['지역', '연면적', '층수', '건물 용도', '목표 ZEB 등급']}
-              />
-              <InfoCard
-                title="출력 방식"
-                items={[
-                  '단일 분석 결과',
-                  '표준모델 기반 판단',
-                  '기술 성능 편집 없음',
-                  '로그 저장 없음',
-                  '프로젝트 전환 CTA',
-                ]}
-              />
-            </div>
-            <div className={styles.quickEntryNote}>
-              <div className={styles.quickEntryNoteTitle}>
-                간편 예측은 ZEBA 전체 구조의 입구입니다.
-              </div>
-              <div className={styles.quickEntryNoteBody}>
-                빠른 판단은 랜딩에서, 시나리오 비교와 저장은 프로젝트 기반 ZEB 예측에서 이어집니다.
-              </div>
-            </div>
-            <div className={styles.collabBox}>
-              <div className={styles.collabBoxTitle}>
-                <FolderOutlined /> 협업 스페이스 방향성
-              </div>
-              <div className={styles.collabBoxBody}>
-                MVP에서는 설계 및 인허가 수순까지 소비되더라도, 구조적으로는 간소화된 협업 스페이스와
-                아카이빙이 내장됩니다. 향후 이 공간은 프로젝트 맥락을 축적해 건설 전 공정을 담당하는
-                표준 프로세스 메이커의 기반이 됩니다.
-              </div>
-              <div className={styles.collabBoxGrid}>
-                {[
-                  ['현 단계', '설계 · 인허가 중심'],
-                  ['잠재 기능', '협업 · 기록 · 전달'],
-                  ['장기 방향', '공정 전반 락인 구조'],
-                ].map(([title, body]) => (
-                  <div key={title} className={styles.collabBoxItem}>
-                    <div className={styles.collabBoxItemTitle}>{title}</div>
-                    <div className={styles.collabBoxItemBody}>{body}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Service structure + Result */}
-        <section className={styles.sectionGrid}>
-          <div className={styles.serviceStructure}>
-            <div className={styles.sectionLabel}>SERVICE STRUCTURE</div>
-            <div className={styles.sectionTitle}>
-              판단에서 실행까지 이어지는 서비스 구조
-            </div>
-            <div className={styles.serviceList}>
-              {[
-                [
-                  '01 ZEB 간편 예측',
-                  '랜딩에서 빠르게 등급 가능성과 방향성을 확인하는 체험형 판단 서비스',
-                ],
-                [
-                  '02 프로젝트 기반 ZEB 예측',
-                  '표준모델 카드 생성, 시나리오 복제, 다중 비교가 가능한 설계 의사결정 서비스',
-                ],
-                [
-                  '03 법규 사전 검토',
-                  'EPI와 신재생 의무비율을 설계 단계에서 미리 검토하는 구조',
-                ],
-                [
-                  '04 전문가 연계 및 전달',
-                  '판단 이후 용역 이행을 위한 내역 전달과 실무 길잡이 제공',
-                ],
-              ].map(([title, body]) => (
-                <div key={title} className={styles.serviceItem}>
-                  <div className={styles.serviceItemTitle}>{title}</div>
-                  <div className={styles.serviceItemBody}>{body}</div>
+            <motion.div
+              variants={fadeUp}
+              initial="hidden"
+              animate="show"
+              transition={{ duration: 0.4, delay: 0.3 }}
+              className="mt-8 space-y-8"
+            >
+              <div className="rounded-[28px] border border-slate-200 bg-slate-50 p-6">
+                <div className="text-xs font-semibold tracking-[0.2em] text-slate-500">
+                  SERVICE FLOW
                 </div>
-              ))}
-            </div>
-          </div>
-
-          <div className={styles.resultPanel}>
-            <div className={styles.resultPanelHeader}>
-              <div>
-                <div className={styles.sectionLabel}>LANDING RESULT</div>
-                <div className={styles.sectionTitle}>ZEB 간편 예측 결과 영역</div>
-              </div>
-              <Button
-                className={styles.resultToggleBtn}
-                onClick={() => setShowResult((v) => !v)}
-              >
-                {showResult ? '결과 숨기기' : '결과 보기'}
-              </Button>
-            </div>
-
-            {!showResult ? (
-              <div className={styles.resultPlaceholder}>
-                <div className={styles.resultPlaceholderIcon}>
-                  <BarChartOutlined />
-                </div>
-                <div className={styles.resultPlaceholderTitle}>
-                  간편 예측 결과 미리보기
-                </div>
-                <div className={styles.resultPlaceholderDesc}>
-                  기존 랜딩 구조 안에서 결과가 박스인으로 출력됩니다.
-                </div>
-              </div>
-            ) : (
-              <div className={styles.resultContent}>
-                <div className={styles.resultKpis}>
-                  <ResultKpi
-                    title="예상 ZEB 등급"
-                    value={summary.predictedGrade}
-                    accent
-                  />
-                  <ResultKpi
-                    title="에너지 자립률"
-                    value={`${summary.selfSufficiency}%`}
-                  />
-                  <ResultKpi title="판단 상태" value={summary.stability} />
+                <div className="mt-3 text-[22px] font-semibold tracking-[-0.03em] text-slate-900">
+                  판단 엔진의 흐름과 서비스 제공 흐름을 한 번에 보여줍니다.
                 </div>
 
-                <div className={styles.energyChartBox}>
-                  <div className={styles.energyChartHeader}>
-                    <div className={styles.energyChartTitle}>
-                      <BarChartOutlined /> 에너지 생산량 및 소요량
-                    </div>
-                    <div className={styles.energyChartBadges}>
-                      <span className={styles.badge}>1차 에너지 생산량</span>
-                      <span className={styles.badgeLight}>1차 에너지 소요량</span>
-                    </div>
-                  </div>
-                  <div className={styles.barsRow}>
-                    {bars.map((bar) => (
-                      <div key={bar.label} className={styles.barCol}>
-                        <div className={styles.barChart}>
-                          <div className={styles.barGroup}>
-                            <div className={styles.barWrapper}>
-                              <span className={styles.barValue}>{bar.production}</span>
-                              <div
-                                className={styles.barFill}
-                                style={{
-                                  height: `${Math.max(24, bar.production * 1.45)}px`,
-                                }}
-                              />
-                            </div>
-                            <div className={styles.barWrapper}>
-                              <span className={styles.barValue}>{bar.demand}</span>
-                              <div
-                                className={styles.barFillLight}
-                                style={{
-                                  height: `${Math.max(48, bar.demand * 0.9)}px`,
-                                }}
-                              />
-                            </div>
-                          </div>
-                        </div>
-                        <div className={styles.barSubtitle}>{bar.subtitle}</div>
+                <div className="mt-5 grid gap-3 md:grid-cols-5">
+                  {flow.map((step, idx) => (
+                    <motion.div
+                      key={step}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.25, delay: 0.36 + idx * 0.05 }}
+                      className="relative rounded-[20px] border border-slate-200 bg-white px-4 py-4"
+                    >
+                      <div className="text-[11px] font-semibold tracking-[0.18em] text-slate-400">
+                        0{idx + 1}
                       </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className={styles.barCards}>
-                  {bars.map((item) => (
-                    <div key={item.label} className={styles.barCard}>
-                      <div className={styles.barCardLabel}>{item.label}</div>
-                      <div className={styles.barCardSub}>에너지 자립률</div>
-                      <div className={styles.barCardRatio}>{item.ratio}%</div>
-                      <div className={styles.barCardGradeBadge}>ZEB 등급</div>
-                      <div className={styles.barCardGrade}>{item.grade}</div>
-                      <div className={styles.barCardMetrics}>
-                        <MetricRow
-                          label="1차 에너지 생산량"
-                          value={`${item.production} kWh/㎡·yr`}
-                        />
-                        <MetricRow
-                          label="1차 에너지 소요량"
-                          value={`${item.demand} kWh/㎡·yr`}
-                        />
+                      <div className="mt-2 text-sm font-medium leading-6 text-slate-700">
+                        {step}
                       </div>
-                    </div>
+                      {idx < flow.length - 1 ? (
+                        <ArrowRight className="absolute -right-3 top-1/2 hidden h-5 w-5 -translate-y-1/2 text-slate-400 md:block" />
+                      ) : null}
+                    </motion.div>
                   ))}
                 </div>
 
-                <div className={styles.specBox}>
-                  <div className={styles.specBoxTitle}>
-                    <ApartmentOutlined /> 성능 내역 요약
+                <div className="mt-6 rounded-[22px] border border-slate-200 bg-white px-5 py-4">
+                  <div className="text-xs font-semibold tracking-[0.18em] text-slate-400">
+                    SERVICE LINE
                   </div>
-                  <div className={styles.specBoxDesc}>
-                    랜딩의 간편 예측에서는 편집 가능한 기술 성능 컴포넌트 없이, 항목군 요약만 제공합니다.
-                  </div>
-                  <div className={styles.specAccordions}>
-                    {specRows.map((row) => {
-                      const isOpen = expandedSpec === row.category;
-                      return (
-                        <div key={row.category} className={styles.specAccordion}>
-                          <button
-                            type="button"
-                            className={styles.specAccordionBtn}
-                            onClick={() =>
-                              setExpandedSpec(isOpen ? null : row.category)
-                            }
-                          >
-                            <div>
-                              <div className={styles.specAccordionTitle}>
-                                {row.category}
-                              </div>
-                              <div className={styles.specAccordionSummary}>
-                                {row.summary}
-                              </div>
-                            </div>
-                            <div className={styles.specAccordionMeta}>
-                              <span>({row.items} 항목)</span>
-                              <DownOutlined
-                                className={styles.specChevron}
-                                style={{ transform: isOpen ? 'rotate(180deg)' : undefined }}
-                              />
-                            </div>
-                          </button>
-                          {isOpen && (
-                            <div className={styles.specAccordionBody}>
-                              {row.details.map((detail) => (
-                                <div key={detail}>• {detail}</div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <div className={styles.guidanceBox}>
-                  <div className={styles.guidanceText}>{summary.guidance}</div>
-                  <div className={styles.guidanceNote}>
-                    본 결과는 표준모델 기반 간편 예측입니다. 상세 시나리오 비교 및 저장은 프로젝트
-                    생성 후 가능합니다.
-                  </div>
-                  <div className={styles.guidanceActions}>
-                    <Button
-                      type="primary"
-                      className={styles.guidanceBtnPrimary}
-                      onClick={onMoveMain}
-                    >
-                      프로젝트 생성 후 이어서 비교하기
-                    </Button>
-                    <Button
-                      className={styles.guidanceBtnSecondary}
-                      onClick={() => setShowResult(false)}
-                    >
-                      결과만 확인하고 닫기
-                    </Button>
+                  <div className="mt-3 flex flex-wrap items-center gap-3 text-sm font-medium text-slate-700">
+                    {serviceLine.map((item, idx) => (
+                      <React.Fragment key={item}>
+                        <span className="rounded-full bg-slate-100 px-3 py-2">{item}</span>
+                        {idx < serviceLine.length - 1 ? (
+                          <ArrowRight className="h-4 w-4 text-slate-400" />
+                        ) : null}
+                      </React.Fragment>
+                    ))}
                   </div>
                 </div>
               </div>
-            )}
-          </div>
-        </section>
 
-        {/* Core services + Collaboration */}
-        <section className={styles.sectionGrid2}>
-          <div className={styles.coreServices}>
-            <div className={styles.sectionLabel}>CORE SERVICES</div>
-            <div className={styles.sectionTitle}>
-              MVP에서 보여줄 핵심 기능 구조
-            </div>
-            <div className={styles.coreCards}>
-              {services.map((item) => (
-                <div key={item.title} className={styles.coreCard}>
-                  <div className={styles.coreCardBadge}>{item.badge}</div>
-                  <div className={styles.coreCardTitle}>{item.title}</div>
-                  <div className={styles.coreCardBody}>{item.body}</div>
+              <div className="rounded-[28px] border border-slate-200 bg-slate-50 p-6">
+                <div className="text-xs font-medium tracking-[0.22em] text-slate-500">
+                  CORE SERVICES · EXPANSION
                 </div>
-              ))}
-            </div>
-          </div>
-          <div className={styles.collabOutlook}>
-            <div className={styles.collabOutlookLabel}>
-              <TeamOutlined /> COLLABORATION OUTLOOK
-            </div>
-            <div className={styles.sectionTitle}>표준 프로세스 메이커로의 확장</div>
-            <div className={styles.collabOutlookBody}>
-              MVP에서는 직접적으로 강조하지 않더라도, ZEBA 내부에는 협업 스페이스와 아카이빙의
-              씨앗이 들어 있습니다. 지금은 설계와 인허가 단계에 집중하지만, 장기적으로는 프로젝트
-              맥락이 누적되는 락인 구조를 통해 건설 전 공정을 담당하는 표준 프로세스로 확장됩니다.
-            </div>
-            <div className={styles.collabOutlookList}>
-              {[
-                '설계 판단 결과가 프로젝트 맥락으로 남음',
-                '법규 검토와 실행 이력이 다음 단계로 전달됨',
-                '협업 스페이스와 아카이빙이 향후 락인 구조를 형성함',
-              ].map((text) => (
-                <div key={text} className={styles.collabOutlookItem}>
-                  <span className={styles.collabOutlookDot} />
-                  <span>{text}</span>
+                <div className="mt-2 text-[28px] font-semibold tracking-[-0.03em] text-slate-900">
+                  현재 제공 기능과 이후 확장 구조를 함께 보여줍니다.
                 </div>
-              ))}
+
+                <div className="mt-5 space-y-6">
+                  <div>
+                    <div className="text-sm font-semibold text-slate-700">현재 제공 기능</div>
+                    <div className="mt-4 grid gap-4 md:grid-cols-3">
+                      {coreServices.map((item, idx) => (
+                        <motion.div
+                          key={item.title}
+                          initial={{ opacity: 0, y: 12 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.28, delay: 0.2 + idx * 0.08 }}
+                          whileHover={{ y: -2 }}
+                          className="rounded-[24px] border border-slate-200 bg-white p-5"
+                        >
+                          <div className="inline-flex rounded-full border border-teal-100 bg-teal-50 px-3 py-1 text-xs font-semibold text-teal-700">
+                            {item.badge}
+                          </div>
+                          <div className="mt-4 text-[18px] font-semibold text-slate-900">
+                            {item.title}
+                          </div>
+                          <div className="mt-3 text-sm leading-7 text-slate-500">{item.body}</div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="border-t border-slate-200 pt-6">
+                    <div className="text-sm font-semibold text-slate-700">이후 확장 구조</div>
+                    <div className="mt-4 text-sm leading-7 text-slate-500">
+                      현재는 설계 판단과 인허가 전 검토에 집중하지만, 판단 결과 저장과 파일 축적 구조는 이후 협업과 실행 전달의 기반이 됩니다.
+                    </div>
+                    <div className="mt-5 space-y-3">
+                      {expansionNotes.map((text, idx) => (
+                        <motion.div
+                          key={`${text}-${idx}`}
+                          initial={{ opacity: 0, x: 10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ duration: 0.28, delay: 0.24 + idx * 0.08 }}
+                          className="flex items-start gap-3 rounded-[18px] border border-slate-200 bg-white px-4 py-4"
+                        >
+                          <div className="mt-1 h-2.5 w-2.5 rounded-full bg-teal-700" />
+                          <div className="text-sm leading-6 text-slate-600">{text}</div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+
+          <motion.div
+            variants={fadeUp}
+            initial="hidden"
+            animate="show"
+            transition={{ duration: 0.45, delay: 0.1 }}
+            className="rounded-[32px] border border-slate-200 bg-white p-6 shadow-sm"
+          >
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <div className="text-xs font-medium tracking-[0.22em] text-slate-500">
+                  QUICK ENTRY
+                </div>
+                <div className="mt-1 text-[22px] font-semibold tracking-[-0.03em] text-slate-900">
+                  간편 진단 박스
+                </div>
+              </div>
+              <motion.button
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => setShowQuickModal(true)}
+                className="rounded-full bg-slate-950 px-5 py-2.5 text-sm font-semibold text-white shadow-sm"
+              >
+                간편 진단
+              </motion.button>
             </div>
-          </div>
+
+            <div className="mt-5 rounded-[28px] border border-slate-200 bg-slate-50 p-4 md:p-5">
+              {showResult ? (
+                <motion.div
+                  variants={staggerContainer}
+                  initial="hidden"
+                  animate="show"
+                  className="grid gap-4 md:grid-cols-3"
+                >
+                  {diagnosisCards.map((item) => {
+                    const CardIcon = item.icon;
+                    const strong = item.emphasis === 'high';
+                    return (
+                      <motion.div
+                        key={item.label}
+                        variants={fadeUp}
+                        whileHover={{ y: -2 }}
+                        className={`rounded-[22px] border p-5 ${
+                          strong
+                            ? 'border-teal-100 bg-teal-50 shadow-sm'
+                            : 'border-slate-200 bg-white'
+                        }`}
+                      >
+                        <div className="min-h-[64px]">
+                          <div className="flex items-center gap-2">
+                            <div
+                              className={`flex h-8 w-8 items-center justify-center rounded-xl ${
+                                strong ? 'bg-white text-teal-700' : 'bg-slate-50 text-slate-600'
+                              }`}
+                            >
+                              <CardIcon className="h-4 w-4" />
+                            </div>
+                            <div className="text-[18px] font-semibold leading-6 text-slate-800">
+                              {item.label}
+                            </div>
+                          </div>
+                          <div className="mt-1 text-xs text-slate-400">{item.subtitle}</div>
+                        </div>
+                        <div className="mt-3 text-sm text-slate-500">{item.metricLabel}</div>
+                        <div
+                          className={`mt-6 flex items-end gap-1 text-[42px] font-semibold tracking-[-0.04em] ${
+                            strong ? 'text-teal-700' : 'text-slate-700'
+                          }`}
+                        >
+                          <span>{item.ratio}</span>
+                          {item.metricSuffix ? (
+                            <span className="mb-1 text-[22px] font-semibold">
+                              {item.metricSuffix}
+                            </span>
+                          ) : null}
+                        </div>
+                        <div
+                          className={`mt-6 inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
+                            strong
+                              ? 'bg-teal-700 text-white'
+                              : 'bg-slate-100 text-slate-600'
+                          }`}
+                        >
+                          {item.badgeLabel}
+                        </div>
+                        <div className="mt-3 text-xs font-medium tracking-[0.16em] text-slate-400">
+                          {item.gradeLabel}
+                        </div>
+                        <div
+                          className={`mt-1 text-[24px] font-semibold ${
+                            strong ? 'text-teal-700' : 'text-slate-700'
+                          }`}
+                        >
+                          {item.grade}
+                        </div>
+                        <div className="mt-7 space-y-3 text-sm text-slate-600">
+                          <MetricRow label={item.metaLabel} value={item.metaValue} />
+                          {item.detailRows?.map((row) => (
+                            <MetricRow
+                              key={`${item.label}-${row.label}`}
+                              label={row.label}
+                              value={row.value}
+                            />
+                          ))}
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </motion.div>
+              ) : (
+                <div className="flex min-h-[320px] items-center justify-center rounded-[22px] border border-dashed border-slate-300 bg-white text-center">
+                  <div>
+                    <div className="text-sm font-medium text-slate-500">
+                      아직 생성된 간편 진단 결과가 없습니다
+                    </div>
+                    <div className="mt-2 text-sm text-slate-400">
+                      상단의 간편 진단 버튼으로 입력 후 결과를 생성합니다
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {showResult ? (
+              <div className="mt-6 rounded-[28px] border border-slate-200 bg-white p-6">
+                <div className="text-[15px] font-medium leading-7 text-slate-700">
+                  {summary.guidance}
+                </div>
+                <div className="mt-3 text-sm leading-6 text-slate-500">
+                  본 결과는 표준모델 기반 간편 진단입니다. 상세 시나리오 비교 및 저장은 프로젝트 생성 후 가능합니다.
+                </div>
+                <div className="mt-6 flex flex-nowrap items-center gap-3 overflow-x-auto">
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => setShowTransitionModal(true)}
+                    className="shrink-0 rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white"
+                  >
+                    다중 시나리오로 이어서 검토하기
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ y: -1 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => setShowQuickModal(true)}
+                    className="shrink-0 rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700"
+                  >
+                    다시 예측하기
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ y: -1 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => setShowResult(false)}
+                    className="shrink-0 rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700"
+                  >
+                    닫기
+                  </motion.button>
+                </div>
+              </div>
+            ) : null}
+          </motion.div>
         </section>
       </div>
 
-      {/* 로그인 / 회원가입 Modal */}
       <Modal
         open={authModalOpen}
         onCancel={() => setAuthModalOpen(false)}
         footer={null}
         width={480}
         centered
-        closable={true}
-        className={styles.authModal}
+        closable
+        styles={{ body: { paddingTop: 8 } }}
       >
-        <div className={styles.authModalBody}>
-          {authModalMode === 'login' ? (
-            <LoginForm
-              embedded
-              onSwitchToSignup={() => setAuthModalMode('signup')}
-            />
-          ) : (
-            <SignupForm
-              embedded
-              onSwitchToLogin={() => setAuthModalMode('login')}
-            />
-          )}
-        </div>
+        {authModalMode === 'login' ? (
+          <LoginForm embedded onSwitchToSignup={() => setAuthModalMode('signup')} />
+        ) : (
+          <SignupForm embedded onSwitchToLogin={() => setAuthModalMode('login')} />
+        )}
       </Modal>
 
-      {/* ZEB 간편 예측 Modal */}
-      <Modal
-        open={showQuickModal}
-        onCancel={() => setShowQuickModal(false)}
-        footer={null}
-        width={740}
-        centered
-        closable={false}
-        className={styles.quickModal}
-      >
-        <div className={styles.quickModalInner}>
-          <div className={styles.quickModalHeader}>
-            <div>
-              <div className={styles.quickModalTitle}>ZEB 간편 예측</div>
-              <div className={styles.quickModalDesc}>
-                프로젝트 생성 없이, 랜딩 화면에서 바로 표준모델 기반 단일 분석 결과를 확인합니다.
+      <AnimatePresence>
+        {showTransitionModal ? (
+          <ModalBackdrop onClose={() => setShowTransitionModal(false)}>
+            <div className="w-full max-w-[560px] rounded-[24px] border border-slate-200 bg-white p-6 shadow-2xl">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <div className="text-xs font-semibold tracking-[0.18em] text-slate-500">
+                    PROJECT TRANSITION
+                  </div>
+                  <div className="mt-2 text-[28px] font-semibold tracking-[-0.04em] text-slate-900">
+                    표준모델 결과를 프로젝트로 이어갑니다
+                  </div>
+                  <div className="mt-3 text-sm leading-6 text-slate-500">
+                    현재 입력값과 간편 진단 결과를 프로젝트 초안으로 전환합니다. 이후 다중 시나리오 비교와 상세 검토가 가능합니다.
+                  </div>
+                </div>
+                <IconButton onClick={() => setShowTransitionModal(false)}>
+                  <X className="h-5 w-5" />
+                </IconButton>
+              </div>
+
+              <div className="mt-5 rounded-[20px] border border-slate-200 bg-slate-50 p-4">
+                <div className="text-xs font-semibold tracking-[0.14em] text-slate-500">
+                  자동 생성 프로젝트명
+                </div>
+                <div className="mt-2 text-[18px] font-semibold text-slate-800">
+                  {draftProjectName}
+                </div>
+              </div>
+
+              <div className="mt-4 space-y-3">
+                {[
+                  '현재 입력값을 프로젝트 초안으로 저장',
+                  '표준모델 1안을 기준 시나리오로 승계',
+                  '프로젝트 허브에서 다중안 비교 시작',
+                ].map((item) => (
+                  <div
+                    key={item}
+                    className="flex items-start gap-3 rounded-[16px] border border-slate-200 bg-slate-50 px-4 py-3"
+                  >
+                    <div className="mt-1 h-2.5 w-2.5 rounded-full bg-teal-700" />
+                    <div className="text-sm leading-6 text-slate-600">{item}</div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-6 flex items-center justify-end gap-3">
+                <motion.button
+                  whileHover={{ y: -1 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => setShowTransitionModal(false)}
+                  className="rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-600"
+                >
+                  닫기
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={goMain}
+                  className="rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white shadow-sm"
+                >
+                  프로젝트 생성 후 이동
+                </motion.button>
               </div>
             </div>
-            <button
-              type="button"
-              className={styles.quickModalClose}
-              onClick={() => setShowQuickModal(false)}
-              aria-label="닫기"
-            >
-              <CloseOutlined />
-            </button>
-          </div>
+          </ModalBackdrop>
+        ) : null}
 
-          <div className={styles.quickModalFields}>
-            <div className={styles.quickModalField}>
-              <label>지역</label>
-              <Select
-                value={area}
-                onChange={setArea}
-                options={[
-                  { value: '서울', label: '서울' },
-                  { value: '경기', label: '경기' },
-                  { value: '인천', label: '인천' },
-                  { value: '부산', label: '부산' },
-                ]}
-                className={styles.quickModalInput}
-              />
+        {showQuickModal ? (
+          <ModalBackdrop onClose={() => setShowQuickModal(false)}>
+            <div className="w-full max-w-[740px] rounded-[24px] border border-slate-200 bg-slate-50 p-6 shadow-2xl">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <div className="text-[31px] font-semibold tracking-[-0.04em] text-slate-900">
+                    간편 진단
+                  </div>
+                  <div className="mt-2 text-sm leading-6 text-slate-500">
+                    프로젝트 생성 없이, 랜딩 화면에서 바로 핵심 판단값 3개를 확인합니다.
+                  </div>
+                </div>
+                <IconButton onClick={() => setShowQuickModal(false)}>
+                  <X className="h-5 w-5" />
+                </IconButton>
+              </div>
+
+              <motion.div
+                variants={staggerContainer}
+                initial="hidden"
+                animate="show"
+                className="mt-6 grid gap-4 md:grid-cols-2"
+              >
+                <Field label="지역">
+                  <select
+                    value={area}
+                    onChange={(e) => setArea(e.target.value)}
+                    className={inputClassName}
+                  >
+                    <option>서울</option>
+                    <option>경기</option>
+                    <option>인천</option>
+                    <option>부산</option>
+                  </select>
+                </Field>
+                <Field label="용도">
+                  <select
+                    value={usage}
+                    onChange={(e) => setUsage(e.target.value)}
+                    className={inputClassName}
+                  >
+                    <option>업무시설</option>
+                    <option>교육연구시설</option>
+                    <option>공동주택</option>
+                    <option>판매시설</option>
+                  </select>
+                </Field>
+                <Field label="연면적(㎡)">
+                  <input
+                    value={grossFloorArea}
+                    onChange={(e) => setGrossFloorArea(e.target.value)}
+                    className={inputClassName}
+                  />
+                </Field>
+                <Field label="층수">
+                  <input
+                    value={floors}
+                    onChange={(e) => setFloors(e.target.value)}
+                    className={inputClassName}
+                  />
+                </Field>
+              </motion.div>
+
+              <div className="mt-4">
+                <Field label="목표 ZEB 등급">
+                  <select
+                    value={targetGrade}
+                    onChange={(e) => setTargetGrade(e.target.value)}
+                    className={inputClassName}
+                  >
+                    <option>5등급</option>
+                    <option>4등급</option>
+                    <option>3등급</option>
+                  </select>
+                </Field>
+              </div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.25, delay: 0.18 }}
+                className="mt-4 rounded-[18px] bg-white px-4 py-3 text-sm leading-6 text-slate-600 shadow-sm"
+              >
+                생성 후 결과는 랜딩 화면 내 결과 박스에 출력되며, 유저 계정에는 저장되지 않습니다.
+              </motion.div>
+
+              <div className="mt-6 flex items-center justify-end gap-3">
+                <motion.button
+                  whileHover={{ y: -1 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => setShowQuickModal(false)}
+                  className="rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-600"
+                >
+                  취소
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => {
+                    setShowQuickModal(false);
+                    setShowResult(true);
+                  }}
+                  className="rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white shadow-sm"
+                >
+                  예측 시작
+                </motion.button>
+              </div>
             </div>
-            <div className={styles.quickModalField}>
-              <label>용도</label>
-              <Select
-                value={usage}
-                onChange={setUsage}
-                options={[
-                  { value: '업무시설', label: '업무시설' },
-                  { value: '교육연구시설', label: '교육연구시설' },
-                  { value: '공동주택', label: '공동주택' },
-                  { value: '판매시설', label: '판매시설' },
-                ]}
-                className={styles.quickModalInput}
-              />
-            </div>
-            <div className={styles.quickModalField}>
-              <label>연면적(㎡)</label>
-              <Input
-                value={grossFloorArea}
-                onChange={(e) => setGrossFloorArea(e.target.value)}
-                className={styles.quickModalInput}
-              />
-            </div>
-            <div className={styles.quickModalField}>
-              <label>층수</label>
-              <Input
-                value={floors}
-                onChange={(e) => setFloors(e.target.value)}
-                className={styles.quickModalInput}
-              />
-            </div>
-          </div>
-          <div className={styles.quickModalFieldFull}>
-            <label>목표 ZEB 등급</label>
-            <Select
-              value={targetGrade}
-              onChange={setTargetGrade}
-              options={[
-                { value: '5등급', label: '5등급' },
-                { value: '4등급', label: '4등급' },
-                { value: '3등급', label: '3등급' },
-              ]}
-              className={styles.quickModalInput}
-            />
-          </div>
-          <div className={styles.quickModalNote}>
-            생성 후 결과는 랜딩 화면 내 결과 박스에 출력되며, 유저 계정에는 로그 저장되지 않습니다.
-          </div>
-          <div className={styles.quickModalFooter}>
-            <Button
-              className={styles.quickModalCancel}
-              onClick={() => setShowQuickModal(false)}
-            >
-              취소
-            </Button>
-            <Button
-              type="primary"
-              className={styles.quickModalSubmit}
-              onClick={() => {
-                setShowQuickModal(false);
-                setShowResult(true);
-              }}
-            >
-              예측 시작
-            </Button>
-          </div>
-        </div>
-      </Modal>
+          </ModalBackdrop>
+        ) : null}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function HeaderButton({
+  children,
+  onClick,
+}: {
+  children: React.ReactNode;
+  onClick?: () => void;
+}) {
+  return (
+    <motion.button
+      type="button"
+      whileHover={{ y: -1 }}
+      whileTap={{ scale: 0.98 }}
+      onClick={onClick}
+      className="rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600"
+    >
+      {children}
+    </motion.button>
+  );
+}
+
+function ModalBackdrop({
+  children,
+  onClose,
+}: {
+  children: React.ReactNode;
+  onClose: () => void;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 p-5"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ opacity: 0, scale: 0.96, y: 12 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.96, y: 12 }}
+        transition={{ duration: 0.22 }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {children}
+      </motion.div>
+    </motion.div>
+  );
+}
+
+function IconButton({
+  children,
+  onClick,
+}: {
+  children: React.ReactNode;
+  onClick: () => void;
+}) {
+  return (
+    <motion.button
+      type="button"
+      whileHover={{ rotate: 90 }}
+      whileTap={{ scale: 0.95 }}
+      onClick={onClick}
+      className="rounded-full p-2 text-slate-500 hover:bg-slate-100"
+    >
+      {children}
+    </motion.button>
+  );
+}
+
+function Field({ label, children }: FieldProps) {
+  return (
+    <motion.label variants={fadeUp} className="block">
+      <div className="mb-2 text-sm font-semibold text-slate-700">{label}</div>
+      {children}
+    </motion.label>
+  );
+}
+
+function MetricRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between gap-4">
+      <span>{label}</span>
+      <span className="font-semibold text-slate-800">{value}</span>
     </div>
   );
 }

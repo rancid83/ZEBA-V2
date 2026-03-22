@@ -1,18 +1,39 @@
 'use client';
 
-import React, { useMemo, useState, useCallback } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { PlusOutlined, RightOutlined } from '@ant-design/icons';
-import { Button, Modal, Form, Input, Select, Card, Tag, Divider } from 'antd';
-import type { ProjectStatus as AntStatus } from 'antd/es/tag';
-import styles from './ProjectHub.module.scss';
+import {
+  BarChart3,
+  Bell,
+  Building2,
+  CheckCircle2,
+  CircleDashed,
+  CreditCard,
+  HelpCircle,
+  Leaf,
+  Lock,
+  MessageSquare,
+  NotebookPen,
+  PhoneCall,
+  Settings,
+  TriangleAlert,
+  User,
+  X,
+} from 'lucide-react';
 
 // ------------------------------------------------------------
-// Types (from reactapp)
+// Types
 // ------------------------------------------------------------
 type ModuleKey = 'zeb' | 'epi' | 'ren' | 'consult';
-type ModuleState = 'pass' | 'fail' | 'progress' | 'none';
+export type ModuleState = 'pass' | 'fail' | 'none';
 export type ProjectStatus = '신규' | '진행중' | '완료';
+
+export type OpsRecord = {
+  id: string;
+  title: string;
+  summary: string;
+  createdAt: string;
+};
 
 export type Project = {
   id: string;
@@ -25,17 +46,79 @@ export type Project = {
   status: ProjectStatus;
   updatedAt: string;
   map: Record<ModuleKey, ModuleState>;
+  note: string;
+  opsRecords: OpsRecord[];
 };
 
-type WorkspaceTab = 'zeb' | 'epi' | 'ren' | 'consult' | 'collab';
+type WorkspaceTab = ModuleKey | 'ops';
 
-const MODULE_LABEL: Record<WorkspaceTab, string> = {
-  zeb: 'ZEB 예측',
-  epi: 'EPI 검토',
-  ren: '신재생 검토',
-  consult: '컨설팅 연계',
-  collab: '협업 초대',
+type ModuleMetrics = {
+  zebCurrent: number | '–';
+  epiCurrent: number | '–';
+  renCurrent: number | '–';
+  zebMargin: number | '–';
+  epiMargin: number | '–';
+  renMargin: number | '–';
 };
+
+const initialProjects: Project[] = [
+  {
+    id: 'p-001',
+    name: '성수 업무시설',
+    region: '서울',
+    use: '업무시설',
+    gfa: 12800,
+    floors: 12,
+    targetGrade: 3,
+    status: '진행중',
+    updatedAt: '2026-03-03 17:20',
+    map: { zeb: 'pass', epi: 'fail', ren: 'pass', consult: 'none' },
+    note: 'EPI 재검토 필요 · 62점 / 기준 65점',
+    opsRecords: [
+      {
+        id: 'ops-001',
+        title: 'EPI 재검토 요청',
+        summary: '설계팀에 EPI 보완안 요청, 외피 항목 우선 확인 필요',
+        createdAt: '2026-03-03 17:20',
+      },
+    ],
+  },
+  {
+    id: 'p-002',
+    name: '동탄 교육연구시설',
+    region: '경기',
+    use: '교육연구시설',
+    gfa: 9200,
+    floors: 7,
+    targetGrade: 4,
+    status: '진행중',
+    updatedAt: '2026-03-02 11:05',
+    map: { zeb: 'pass', epi: 'pass', ren: 'none', consult: 'none' },
+    note: 'ZEB · EPI 검토 완료',
+    opsRecords: [
+      {
+        id: 'ops-002',
+        title: '검토 완료 공유',
+        summary: 'ZEB 및 EPI 1차 검토 완료, 신재생 검토만 남음',
+        createdAt: '2026-03-02 11:05',
+      },
+    ],
+  },
+  {
+    id: 'p-003',
+    name: '여의도 공동주택(가칭)',
+    region: '서울',
+    use: '공동주택',
+    gfa: 18500,
+    floors: 20,
+    targetGrade: 2,
+    status: '신규',
+    updatedAt: '2026-03-03 09:12',
+    map: { zeb: 'none', epi: 'none', ren: 'none', consult: 'none' },
+    note: '초기 검토 대기',
+    opsRecords: [],
+  },
+];
 
 // ------------------------------------------------------------
 // Helpers
@@ -58,510 +141,1074 @@ function makeId() {
   return Math.random().toString(16).slice(2, 10);
 }
 
-function dot(state: ModuleState) {
-  if (state === 'pass') return '●';
-  if (state === 'fail') return '⚠';
-  if (state === 'progress') return '◐';
-  return '–';
+function stateIcon(state: ModuleState) {
+  if (state === 'pass')
+    return <CheckCircle2 className="h-3 w-3 text-emerald-600 opacity-90" />;
+  if (state === 'fail')
+    return <TriangleAlert className="h-3 w-3 text-rose-500 opacity-90" />;
+  return <CircleDashed className="h-3 w-3 text-slate-300 opacity-80" />;
 }
 
-function marginText(v: number | null) {
-  if (v === null || Number.isNaN(v)) return '–';
-  const sign = v > 0 ? '+' : '';
-  return `${sign}${v}`;
+function stateText(state: ModuleState) {
+  if (state === 'pass') return '충족';
+  if (state === 'fail') return '미충족';
+  return '검토 전';
 }
 
-// ------------------------------------------------------------
-// StatusBadge
-// ------------------------------------------------------------
-function StatusBadge({ status }: { status: ProjectStatus }) {
-  const color: Record<ProjectStatus, AntStatus> = {
-    신규: 'default',
-    진행중: 'processing',
-    완료: 'success',
+function statusBadgeClass(status: ProjectStatus) {
+  if (status === '신규') return 'bg-slate-100 text-slate-600 border border-slate-200';
+  if (status === '완료') return 'bg-emerald-50 text-emerald-700 border border-emerald-200';
+  return 'bg-slate-800 text-slate-100 border border-slate-700';
+}
+
+function latestOpsRecord(project: Project): OpsRecord | null {
+  const records = project.opsRecords ?? [];
+  if (!records.length) return null;
+  return [...records].sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  )[0]!;
+}
+
+function projectStatusText(project: Project) {
+  const latest = latestOpsRecord(project);
+  if (latest) return `${latest.title} · ${latest.summary}`;
+  return project.note || '초기 검토 대기';
+}
+
+function sortProjects(projects: Project[]) {
+  return [...projects].sort(
+    (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+  );
+}
+
+function moduleMetrics(project: Project): ModuleMetrics {
+  const zebCurrent =
+    project.map.zeb === 'pass'
+      ? Math.max(1, project.targetGrade - 1)
+      : project.map.zeb === 'fail'
+        ? project.targetGrade + 1
+        : '–';
+  const epiCurrent =
+    project.map.epi === 'pass' ? 68 : project.map.epi === 'fail' ? 62 : '–';
+  const renCurrent =
+    project.map.ren === 'pass' ? 21.5 : project.map.ren === 'fail' ? 17 : '–';
+  const zebMargin = typeof zebCurrent === 'number' ? project.targetGrade - zebCurrent : '–';
+  const epiMargin = typeof epiCurrent === 'number' ? epiCurrent - 65 : '–';
+  const renMargin = typeof renCurrent === 'number' ? renCurrent - 20 : '–';
+
+  return {
+    zebCurrent,
+    epiCurrent,
+    renCurrent,
+    zebMargin,
+    epiMargin,
+    renMargin,
   };
-  return <Tag color={color[status]} className={styles.statusBadge}>{status}</Tag>;
 }
 
-function StateBadge({ state }: { state: ModuleState }) {
-  if (state === 'pass') return <Tag color="success" className={styles.stateBadge}>만족</Tag>;
-  if (state === 'fail') return <Tag color="error" className={styles.stateBadge}>불만족</Tag>;
-  if (state === 'progress') return <Tag color="processing" className={styles.stateBadge}>진행</Tag>;
-  return <Tag className={styles.stateBadge}>미실행</Tag>;
+function progressPercent(kind: 'zeb' | 'epi' | 'ren', metrics: ModuleMetrics, project: Project) {
+  if (kind === 'zeb') {
+    if (typeof metrics.zebCurrent !== 'number') return 24;
+    const ratio = ((project.targetGrade - metrics.zebCurrent + 2) / 3) * 100;
+    return Math.max(18, Math.min(100, ratio));
+  }
+  if (kind === 'epi') {
+    if (typeof metrics.epiCurrent !== 'number') return 24;
+    return Math.max(18, Math.min(100, (metrics.epiCurrent / 80) * 100));
+  }
+  if (kind === 'ren') {
+    if (typeof metrics.renCurrent !== 'number') return 24;
+    return Math.max(18, Math.min(100, (metrics.renCurrent / 30) * 100));
+  }
+  return 24;
 }
 
 // ------------------------------------------------------------
-// MiniMap
+// UI primitives
 // ------------------------------------------------------------
-function MiniMap({ map, compact }: { map: Project['map']; compact?: boolean }) {
-  const Item = ({ label, state }: { label: string; state: ModuleState }) => (
-    <div className={compact ? styles.miniMapItemCompact : styles.miniMapItem}>
-      <div className={styles.miniMapRow}>
-        <span className={styles.miniMapLabel}>{label}</span>
-        <span className={styles.miniMapDot} aria-label={`${label}:${state}`}>{dot(state)}</span>
-      </div>
-      {!compact && (
-        <div className={styles.miniMapSub}>
-          {state === 'pass' ? '만족' : state === 'fail' ? '불만족' : state === 'progress' ? '진행' : '미실행'}
-        </div>
-      )}
-    </div>
-  );
-
+function InfoCard({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={styles.miniMapGrid}>
-      <Item label="ZEB" state={map.zeb} />
-      <Item label="EPI" state={map.epi} />
-      <Item label="신재생" state={map.ren} />
-      <Item label="컨설팅" state={map.consult} />
-    </div>
-  );
-}
-
-// ------------------------------------------------------------
-// CreateProjectDialog
-// ------------------------------------------------------------
-function CreateProjectDialog({
-  open,
-  onOpenChange,
-  onCreate,
-}: {
-  open: boolean;
-  onOpenChange: (v: boolean) => void;
-  onCreate: (p: Omit<Project, 'id' | 'updatedAt' | 'map'>) => void;
-}) {
-  const [form] = Form.useForm();
-
-  const submit = useCallback(() => {
-    return form.validateFields().then((values) => {
-      const name = values.name?.trim() || `${values.region} ${values.use} (신규)`;
-      onCreate({
-        name,
-        region: values.region,
-        use: values.use,
-        gfa: values.gfa,
-        floors: values.floors,
-        targetGrade: values.targetGrade,
-        status: '신규',
-      });
-      onOpenChange(false);
-      form.resetFields();
-    });
-  }, [form, onCreate, onOpenChange]);
-
-  return (
-    <Modal
-      title="프로젝트 생성"
-      open={open}
-      onCancel={() => onOpenChange(false)}
-      onOk={submit}
-      okText="생성"
-      cancelText="취소"
-      width={520}
-      destroyOnClose
-      centered
-      className={styles.createModal}
+    <div
+      className={`rounded-3xl border border-slate-200 bg-white p-5 shadow-sm ${className}`.trim()}
     >
-      <Form
-        form={form}
-        layout="vertical"
-        initialValues={{
-          region: '서울',
-          use: '업무시설',
-          gfa: 12000,
-          floors: 10,
-          targetGrade: 3,
-        }}
-      >
-        <Form.Item name="name" label="프로젝트명">
-          <Input placeholder="예: 성수 업무시설" />
-        </Form.Item>
-        <div className={styles.formRow}>
-          <Form.Item name="region" label="지역" className={styles.formHalf}>
-            <Select
-              options={[
-                { value: '서울', label: '서울' },
-                { value: '경기', label: '경기' },
-                { value: '인천', label: '인천' },
-                { value: '부산', label: '부산' },
-              ]}
-            />
-          </Form.Item>
-          <Form.Item name="use" label="용도" className={styles.formHalf}>
-            <Select
-              options={[
-                { value: '업무시설', label: '업무시설' },
-                { value: '교육연구시설', label: '교육연구시설' },
-                { value: '공동주택', label: '공동주택' },
-                { value: '상업시설', label: '상업시설' },
-              ]}
-            />
-          </Form.Item>
-        </div>
-        <div className={styles.formRow}>
-          <Form.Item name="gfa" label="연면적(㎡)" className={styles.formHalf}>
-            <Input type="number" min={1} />
-          </Form.Item>
-          <Form.Item name="floors" label="층수" className={styles.formHalf}>
-            <Input type="number" min={1} />
-          </Form.Item>
-        </div>
-        <Form.Item name="targetGrade" label="목표 ZEB 등급">
-          <Select
-            options={[1, 2, 3, 4, 5].map((n) => ({ value: n, label: `${n}등급` }))}
-          />
-        </Form.Item>
-        <div className={styles.createDialogHint}>
-          * 생성 후, 표준모델(시나리오 A)을 기반으로 시나리오 비교를 진행합니다.
-        </div>
-      </Form>
-    </Modal>
+      {children}
+    </div>
   );
 }
 
-// ------------------------------------------------------------
-// KpiTile
-// ------------------------------------------------------------
-function KpiTile({ label, value }: { label: string; value: React.ReactNode }) {
-  return (
-    <Card className={styles.kpiTile}>
-      <div className={styles.kpiLabel}>{label}</div>
-      <div className={styles.kpiValue}>{value}</div>
-    </Card>
-  );
-}
-
-// ------------------------------------------------------------
-// PlatformNav
-// ------------------------------------------------------------
-function PlatformNav({ onGo }: { onGo: (label: string) => void }) {
-  const items = [
-    { label: '마이페이지' },
-    { label: '설정' },
-    { label: '구독' },
-    { label: '도움말', divider: true },
-  ];
-  return (
-    <Card className={styles.panelCard}>
-      <div className={styles.panelCardTitle}>플랫폼</div>
-      <div className={styles.platformNav}>
-        {items.map((it, i) => (
-          <React.Fragment key={i}>
-            {it.divider && <Divider className={styles.navDivider} />}
-            <Button
-              type="text"
-              block
-              className={styles.navButton}
-              onClick={() => onGo(it.label)}
-            >
-              <span>{it.label}</span>
-              <span className={styles.navButtonSub}>열기</span>
-            </Button>
-          </React.Fragment>
-        ))}
-      </div>
-    </Card>
-  );
-}
-
-// ------------------------------------------------------------
-// RecentActivity
-// ------------------------------------------------------------
-type Activity = { at: string; text: string };
-
-function RecentActivity({
-  items,
-  compact,
-  onOpen,
-}: {
-  items: Activity[];
-  compact?: boolean;
-  onOpen?: () => void;
-}) {
-  const list = items.slice(0, compact ? 3 : 6);
-  return (
-    <Card className={styles.panelCard}>
-      <div className={styles.panelCardHeader}>
-        <div className={styles.panelCardTitle}>최근 활동</div>
-        {onOpen && (
-          <Button type="link" size="small" onClick={onOpen}>
-            열기
-          </Button>
-        )}
-      </div>
-      <div className={compact ? styles.activityListCompact : styles.activityList}>
-        {list.map((it, idx) => (
-          <div key={idx} className={styles.activityItem}>
-            <div className={styles.activityAt}>{it.at}</div>
-            <div className={styles.activityText}>{it.text}</div>
-          </div>
-        ))}
-      </div>
-    </Card>
-  );
-}
-
-// ------------------------------------------------------------
-// WorkspaceLeftButton
-// ------------------------------------------------------------
-function WorkspaceLeftButton({
-  active,
-  label,
+function SimpleButton({
+  children,
+  tone,
+  type = 'button',
   onClick,
+  className = '',
 }: {
-  active: boolean;
-  label: string;
-  onClick: () => void;
+  children: React.ReactNode;
+  tone?: 'solid';
+  type?: 'button' | 'submit';
+  onClick?: () => void;
+  className?: string;
 }) {
+  const toneCls =
+    tone === 'solid'
+      ? 'bg-slate-800 text-slate-100 border-slate-700 hover:bg-slate-700'
+      : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50';
   return (
-    <Button
-      type={active ? 'primary' : 'default'}
-      block
-      className={styles.workspaceButton}
+    <button
+      type={type}
       onClick={onClick}
+      className={`rounded-2xl border px-4 py-2 text-sm font-medium transition hover:opacity-90 ${toneCls} ${className}`.trim()}
     >
-      <span>{label}</span>
-      <span className={styles.navButtonSub}>열기</span>
-    </Button>
+      {children}
+    </button>
   );
 }
 
-// ------------------------------------------------------------
-// ModuleKpiCard
-// ------------------------------------------------------------
-function ModuleKpiCard({
-  title,
-  target,
-  current,
-  margin,
-  unit,
-  state,
-  hint,
-  onOpen,
-}: {
-  title: string;
+function FieldLabel({ children }: { children: React.ReactNode }) {
+  return <div className="mb-2 text-sm text-slate-600">{children}</div>;
+}
+
+type MetricMiniCardProps = {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  hint: string;
   target: React.ReactNode;
   current: React.ReactNode;
   margin: React.ReactNode;
-  unit?: string;
-  state: ModuleState;
-  hint?: string;
-  onOpen: () => void;
+  progress: number;
+  stateMark: React.ReactNode;
+  isFail: boolean;
+  isIdle: boolean;
+  caption: string;
+  tooltip?: string;
+  activeTone?: 'teal' | 'rose';
+};
+
+function MetricMiniCard(props: MetricMiniCardProps) {
+  const Icon = props.icon;
+  const barTone = props.isIdle
+    ? 'bg-slate-300'
+    : props.isFail
+      ? 'bg-rose-500'
+      : props.activeTone === 'rose'
+        ? 'bg-rose-500'
+        : 'bg-teal-600';
+
+  return (
+    <div className="rounded-2xl border p-3.5" title={props.tooltip}>
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <div
+            className={`flex h-8 w-8 items-center justify-center rounded-xl ${
+              props.activeTone === 'rose' ? 'bg-rose-50 text-rose-700' : 'bg-slate-50 text-teal-700'
+            }`}
+          >
+            <Icon className="h-4 w-4" />
+          </div>
+          <div>
+            <div className="text-sm font-semibold text-slate-900">{props.label}</div>
+            <div className="text-[11px] text-slate-400">{props.hint}</div>
+          </div>
+        </div>
+        <div className="text-sm">{props.stateMark}</div>
+      </div>
+
+      <div className="mt-3 grid grid-cols-3 gap-2">
+        <div className="rounded-xl bg-slate-50 px-3 py-2">
+          <div className="text-[10px] text-slate-400">목표</div>
+          <div className="mt-1 text-sm font-semibold">{props.target}</div>
+        </div>
+        <div className="rounded-xl bg-slate-50 px-3 py-2">
+          <div className="text-[10px] text-slate-400">현재</div>
+          <div className="mt-1 text-sm font-semibold">{props.current}</div>
+        </div>
+        <div className="rounded-xl bg-slate-50 px-3 py-2">
+          <div className="text-[10px] text-slate-400">여유</div>
+          <div className="mt-1 text-sm font-semibold">{props.margin}</div>
+        </div>
+      </div>
+
+      <div className="mt-3">
+        <div className="h-1.5 overflow-hidden rounded-full bg-slate-100">
+          <div className={`h-full rounded-full ${barTone}`} style={{ width: `${props.progress}%` }} />
+        </div>
+      </div>
+      <div className="mt-2 text-xs font-medium text-slate-500">{props.caption}</div>
+    </div>
+  );
+}
+
+function MiniMap({ map, compact }: { map: Project['map']; compact?: boolean }) {
+  function item(label: string, state: ModuleState, Icon: React.ComponentType<{ className?: string }>) {
+    return (
+      <div className={`rounded-2xl border bg-white ${compact ? 'px-2 py-2' : 'px-3 py-2'}`}>
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5 text-xs text-slate-500">
+            <Icon className="h-3.5 w-3.5" />
+            <span>{label}</span>
+          </div>
+          <div className="text-sm font-semibold">{stateIcon(state)}</div>
+        </div>
+        {!compact ? <div className="mt-1 text-[11px] text-slate-400">{stateText(state)}</div> : null}
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-2 gap-2">
+      {item('ZEB', map.zeb, Building2)}
+      {item('EPI', map.epi, BarChart3)}
+      {item('신재생', map.ren, Leaf)}
+      {item('컨설팅', map.consult, PhoneCall)}
+    </div>
+  );
+}
+
+function HomeSidebar(props: {
+  breadcrumb: React.ReactNode;
+  kpi: { total: number; active: number; done: number; need: number };
+  query: string;
+  setQuery: (v: string) => void;
+  statusFilter: ProjectStatus | '전체';
+  setStatusFilter: (v: ProjectStatus | '전체') => void;
+}) {
+  const { breadcrumb, kpi, query, setQuery, statusFilter, setStatusFilter } = props;
+
+  return (
+    <div className="w-80 shrink-0 border-r border-slate-200 bg-white p-5">
+      <div className="mb-4 border-b border-slate-100 pb-4">{breadcrumb}</div>
+      <div className="space-y-5">
+        <InfoCard>
+          <div className="mb-3 text-sm font-semibold">현황</div>
+          <div className="space-y-2">
+            <div className="rounded-2xl border p-3">
+              <div className="text-xs text-slate-500">전체 프로젝트</div>
+              <div className="mt-1 text-2xl font-semibold">{kpi.total}</div>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              <div className="rounded-2xl border p-3">
+                <div className="text-[11px] text-slate-500">검토 진행</div>
+                <div className="mt-1 font-semibold">{kpi.active}</div>
+              </div>
+              <div className="rounded-2xl border p-3">
+                <div className="text-[11px] text-slate-500">판단 완료</div>
+                <div className="mt-1 font-semibold">{kpi.done}</div>
+              </div>
+              <div className="rounded-2xl border p-3">
+                <div className="text-[11px] text-slate-500">재검토 필요</div>
+                <div className="mt-1 font-semibold">{kpi.need}</div>
+              </div>
+            </div>
+          </div>
+        </InfoCard>
+
+        <InfoCard>
+          <div className="mb-3 text-sm font-semibold">검색</div>
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="프로젝트 검색"
+            className="w-full rounded-2xl border px-3 py-2 text-sm outline-none"
+          />
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value as ProjectStatus | '전체')}
+            className="mt-2 w-full rounded-2xl border px-3 py-2 text-sm outline-none"
+          >
+            <option value="전체">전체</option>
+            <option value="신규">신규</option>
+            <option value="진행중">진행중</option>
+            <option value="완료">완료</option>
+          </select>
+        </InfoCard>
+      </div>
+    </div>
+  );
+}
+
+function ServiceNavMetricButton(props: {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  hint: string;
+  target: React.ReactNode;
+  current: React.ReactNode;
+  margin: React.ReactNode;
+  progress: number;
+  stateMark: React.ReactNode;
+  isFail: boolean;
+  isIdle: boolean;
+  caption: string;
+  tooltip?: string;
+  activeTone?: 'teal' | 'rose';
+  active: boolean;
+  ringClass: string;
+  bgClass: string;
+  onClick: () => void;
 }) {
   return (
-    <Card className={styles.moduleKpiCard}>
-      <div className={styles.moduleKpiHeader}>
-        <div className={styles.moduleKpiTitleWrap}>
-          <div className={styles.moduleKpiTitle}>{title}</div>
-          {hint && <div className={styles.moduleKpiHint}>{hint}</div>}
-        </div>
-        <StateBadge state={state} />
+    <button
+      type="button"
+      onClick={props.onClick}
+      className={`block w-full text-left transition ${props.active ? 'scale-[1.005]' : 'hover:opacity-95'}`}
+    >
+      <div
+        className={`rounded-2xl ${props.active ? `ring-2 ${props.ringClass} ${props.bgClass}` : ''}`}
+      >
+        <MetricMiniCard
+          icon={props.icon}
+          label={props.label}
+          hint={props.hint}
+          target={props.target}
+          current={props.current}
+          margin={props.margin}
+          progress={props.progress}
+          stateMark={props.stateMark}
+          isFail={props.isFail}
+          isIdle={props.isIdle}
+          caption={props.caption}
+          tooltip={props.tooltip}
+          activeTone={props.activeTone}
+        />
       </div>
-      <div className={styles.moduleKpiGrid}>
-        <div className={styles.moduleKpiCell}>
-          <div className={styles.moduleKpiCellLabel}>목표</div>
-          <div className={styles.moduleKpiCellValue}>
-            {target}
-            {unit && <span className={styles.moduleKpiUnit}>{unit}</span>}
+    </button>
+  );
+}
+
+const COLLAB_MESSAGES: Record<'zeb' | 'epi' | 'ren', string> = {
+  zeb: '시나리오 결과를 공유하고 의견을 남길 수 있습니다.',
+  epi: '항목별 수정 의견과 관련 파일을 협업할 수 있습니다.',
+  ren: '조합 검토 내용과 검토 자료를 서비스 안에서 바로 공유할 수 있습니다.',
+};
+
+function CollaborationRightDrawer(props: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  serviceKind: 'zeb' | 'epi' | 'ren';
+}) {
+  const { open, onOpenChange, serviceKind } = props;
+  const message = COLLAB_MESSAGES[serviceKind];
+  const serviceTitle =
+    serviceKind === 'zeb' ? 'ZEB' : serviceKind === 'epi' ? 'EPI' : '신재생';
+
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onOpenChange(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open, onOpenChange]);
+
+  return (
+    <>
+      {/* 플로팅 탭(책갈피) — 닫힌 상태에서만 노출 */}
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-controls="project-hub-collab-drawer"
+        onClick={() => onOpenChange(true)}
+        className={`fixed right-0 top-[40%] z-[35] flex h-[7.25rem] w-10 -translate-y-1/2 flex-col items-center justify-center gap-2 rounded-l-xl border border-r-0 border-slate-200 bg-white py-3 shadow-[0_4px_24px_rgba(15,23,42,0.12)] transition-[transform,opacity,box-shadow] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform hover:bg-slate-50 hover:shadow-[0_6px_28px_rgba(15,23,42,0.16)] active:scale-[0.98] ${
+          open ? 'pointer-events-none translate-x-full opacity-0' : 'translate-x-0 opacity-100'
+        }`}
+      >
+        <MessageSquare className="h-4 w-4 shrink-0 text-teal-600" aria-hidden />
+        <span className="select-none text-[11px] font-semibold tracking-[0.12em] text-slate-600 [writing-mode:vertical-rl]">
+          협업
+        </span>
+      </button>
+
+      {/* 오버레이 */}
+      <div
+        className={`fixed inset-0 z-[38] bg-slate-900/40 backdrop-blur-[2px] transition-[opacity,backdrop-filter] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+          open ? 'opacity-100' : 'pointer-events-none opacity-0'
+        }`}
+        aria-hidden={!open}
+        onClick={() => onOpenChange(false)}
+      />
+
+      {/* 드로워: 우측 → 좌측으로 50% (sm 이상), 모바일은 전체 너비 */}
+      <div
+        id="project-hub-collab-drawer"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="collab-drawer-title"
+        className={`fixed right-0 top-0 z-[40] flex h-[100dvh] w-full flex-col border-l border-slate-200 bg-white shadow-[-12px_0_40px_rgba(15,23,42,0.1)] transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform sm:w-1/2 sm:max-w-[720px] ${
+          open ? 'pointer-events-auto translate-x-0' : 'pointer-events-none translate-x-full'
+        }`}
+      >
+        <div className="flex h-14 shrink-0 items-center justify-between gap-3 border-b border-slate-100 px-4">
+          <div className="min-w-0">
+            <h2 id="collab-drawer-title" className="truncate text-sm font-semibold text-slate-900">
+              협업
+            </h2>
+            <p className="truncate text-xs text-slate-500">{serviceTitle} · Pro</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => onOpenChange(false)}
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800"
+            aria-label="협업 패널 닫기"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+        <div className="min-h-0 flex-1 overflow-y-auto p-4">
+          <LockedCollabSection message={message} />
+        </div>
+      </div>
+    </>
+  );
+}
+
+function LockedCollabSection({ message }: { message: string }) {
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white p-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
+              <Lock className="h-4 w-4" />
+            </div>
+            <div className="text-sm font-semibold text-slate-900">협업</div>
+            <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2 py-1 text-[10px] font-medium text-slate-500">
+              <Lock className="h-3 w-3" /> Pro
+            </span>
+          </div>
+          <div className="mt-2 text-sm text-slate-700">{message}</div>
+          <div className="mt-1 text-xs text-slate-500">
+            유료 구독 시 코멘트, 파일 공유, 현재 상태 기록이 활성화됩니다.
           </div>
         </div>
-        <div className={styles.moduleKpiCell}>
-          <div className={styles.moduleKpiCellLabel}>현재</div>
-          <div className={styles.moduleKpiCellValue}>
-            {current}
-            {unit && <span className={styles.moduleKpiUnit}>{unit}</span>}
+        <SimpleButton>구독 보기</SimpleButton>
+      </div>
+    </div>
+  );
+}
+
+function ServiceWorkspace() {
+  return (
+    <div className="space-y-4">
+      <div className="min-h-[520px] rounded-2xl border border-dashed border-slate-200 bg-slate-50" />
+      <p className="text-center text-xs text-slate-400">
+        협업은 우측 <span className="font-medium text-slate-500">책갈피 탭</span>에서 열 수 있습니다.
+      </p>
+    </div>
+  );
+}
+
+function ConsultingLockedPanel() {
+  return (
+    <div className="space-y-4">
+      <div className="rounded-2xl border border-slate-200 bg-white p-5">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-rose-100 text-rose-700">
+                <Lock className="h-4 w-4" />
+              </div>
+              <div className="text-sm font-semibold text-slate-900">컨설팅 연계</div>
+              <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2 py-1 text-[10px] font-medium text-slate-500">
+                <Lock className="h-3 w-3" /> Pro
+              </span>
+            </div>
+            <div className="mt-2 text-sm text-slate-700">컨설팅 연계는 유료 구독에서 활성화됩니다.</div>
+            <div className="mt-1 text-xs text-slate-500">
+              전문가 연결, 프로젝트 공유, 코멘트 협업을 이 단계에서 실행합니다.
+            </div>
           </div>
+          <SimpleButton>구독 보기</SimpleButton>
         </div>
-        <div className={styles.moduleKpiCell}>
-          <div className={styles.moduleKpiCellLabel}>여유율</div>
-          <div className={styles.moduleKpiCellValue}>
-            {margin}
-            {unit && <span className={styles.moduleKpiUnit}>{unit}</span>}
+      </div>
+
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <div className="rounded-2xl border border-slate-200 bg-white p-4">
+          <div className="text-[11px] text-slate-400">실행 항목</div>
+          <div className="mt-1 text-sm font-semibold text-slate-900">전문가 연결</div>
+        </div>
+        <div className="rounded-2xl border border-slate-200 bg-white p-4">
+          <div className="text-[11px] text-slate-400">공유 범위</div>
+          <div className="mt-1 text-sm font-semibold text-slate-900">프로젝트 단위</div>
+        </div>
+        <div className="rounded-2xl border border-slate-200 bg-white p-4">
+          <div className="text-[11px] text-slate-400">협업 권한</div>
+          <div className="mt-1 text-sm font-semibold text-slate-900">설계사 승인 후</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ProjectSummaryPanel({
+  breadcrumb,
+  selected,
+  activeTab,
+  setActiveTab,
+}: {
+  breadcrumb: React.ReactNode;
+  selected: Project;
+  activeTab: WorkspaceTab;
+  setActiveTab: (t: WorkspaceTab) => void;
+}) {
+  const metrics = moduleMetrics(selected);
+
+  const reviewItems = [
+    {
+      key: 'zeb' as const,
+      icon: Building2,
+      label: 'ZEB',
+      hint: '다중 시나리오 비교',
+      target: `${selected.targetGrade}등급`,
+      current: metrics.zebCurrent === '–' ? '–' : `${metrics.zebCurrent}등급`,
+      margin:
+        metrics.zebMargin === '–'
+          ? '–'
+          : `${metrics.zebMargin > 0 ? '+' : ''}${metrics.zebMargin}`,
+      progress: progressPercent('zeb', metrics, selected),
+      state: selected.map.zeb,
+      caption: stateText(selected.map.zeb),
+      tooltip: '표준 모델 기준 등급 비교',
+      activeTone: 'teal' as const,
+      ringClass: 'ring-teal-700/20',
+      bgClass: 'bg-teal-50',
+    },
+    {
+      key: 'epi' as const,
+      icon: BarChart3,
+      label: 'EPI',
+      hint: '법규 검토',
+      target: '65점',
+      current: metrics.epiCurrent === '–' ? '–' : `${metrics.epiCurrent}점`,
+      margin:
+        metrics.epiMargin === '–'
+          ? '–'
+          : `${metrics.epiMargin > 0 ? '+' : ''}${metrics.epiMargin}`,
+      progress: progressPercent('epi', metrics, selected),
+      state: selected.map.epi,
+      caption: stateText(selected.map.epi),
+      tooltip: '법규 점수 비교',
+      activeTone: 'teal' as const,
+      ringClass: 'ring-teal-700/20',
+      bgClass: 'bg-teal-50',
+    },
+    {
+      key: 'ren' as const,
+      icon: Leaf,
+      label: '신재생',
+      hint: '의무 비율 검토',
+      target: '20%',
+      current: metrics.renCurrent === '–' ? '–' : `${metrics.renCurrent}%`,
+      margin:
+        metrics.renMargin === '–'
+          ? '–'
+          : `${metrics.renMargin > 0 ? '+' : ''}${metrics.renMargin}`,
+      progress: progressPercent('ren', metrics, selected),
+      state: selected.map.ren,
+      caption: stateText(selected.map.ren),
+      tooltip: '의무 공급비율 비교',
+      activeTone: 'teal' as const,
+      ringClass: 'ring-teal-700/20',
+      bgClass: 'bg-teal-50',
+    },
+  ];
+
+  const consultItem = {
+    key: 'consult' as const,
+    icon: PhoneCall,
+    label: '컨설팅 연계',
+    hint: '전문가 실행 연결',
+    target: '실행',
+    current: '연계 대기',
+    margin: '🔒 Pro',
+    progress: 46,
+    caption: '구독 활성화 필요',
+    tooltip: '판단 이후 실행 단계',
+    activeTone: 'rose' as const,
+    ringClass: 'ring-rose-700/20',
+    bgClass: 'bg-rose-50',
+  };
+
+  return (
+    <div className="sticky top-16 space-y-4 self-start">
+      <div className="border-b border-slate-200 pb-4">{breadcrumb}</div>
+      <InfoCard>
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <div className="text-base font-semibold">{selected.name}</div>
+            <div className="mt-1 text-xs text-slate-500">
+              {selected.region} · {selected.use} · {fmt(selected.gfa)}㎡ · {selected.floors}F · 목표 ZEB{' '}
+              {selected.targetGrade}
+            </div>
+          </div>
+          <span
+            className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-medium ${statusBadgeClass(selected.status)}`}
+          >
+            {selected.status}
+          </span>
+        </div>
+
+        <div className="mt-4">
+          <button
+            type="button"
+            onClick={() => setActiveTab('ops')}
+            aria-pressed={activeTab === 'ops'}
+            className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[12px] font-medium text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
+          >
+            <NotebookPen className="h-3.5 w-3.5" />
+            운영 기록
+          </button>
+        </div>
+      </InfoCard>
+
+      <InfoCard>
+        <div className="mb-3 text-xs font-semibold tracking-[0.18em] text-slate-400">PROJECT SERVICES</div>
+
+        <div className="space-y-2.5">
+          {reviewItems.map((item) => (
+            <ServiceNavMetricButton
+              key={item.key}
+              icon={item.icon}
+              label={item.label}
+              hint={item.hint}
+              target={item.target}
+              current={item.current}
+              margin={item.margin}
+              progress={item.progress}
+              stateMark={stateIcon(item.state)}
+              isFail={item.state === 'fail'}
+              isIdle={item.current === '–'}
+              caption={item.caption}
+              tooltip={item.tooltip}
+              activeTone={item.activeTone}
+              active={activeTab === item.key}
+              ringClass={item.ringClass}
+              bgClass={item.bgClass}
+              onClick={() => setActiveTab(item.key)}
+            />
+          ))}
+        </div>
+
+        <div className="my-3 border-t border-slate-100" />
+
+        <ServiceNavMetricButton
+          icon={consultItem.icon}
+          label={consultItem.label}
+          hint={consultItem.hint}
+          target={consultItem.target}
+          current={consultItem.current}
+          margin={consultItem.margin}
+          progress={consultItem.progress}
+          stateMark={
+            <div className="flex items-center gap-1">
+              <PhoneCall className="h-3 w-3 text-rose-500 opacity-90" />
+              <Lock className="h-3 w-3 text-slate-400" />
+            </div>
+          }
+          isFail={false}
+          isIdle={false}
+          caption={consultItem.caption}
+          tooltip={consultItem.tooltip}
+          activeTone={consultItem.activeTone}
+          active={activeTab === consultItem.key}
+          ringClass={consultItem.ringClass}
+          bgClass={consultItem.bgClass}
+          onClick={() => setActiveTab(consultItem.key)}
+        />
+      </InfoCard>
+    </div>
+  );
+}
+
+function OperationsWorkspace(props: {
+  opsTitleDraft: string;
+  setOpsTitleDraft: (v: string) => void;
+  opsDraft: string;
+  setOpsDraft: (v: string) => void;
+  records: OpsRecord[];
+  onSave: () => void;
+}) {
+  const {
+    opsTitleDraft,
+    setOpsTitleDraft,
+    opsDraft,
+    setOpsDraft,
+    records,
+    onSave,
+  } = props;
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded-2xl border border-slate-200 bg-white p-5">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <div className="text-sm font-semibold text-slate-900">운영 기록</div>
+            <div className="mt-1 text-xs text-slate-500">대표 제목과 요약문을 간단히 작성합니다.</div>
+          </div>
+          <SimpleButton tone="solid" onClick={onSave}>
+            기록
+          </SimpleButton>
+        </div>
+
+        <div className="mt-4">
+          <input
+            value={opsTitleDraft}
+            onChange={(e) => setOpsTitleDraft(e.target.value)}
+            placeholder="제목을 입력하세요"
+            className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-800 outline-none transition focus:border-slate-300 focus:bg-white"
+          />
+        </div>
+
+        <div className="mt-3">
+          <textarea
+            value={opsDraft}
+            onChange={(e) => setOpsDraft(e.target.value)}
+            placeholder="운영 기록 대표 문구를 입력하세요"
+            className="min-h-[220px] w-full resize-none rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-slate-300 focus:bg-white"
+          />
+        </div>
+
+        <div className="mt-5 border-t border-slate-100 pt-4">
+          <div className="mb-3 text-xs font-semibold tracking-[0.16em] text-slate-400">목차</div>
+          <div className="space-y-2">
+            {records.length ? (
+              records.map((item) => (
+                <div key={item.id} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                  <div className="text-[11px] text-slate-400">{item.createdAt.slice(0, 10)}</div>
+                  <div className="mt-1 text-sm font-medium text-slate-800">{item.title}</div>
+                </div>
+              ))
+            ) : (
+              <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-400">
+                아직 기록이 없습니다.
+              </div>
+            )}
           </div>
         </div>
       </div>
-      <Button type="primary" block className={styles.moduleKpiOpenBtn} onClick={onOpen}>
-        열기
-      </Button>
-    </Card>
+    </div>
+  );
+}
+
+function ProjectWorkspace(props: {
+  breadcrumb: React.ReactNode;
+  activeTab: WorkspaceTab;
+  selected: Project;
+  setActiveTab: (t: WorkspaceTab) => void;
+  opsTitleDraft: string;
+  setOpsTitleDraft: (v: string) => void;
+  opsDraft: string;
+  setOpsDraft: (v: string) => void;
+  onSaveOps: () => void;
+}) {
+  const {
+    breadcrumb,
+    activeTab,
+    selected,
+    setActiveTab,
+    opsTitleDraft,
+    setOpsTitleDraft,
+    opsDraft,
+    setOpsDraft,
+    onSaveOps,
+  } = props;
+
+  const sortedRecords = [...(selected.opsRecords || [])].sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
+
+  const [collabOpen, setCollabOpen] = useState(false);
+  const collabKind: 'zeb' | 'epi' | 'ren' | null =
+    activeTab === 'zeb' || activeTab === 'epi' || activeTab === 'ren' ? activeTab : null;
+
+  useEffect(() => {
+    if (!collabKind) setCollabOpen(false);
+  }, [collabKind]);
+
+  return (
+    <div className="flex min-h-[calc(100vh-64px)] flex-col md:flex-row">
+      <aside className="w-80 max-w-full shrink-0 border-r border-slate-200 bg-white p-5">
+        <ProjectSummaryPanel
+          breadcrumb={breadcrumb}
+          selected={selected}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+        />
+      </aside>
+
+      <div className="min-w-0 flex-1 p-4 md:p-6">
+        <InfoCard className="min-h-[720px] w-full">
+          <div className="mb-4 text-sm font-semibold">작업 영역</div>
+
+          {activeTab === 'zeb' || activeTab === 'epi' || activeTab === 'ren' ? (
+            <ServiceWorkspace />
+          ) : null}
+          {activeTab === 'consult' ? <ConsultingLockedPanel /> : null}
+          {activeTab === 'ops' ? (
+            <OperationsWorkspace
+              opsTitleDraft={opsTitleDraft}
+              setOpsTitleDraft={setOpsTitleDraft}
+              opsDraft={opsDraft}
+              setOpsDraft={setOpsDraft}
+              records={sortedRecords}
+              onSave={onSaveOps}
+            />
+          ) : null}
+        </InfoCard>
+      </div>
+
+      {collabKind ? (
+        <CollaborationRightDrawer
+          open={collabOpen}
+          onOpenChange={setCollabOpen}
+          serviceKind={collabKind}
+        />
+      ) : null}
+    </div>
+  );
+}
+
+function CreateProjectModal(props: {
+  open: boolean;
+  setOpenCreate: (v: boolean) => void;
+  formName: string;
+  setFormName: (v: string) => void;
+  formRegion: string;
+  setFormRegion: (v: string) => void;
+  formUse: string;
+  setFormUse: (v: string) => void;
+  formGfa: string;
+  setFormGfa: (v: string) => void;
+  formFloors: string;
+  setFormFloors: (v: string) => void;
+  formTarget: string;
+  setFormTarget: (v: string) => void;
+  submitProject: () => void;
+}) {
+  if (!props.open) return null;
+
+  return (
+    <div className="fixed inset-0 z-20 flex items-center justify-center bg-slate-950/35 p-4">
+      <div className="w-full max-w-2xl rounded-3xl border bg-white p-6 shadow-2xl">
+        <div className="flex items-center justify-between gap-2">
+          <div>
+            <div className="text-lg font-semibold">새 프로젝트 생성</div>
+            <div className="mt-1 text-sm text-slate-500">
+              초기 입력값만 등록하고 바로 프로젝트 허브에 추가합니다.
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => props.setOpenCreate(false)}
+            className="rounded-full border px-3 py-1 text-sm text-slate-500"
+          >
+            닫기
+          </button>
+        </div>
+
+        <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div>
+            <FieldLabel>프로젝트명</FieldLabel>
+            <input
+              value={props.formName}
+              onChange={(e) => props.setFormName(e.target.value)}
+              className="w-full rounded-2xl border px-3 py-2 text-sm outline-none"
+            />
+          </div>
+          <div>
+            <FieldLabel>지역</FieldLabel>
+            <select
+              value={props.formRegion}
+              onChange={(e) => props.setFormRegion(e.target.value)}
+              className="w-full rounded-2xl border px-3 py-2 text-sm outline-none"
+            >
+              <option>서울</option>
+              <option>경기</option>
+              <option>인천</option>
+              <option>부산</option>
+              <option>대구</option>
+            </select>
+          </div>
+          <div>
+            <FieldLabel>용도</FieldLabel>
+            <select
+              value={props.formUse}
+              onChange={(e) => props.setFormUse(e.target.value)}
+              className="w-full rounded-2xl border px-3 py-2 text-sm outline-none"
+            >
+              <option>업무시설</option>
+              <option>교육연구시설</option>
+              <option>공동주택</option>
+              <option>판매시설</option>
+            </select>
+          </div>
+          <div>
+            <FieldLabel>연면적(㎡)</FieldLabel>
+            <input
+              value={props.formGfa}
+              onChange={(e) => props.setFormGfa(e.target.value)}
+              className="w-full rounded-2xl border px-3 py-2 text-sm outline-none"
+            />
+          </div>
+          <div>
+            <FieldLabel>층수</FieldLabel>
+            <input
+              value={props.formFloors}
+              onChange={(e) => props.setFormFloors(e.target.value)}
+              className="w-full rounded-2xl border px-3 py-2 text-sm outline-none"
+            />
+          </div>
+          <div>
+            <FieldLabel>목표 ZEB 등급</FieldLabel>
+            <select
+              value={props.formTarget}
+              onChange={(e) => props.setFormTarget(e.target.value)}
+              className="w-full rounded-2xl border px-3 py-2 text-sm outline-none"
+            >
+              <option value="1">1등급</option>
+              <option value="2">2등급</option>
+              <option value="3">3등급</option>
+              <option value="4">4등급</option>
+              <option value="5">5등급</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="mt-6 flex justify-end gap-2">
+          <SimpleButton onClick={() => props.setOpenCreate(false)}>취소</SimpleButton>
+          <SimpleButton tone="solid" onClick={props.submitProject}>
+            생성
+          </SimpleButton>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function HeaderBreadcrumb(props: {
+  view: 'home' | 'project';
+  selected: Project | null;
+  onGoHome: () => void;
+}) {
+  const { view, selected, onGoHome } = props;
+
+  if (view === 'home') {
+    return (
+      <div className="flex min-w-0 items-center gap-2">
+        <span className="text-[11px] font-medium text-slate-400">프로젝트 허브</span>
+        <span className="text-xs text-slate-300">&gt;</span>
+        <span className="truncate text-sm font-semibold text-slate-700">전체 현황</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex min-w-0 flex-wrap items-center gap-2">
+      <button
+        type="button"
+        onClick={onGoHome}
+        className="text-[13px] font-medium text-slate-400 transition hover:text-slate-700"
+      >
+        프로젝트 허브
+      </button>
+      <span className="text-xs text-slate-300">&gt;</span>
+      <button
+        type="button"
+        onClick={onGoHome}
+        className="text-[13px] font-medium text-slate-400 transition hover:text-slate-700"
+      >
+        전체 현황
+      </button>
+      <span className="text-xs text-slate-300">&gt;</span>
+      <span className="min-w-0 truncate text-sm font-semibold text-slate-700">
+        {selected ? selected.name : '프로젝트'}
+      </span>
+    </div>
+  );
+}
+
+function HeaderActionIcon({
+  icon: Icon,
+  label,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+}) {
+  return (
+    <button
+      type="button"
+      title={label}
+      className="flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-500 transition hover:border-slate-300 hover:text-slate-900"
+    >
+      <Icon className="h-4 w-4" />
+    </button>
   );
 }
 
 // ------------------------------------------------------------
-// Default projects + SharedFile type
-// ------------------------------------------------------------
-const DEFAULT_PROJECTS: Project[] = [
-  {
-    id: 'p-001',
-    name: '성수 업무시설',
-    region: '서울',
-    use: '업무시설',
-    gfa: 12800,
-    floors: 12,
-    targetGrade: 3,
-    status: '진행중',
-    updatedAt: '2026-03-03 17:20',
-    map: { zeb: 'pass', epi: 'fail', ren: 'pass', consult: 'none' },
-  },
-  {
-    id: 'p-002',
-    name: '동탄 교육연구시설',
-    region: '경기',
-    use: '교육연구시설',
-    gfa: 9200,
-    floors: 7,
-    targetGrade: 4,
-    status: '진행중',
-    updatedAt: '2026-03-02 11:05',
-    map: { zeb: 'pass', epi: 'pass', ren: 'none', consult: 'none' },
-  },
-  {
-    id: 'p-003',
-    name: '여의도 공동주택(가칭)',
-    region: '서울',
-    use: '공동주택',
-    gfa: 18500,
-    floors: 20,
-    targetGrade: 2,
-    status: '신규',
-    updatedAt: '2026-03-03 09:12',
-    map: { zeb: 'none', epi: 'none', ren: 'none', consult: 'none' },
-  },
-];
-
-type SharedFile = {
-  id: string;
-  name: string;
-  size: number;
-  type: string;
-  uploadedAt: string;
-  blobUrl: string;
-};
-
-function fmtBytes(n: number) {
-  if (!n) return '0 B';
-  const units = ['B', 'KB', 'MB', 'GB'];
-  const idx = Math.min(units.length - 1, Math.floor(Math.log(n) / Math.log(1024)));
-  const v = n / Math.pow(1024, idx);
-  const fixed = idx === 0 ? 0 : v < 10 ? 1 : 0;
-  return `${v.toFixed(fixed)} ${units[idx]}`;
-}
-
-const activityItems: Activity[] = [
-  { at: '2026-03-03 17:20', text: 'EPI 점수 업데이트' },
-  { at: '2026-03-03 15:40', text: '협업 댓글 추가' },
-  { at: '2026-03-03 14:10', text: '파일 업로드 (설계도면)' },
-  { at: '2026-03-02 11:05', text: 'ZEB 시나리오 A 생성' },
-];
-
-// ------------------------------------------------------------
-// Main: ZEBAProjectHub
+// Main
 // ------------------------------------------------------------
 export default function ProjectHub() {
   const [view, setView] = useState<'home' | 'project'>('home');
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<WorkspaceTab>('zeb');
-
   const [query, setQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<ProjectStatus | '전체'>('전체');
+  const [projects, setProjects] = useState<Project[]>(initialProjects);
+  const [activeTab, setActiveTab] = useState<WorkspaceTab>('zeb');
   const [openCreate, setOpenCreate] = useState(false);
+  const [opsTitleDraft, setOpsTitleDraft] = useState('');
+  const [opsDraft, setOpsDraft] = useState('');
 
-  const [projects, setProjects] = useState<Project[]>(DEFAULT_PROJECTS);
-  const [sharedFiles, setSharedFiles] = useState<SharedFile[]>([
-    {
-      id: 'f-001',
-      name: '설계도면_초안.pdf',
-      size: 2_345_000,
-      type: 'application/pdf',
-      uploadedAt: '2026-03-03 14:10',
-      blobUrl: '',
-    },
-  ]);
-  const [pickedFile, setPickedFile] = useState<File | null>(null);
-
-  const mockGo = useCallback((label: string) => {
-    alert(`${label} (미리보기)\n\n- 실제 기능/라우팅은 다음 단계에서 연결`);
-  }, []);
-
-  const onPickFile = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const f = e.target.files?.[0] ?? null;
-    setPickedFile(f);
-    e.target.value = '';
-  }, []);
-
-  const uploadPickedFile = useCallback(() => {
-    if (!pickedFile) return;
-    const url = URL.createObjectURL(pickedFile);
-    setSharedFiles((prev) => [
-      {
-        id: `f-${makeId()}`,
-        name: pickedFile.name,
-        size: pickedFile.size,
-        type: pickedFile.type || 'application/octet-stream',
-        uploadedAt: nowStamp(),
-        blobUrl: url,
-      },
-      ...prev,
-    ]);
-    setPickedFile(null);
-  }, [pickedFile]);
-
-  const downloadFile = useCallback((f: SharedFile) => {
-    if (!f.blobUrl) {
-      mockGo(`다운로드(미리보기): ${f.name}`);
-      return;
-    }
-    const a = document.createElement('a');
-    a.href = f.blobUrl;
-    a.download = f.name;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-  }, [mockGo]);
-
-  const removeFile = useCallback((f: SharedFile) => {
-    if (f.blobUrl) URL.revokeObjectURL(f.blobUrl);
-    setSharedFiles((prev) => prev.filter((x) => x.id !== f.id));
-  }, []);
+  const [formName, setFormName] = useState('');
+  const [formRegion, setFormRegion] = useState('서울');
+  const [formUse, setFormUse] = useState('업무시설');
+  const [formGfa, setFormGfa] = useState('12000');
+  const [formFloors, setFormFloors] = useState('10');
+  const [formTarget, setFormTarget] = useState('3');
 
   const selected = useMemo(
     () => (selectedId ? projects.find((p) => p.id === selectedId) ?? null : null),
     [projects, selectedId]
   );
 
+  useEffect(() => {
+    if (!selected) {
+      setOpsTitleDraft('');
+      setOpsDraft('');
+      return;
+    }
+    const latest = latestOpsRecord(selected);
+    setOpsTitleDraft(latest?.title ?? '');
+    setOpsDraft(latest?.summary ?? '');
+  }, [selected]);
+
   const kpi = useMemo(() => {
     const total = projects.length;
     const active = projects.filter((p) => p.status === '진행중').length;
     const done = projects.filter((p) => p.status === '완료').length;
     const need = projects.filter(
-      (p) => p.map.epi === 'fail' || p.map.ren === 'fail' || p.map.zeb === 'fail'
+      (p) => p.map.zeb === 'fail' || p.map.epi === 'fail' || p.map.ren === 'fail'
     ).length;
     return { total, active, done, need };
   }, [projects]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return projects
-      .filter((p) => (statusFilter === '전체' ? true : p.status === statusFilter))
-      .filter((p) => {
-        if (!q) return true;
-        return `${p.name} ${p.region} ${p.use}`.toLowerCase().includes(q);
-      })
-      .sort((a, b) => (a.updatedAt < b.updatedAt ? 1 : -1));
+    const base = projects.filter((p) => {
+      const hitStatus = statusFilter === '전체' ? true : p.status === statusFilter;
+      const hay = `${p.name} ${p.region} ${p.use}`.toLowerCase();
+      const hitQuery = q ? hay.includes(q) : true;
+      return hitStatus && hitQuery;
+    });
+    return sortProjects(base);
   }, [projects, query, statusFilter]);
-
-  const createProject = useCallback((base: Omit<Project, 'id' | 'updatedAt' | 'map'>) => {
-    const p: Project = {
-      id: `p-${makeId()}`,
-      updatedAt: nowStamp(),
-      map: { zeb: 'none', epi: 'none', ren: 'none', consult: 'none' },
-      ...base,
-    };
-    setProjects((prev) => [p, ...prev]);
-    setSelectedId(p.id);
-    setActiveTab('zeb');
-    setView('project');
-  }, []);
 
   const openProject = useCallback((id: string) => {
     setSelectedId(id);
@@ -569,399 +1216,187 @@ export default function ProjectHub() {
     setView('project');
   }, []);
 
-  const moduleOpen = useCallback(
-    (tab: WorkspaceTab) => {
-      setActiveTab(tab);
-      mockGo(MODULE_LABEL[tab]);
-    },
-    [mockGo]
-  );
+  const saveOpsRecord = useCallback(() => {
+    if (!selectedId) return;
+    const title = opsTitleDraft.trim();
+    const summary = opsDraft.trim();
+    if (!title && !summary) return;
 
-  const moduleMockMetric = useCallback((p: Project) => {
-    const zebCurrent =
-      p.map.zeb === 'pass'
-        ? Math.max(1, p.targetGrade - 1)
-        : p.map.zeb === 'fail'
-          ? p.targetGrade + 1
-          : p.targetGrade;
-    const epiCurrent = p.map.epi === 'pass' ? 68 : p.map.epi === 'fail' ? 62 : 0;
-    const renCurrent = p.map.ren === 'pass' ? 21.5 : p.map.ren === 'fail' ? 17.0 : 0;
-    const zebMargin = p.map.zeb === 'none' ? null : Number(p.targetGrade) - Number(zebCurrent);
-    const epiMargin = p.map.epi === 'none' ? null : Number(epiCurrent) - 65;
-    const renMargin = p.map.ren === 'none' ? null : Number(renCurrent) - 20;
-    return {
-      zebCurrent,
-      epiCurrent,
-      renCurrent,
-      zebMargin,
-      epiMargin,
-      renMargin,
+    const createdAt = nowStamp();
+    const record: OpsRecord = {
+      id: `ops-${makeId()}`,
+      title: title || '무제 기록',
+      summary: summary || '내용 없음',
+      createdAt,
     };
-  }, []);
 
-  const openReport = useCallback(() => {
-    if (view !== 'project' || !selected) {
-      alert('리포트는 프로젝트 내부에서 출력합니다.\n\n- 프로젝트를 선택해 주세요.');
-      return;
-    }
-    mockGo('리포트 출력');
-  }, [view, selected, mockGo]);
+    setProjects((prev) =>
+      prev.map((project) => {
+        if (project.id !== selectedId) return project;
+        return {
+          ...project,
+          updatedAt: createdAt,
+          opsRecords: [record, ...(project.opsRecords || [])],
+        };
+      })
+    );
+  }, [selectedId, opsTitleDraft, opsDraft]);
+
+  const submitProject = useCallback(() => {
+    const id = `p-${makeId()}`;
+    const project: Project = {
+      id,
+      name: formName.trim() || `${formRegion} ${formUse} (신규)`,
+      region: formRegion,
+      use: formUse,
+      gfa: Number(formGfa),
+      floors: Number(formFloors),
+      targetGrade: Number(formTarget),
+      status: '신규',
+      updatedAt: nowStamp(),
+      map: { zeb: 'none', epi: 'none', ren: 'none', consult: 'none' },
+      note: '초기 검토 대기',
+      opsRecords: [],
+    };
+
+    setProjects((prev) => [project, ...prev]);
+    setSelectedId(id);
+    setActiveTab('zeb');
+    setOpenCreate(false);
+    setView('project');
+  }, [formName, formRegion, formUse, formGfa, formFloors, formTarget]);
 
   return (
-    <div className={styles.hubRoot}>
-      {/* Top bar */}
-      <div className={styles.topBar}>
-        <div className={styles.topBarLeft}>
-          <Link href="/landing" className={styles.topBarLogo}>
-            <img alt="ZEBA" src="/assets/images/logo-company.png" className={styles.topBarLogoImg} />
-          </Link>
-          <span className={styles.topBarSub}>프로젝트 허브</span>
-        </div>
-
-        <div className={styles.topBarRight}>
-          <div className={styles.searchWrap}>
-            <Input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="프로젝트 검색 (이름/지역/용도)"
-              className={styles.searchInput}
-              allowClear
-            />
-            <div className={styles.searchDivider} />
-            <Select
-              value={statusFilter}
-              onChange={(v) => setStatusFilter(v as ProjectStatus | '전체')}
-              className={styles.statusSelect}
-              options={[
-                { value: '전체', label: '전체' },
-                { value: '신규', label: '신규' },
-                { value: '진행중', label: '진행중' },
-                { value: '완료', label: '완료' },
-              ]}
-            />
+    <div className="min-h-screen bg-[#f4f6f8] text-slate-900">
+      <div className="sticky top-0 z-10 border-b border-slate-200 bg-white/95 backdrop-blur">
+        <div className="flex h-16 flex-wrap items-center justify-between gap-3 px-4 sm:px-8">
+          <div className="flex min-w-0 items-center gap-4 pl-0 sm:pl-4">
+            <Link href="/landing" className="hidden shrink-0 sm:block">
+              <img
+                alt="ZEBA"
+                src="/assets/images/logo-company.png"
+                className="h-7 w-auto object-contain opacity-90"
+              />
+            </Link>
+            <div className="min-w-0">
+              <div className="text-[10px] font-semibold tracking-[0.28em] text-teal-600">ZEBA MVP PLATFORM</div>
+              <div className="truncate text-base font-semibold">프로젝트 허브</div>
+            </div>
           </div>
 
-          {view === 'project' && (
-            <Button className={styles.topBarBtn} onClick={() => setView('home')}>
-              전체 현황
-            </Button>
-          )}
-          <Button className={styles.topBarBtn} onClick={openReport}>
-            리포트 출력
-          </Button>
-          <Button type="primary" className={styles.createButton} onClick={() => setOpenCreate(true)}>
-            <PlusOutlined /> 프로젝트 생성
-          </Button>
+          <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+            <HeaderActionIcon icon={User} label="마이페이지" />
+            <HeaderActionIcon icon={Settings} label="설정" />
+            <HeaderActionIcon icon={CreditCard} label="구독" />
+            <HeaderActionIcon icon={Bell} label="알림" />
+            <HeaderActionIcon icon={HelpCircle} label="도움말" />
+          </div>
         </div>
       </div>
 
-      <CreateProjectDialog open={openCreate} onOpenChange={setOpenCreate} onCreate={createProject} />
+      {view === 'home' ? (
+        <div className="flex min-h-[calc(100vh-64px)] flex-col md:flex-row">
+          <HomeSidebar
+            breadcrumb={
+              <HeaderBreadcrumb view="home" selected={selected} onGoHome={() => setView('home')} />
+            }
+            kpi={kpi}
+            query={query}
+            setQuery={setQuery}
+            statusFilter={statusFilter}
+            setStatusFilter={setStatusFilter}
+          />
 
-      {/* Body */}
-      <div className={styles.body}>
-        {/* Left panel */}
-        <div className={styles.leftPanel}>
-          <div className={styles.leftPanelMobile}>
-            <Input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="프로젝트 검색"
-            />
-            <Select
-              value={statusFilter}
-              onChange={(v) => setStatusFilter(v as ProjectStatus | '전체')}
-              className={styles.leftPanelSelect}
-              options={[
-                { value: '전체', label: '전체' },
-                { value: '신규', label: '신규' },
-                { value: '진행중', label: '진행중' },
-                { value: '완료', label: '완료' },
-              ]}
-            />
+          <div className="flex-1 p-4 md:p-6">
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
+              <InfoCard>
+                <div className="flex min-h-[250px] flex-col items-center justify-center gap-3">
+                  <div className="text-xs tracking-[0.24em] text-slate-400">NEW PROJECT</div>
+                  <SimpleButton tone="solid" className="px-5" onClick={() => setOpenCreate(true)}>
+                    + 새 프로젝트 생성
+                  </SimpleButton>
+                </div>
+              </InfoCard>
+
+              {filtered.map((p) => (
+                <InfoCard key={p.id}>
+                  <button type="button" onClick={() => openProject(p.id)} className="w-full text-left">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="truncate text-base font-semibold">{p.name}</div>
+                      <span
+                        className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-medium ${statusBadgeClass(p.status)}`}
+                      >
+                        {p.status}
+                      </span>
+                    </div>
+                    <div className="mt-3 text-sm leading-6 text-slate-500">
+                      {p.region} · {p.use} · {fmt(p.gfa)}㎡ · {p.floors}F
+                    </div>
+                    <div className="mt-4">
+                      <MiniMap map={p.map} />
+                    </div>
+                    <div
+                      className="mt-3 overflow-hidden rounded-xl border border-slate-100 bg-slate-50 px-3 py-2 text-[11px] leading-5 text-slate-500"
+                      style={{
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                      }}
+                    >
+                      {projectStatusText(p)}
+                    </div>
+                    <div className="mt-2 text-[11px] text-slate-400">업데이트 · {p.updatedAt}</div>
+                  </button>
+                </InfoCard>
+              ))}
+            </div>
+
+            {filtered.length === 0 && (
+              <div className="mt-8 rounded-3xl border border-dashed border-slate-200 bg-white p-8 text-center text-sm text-slate-500">
+                조건에 맞는 프로젝트가 없습니다.
+              </div>
+            )}
           </div>
-
-          {view === 'home' ? (
-            <PlatformNav onGo={mockGo} />
-          ) : (
-            <>
-              <Card className={styles.panelCard}>
-                <div className={styles.panelCardTitle}>프로젝트 전환</div>
-                <Select
-                  value={selectedId ?? undefined}
-                  onChange={(v) => openProject(v)}
-                  className={styles.projectSelect}
-                  placeholder="프로젝트 선택"
-                  options={projects.map((p) => ({ value: p.id, label: p.name }))}
-                />
-                {selected ? (
-                  <div className={styles.selectedSummary}>
-                    <div className={styles.selectedName}>{selected.name}</div>
-                    <div className={styles.selectedMeta}>
-                      {selected.region} · {selected.use} · {fmt(selected.gfa)}㎡
-                    </div>
-                    <StatusBadge status={selected.status} />
-                  </div>
-                ) : (
-                  <div className={styles.selectedPlaceholder}>프로젝트를 선택하세요.</div>
-                )}
-              </Card>
-
-              <Card className={styles.panelCard}>
-                <div className={styles.panelCardTitle}>기능</div>
-                <div className={styles.workspaceButtons}>
-                  <WorkspaceLeftButton
-                    active={activeTab === 'zeb'}
-                    label={MODULE_LABEL.zeb}
-                    onClick={() => setActiveTab('zeb')}
-                  />
-                  <WorkspaceLeftButton
-                    active={activeTab === 'epi'}
-                    label={MODULE_LABEL.epi}
-                    onClick={() => setActiveTab('epi')}
-                  />
-                  <WorkspaceLeftButton
-                    active={activeTab === 'ren'}
-                    label={MODULE_LABEL.ren}
-                    onClick={() => setActiveTab('ren')}
-                  />
-                  <Divider className={styles.navDivider} />
-                  <WorkspaceLeftButton
-                    active={activeTab === 'consult'}
-                    label={MODULE_LABEL.consult}
-                    onClick={() => setActiveTab('consult')}
-                  />
-                  <Divider className={styles.navDivider} />
-                  <WorkspaceLeftButton
-                    active={activeTab === 'collab'}
-                    label={MODULE_LABEL.collab}
-                    onClick={() => setActiveTab('collab')}
-                  />
-                  <div className={styles.recentActivityWrap}>
-                    <RecentActivity
-                      items={activityItems}
-                      compact
-                      onOpen={() => setActiveTab('collab')}
-                    />
-                  </div>
-                </div>
-              </Card>
-            </>
-          )}
         </div>
-
-        {/* Right panel */}
-        <div className={styles.rightPanel}>
-          {view === 'home' ? (
-            <>
-              <div className={styles.kpiRow}>
-                <KpiTile label="전체 프로젝트" value={kpi.total} />
-                <KpiTile label="진행중" value={kpi.active} />
-                <KpiTile label="완료" value={kpi.done} />
-                <KpiTile label="보완 필요" value={kpi.need} />
-              </div>
-
-              <div className={styles.projectGrid}>
-                {filtered.map((p) => (
-                  <Card
-                    key={p.id}
-                    className={styles.projectCard}
-                    hoverable
-                    onClick={() => openProject(p.id)}
-                  >
-                    <div className={styles.projectCardHeader}>
-                      <div className={styles.projectCardTitle}>{p.name}</div>
-                      <StatusBadge status={p.status} />
-                    </div>
-                    <div className={styles.projectCardMeta}>
-                      {p.region} / {p.use} / {fmt(p.gfa)}㎡
-                    </div>
-                    <div className={styles.projectCardGrade}>
-                      목표 ZEB <strong>{p.targetGrade}</strong> · {p.floors}F
-                    </div>
-                    <MiniMap map={p.map} />
-                    <div className={styles.projectCardUpdated}>업데이트 · {p.updatedAt}</div>
-                  </Card>
-                ))}
-              </div>
-
-              {filtered.length === 0 && (
-                <div className={styles.emptyState}>
-                  프로젝트가 없습니다. 우측 상단에서 <strong>+ 프로젝트 생성</strong>을 눌러 시작하세요.
-                </div>
-              )}
-            </>
-          ) : (
-            <>
-              {!selected ? (
-                <div className={styles.emptyState}>프로젝트를 선택하세요.</div>
-              ) : (
-                <div className={styles.workspaceContent}>
-                  <Card className={styles.workspaceHeaderCard}>
-                    <div className={styles.workspaceHeaderRow}>
-                      <div>
-                        <div className={styles.workspaceHeaderName}>{selected.name}</div>
-                        <div className={styles.workspaceHeaderMeta}>
-                          {selected.region} · {selected.use} · {fmt(selected.gfa)}㎡ · {selected.floors}F · 목표 ZEB {selected.targetGrade}
-                        </div>
-                      </div>
-                      <StatusBadge status={selected.status} />
-                    </div>
-                    <div className={styles.workspaceMiniMap}>
-                      <MiniMap map={selected.map} compact />
-                    </div>
-                    <div className={styles.workspaceHeaderUpdated}>업데이트 · {selected.updatedAt}</div>
-                  </Card>
-
-                  <div className={styles.moduleKpiRow}>
-                    {(() => {
-                      const m = moduleMockMetric(selected);
-                      return (
-                        <>
-                          <ModuleKpiCard
-                            title="ZEB"
-                            target={selected.targetGrade}
-                            current={selected.map.zeb === 'none' ? '–' : m.zebCurrent}
-                            margin={selected.map.zeb === 'none' ? '–' : marginText(m.zebMargin)}
-                            unit="등급"
-                            state={selected.map.zeb}
-                            hint="목표 등급 대비"
-                            onOpen={() => moduleOpen('zeb')}
-                          />
-                          <ModuleKpiCard
-                            title="EPI"
-                            target={65}
-                            current={selected.map.epi === 'none' ? '–' : m.epiCurrent}
-                            margin={selected.map.epi === 'none' ? '–' : marginText(m.epiMargin)}
-                            unit="점"
-                            state={selected.map.epi}
-                            hint="기준 65점"
-                            onOpen={() => moduleOpen('epi')}
-                          />
-                          <ModuleKpiCard
-                            title="신재생"
-                            target={20}
-                            current={selected.map.ren === 'none' ? '–' : m.renCurrent}
-                            margin={selected.map.ren === 'none' ? '–' : marginText(m.renMargin)}
-                            unit="%"
-                            state={selected.map.ren}
-                            hint="의무 공급비율"
-                            onOpen={() => moduleOpen('ren')}
-                          />
-                        </>
-                      );
-                    })()}
-                  </div>
-
-                  <Card className={styles.depth3Card}>
-                    <div className={styles.depth3Title}>Depth 3 — 작업 영역</div>
-                    <div className={styles.depth3Body}>
-                      {activeTab === 'collab' ? (
-                        <>
-                          <p className={styles.depth3Intro}>
-                            <strong>협업</strong>은 이 영역에서 진행됩니다.
-                          </p>
-                          <div className={styles.collabGrid}>
-                            <div className={styles.collabBlock}>
-                              <div className={styles.collabBlockTitle}>초대</div>
-                              <div className={styles.collabBlockRow}>
-                                <Input placeholder="이메일 또는 팀원명" />
-                                <Button type="primary" onClick={() => mockGo('협업 초대')}>
-                                  초대
-                                </Button>
-                              </div>
-                              <div className={styles.collabHint}>* 초대/권한/링크 공유는 다음 단계에서 연결</div>
-                            </div>
-                            <div className={styles.collabBlock}>
-                              <div className={styles.collabBlockTitle}>코멘트</div>
-                              <Input placeholder="메모/요청사항" />
-                              <div className={styles.collabBlockRow}>
-                                <Button type="primary" onClick={() => mockGo('댓글 등록')}>
-                                  등록
-                                </Button>
-                                <Button onClick={() => mockGo('파일 업로드')}>파일 업로드</Button>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className={styles.sharedFilesBlock}>
-                            <div className={styles.sharedFilesHeader}>
-                              <span className={styles.collabBlockTitle}>자료 공유</span>
-                              <label>
-                                <input type="file" className={styles.hiddenInput} onChange={onPickFile} />
-                                <Button type="default">파일 선택</Button>
-                              </label>
-                            </div>
-                            <div className={styles.pickedFileRow}>
-                              <div className={styles.pickedFileDisplay}>
-                                {pickedFile ? (
-                                  <span>{pickedFile.name} · {fmtBytes(pickedFile.size)}</span>
-                                ) : (
-                                  <span className={styles.muted}>선택된 파일 없음</span>
-                                )}
-                              </div>
-                              <Button type="primary" onClick={uploadPickedFile} disabled={!pickedFile}>
-                                업로드
-                              </Button>
-                            </div>
-                            <div className={styles.uploadedList}>
-                              <div className={styles.uploadedListHeader}>업로드된 파일</div>
-                              <div className={styles.uploadedListBody}>
-                                {sharedFiles.length === 0 ? (
-                                  <div className={styles.muted}>아직 공유된 파일이 없습니다.</div>
-                                ) : (
-                                  sharedFiles.map((f) => (
-                                    <div key={f.id} className={styles.uploadedItem}>
-                                      <div>
-                                        <div className={styles.uploadedItemName}>{f.name}</div>
-                                        <div className={styles.uploadedItemMeta}>
-                                          {fmtBytes(f.size)} · {f.uploadedAt}
-                                        </div>
-                                      </div>
-                                      <div className={styles.uploadedItemActions}>
-                                        <Button size="small" onClick={() => downloadFile(f)}>
-                                          다운로드
-                                        </Button>
-                                        <Button size="small" danger onClick={() => removeFile(f)}>
-                                          삭제
-                                        </Button>
-                                      </div>
-                                    </div>
-                                  ))
-                                )}
-                              </div>
-                            </div>
-                            <div className={styles.collabHint}>
-                              * (미리보기) 현재는 로컬 상태로만 동작합니다. 권한/버전/서버 저장은 다음 단계에서 연결합니다.
-                            </div>
-                          </div>
-
-                          <RecentActivity items={activityItems} onOpen={() => mockGo('타임라인 보기')} />
-                        </>
-                      ) : (
-                        <>
-                          <p className={styles.depth3Intro}>
-                            <strong>{MODULE_LABEL[activeTab]}</strong> 상세 UI 영역
-                          </p>
-                          <div className={styles.modulePlaceholder}>
-                            (미리보기) {MODULE_LABEL[activeTab]} 화면 자리
-                          </div>
-                          <div className={styles.moduleActions}>
-                            <Button type="primary" onClick={() => mockGo('작업 시작')}>
-                              작업 시작
-                            </Button>
-                            <Button onClick={() => mockGo('저장')}>저장</Button>
-                            <Button onClick={() => mockGo('검증')}>검증</Button>
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  </Card>
-                </div>
-              )}
-            </>
-          )}
+      ) : selected ? (
+        <ProjectWorkspace
+          breadcrumb={
+            <HeaderBreadcrumb view="project" selected={selected} onGoHome={() => setView('home')} />
+          }
+          selected={selected}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          opsTitleDraft={opsTitleDraft}
+          setOpsTitleDraft={setOpsTitleDraft}
+          opsDraft={opsDraft}
+          setOpsDraft={setOpsDraft}
+          onSaveOps={saveOpsRecord}
+        />
+      ) : (
+        <div className="min-h-[calc(100vh-64px)] bg-[#f4f6f8] p-6">
+          <InfoCard>
+            <div className="text-sm text-slate-500">프로젝트를 선택하세요.</div>
+          </InfoCard>
         </div>
-      </div>
+      )}
+
+      <CreateProjectModal
+        open={openCreate}
+        setOpenCreate={setOpenCreate}
+        formName={formName}
+        setFormName={setFormName}
+        formRegion={formRegion}
+        setFormRegion={setFormRegion}
+        formUse={formUse}
+        setFormUse={setFormUse}
+        formGfa={formGfa}
+        setFormGfa={setFormGfa}
+        formFloors={formFloors}
+        setFormFloors={setFormFloors}
+        formTarget={formTarget}
+        setFormTarget={setFormTarget}
+        submitProject={submitProject}
+      />
     </div>
   );
 }
