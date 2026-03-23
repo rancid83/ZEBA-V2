@@ -98,7 +98,7 @@ export default function LandingStyleB() {
   const bars = computeBars(summary);
 
   const onMoveMain = () => {
-    router.push('/main');
+    router.push('/project-hub');
   };
 
   return (
@@ -131,7 +131,7 @@ export default function LandingStyleB() {
             >
               회원가입
             </button>
-            <Link href="/main" className={styles.headerBtnSecondary}>
+            <Link href="/project-hub" className={styles.headerBtnSecondary}>
               프로젝트 현황
             </Link>
             <Button

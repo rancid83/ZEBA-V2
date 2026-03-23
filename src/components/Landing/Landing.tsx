@@ -232,7 +232,7 @@ export default function Landing() {
 
   const goMain = () => {
     setShowTransitionModal(false);
-    router.push('/main');
+    router.push('/project-hub');
   };
 
   return (
@@ -271,7 +271,7 @@ export default function Landing() {
             </HeaderButton>
             <motion.div whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }} className="inline-block">
               <Link
-                href="/main"
+                href="/project-hub"
                 className="inline-block rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 no-underline"
               >
                 프로젝트 생성

@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   BarChart3,
   Bell,
@@ -1173,6 +1174,8 @@ function HeaderPopups({
   kind: 'user' | 'settings' | 'bell' | 'help' | null;
   onClose: () => void;
 }) {
+  const router = useRouter();
+
   if (!kind) return null;
 
   const content = {
@@ -1191,7 +1194,15 @@ function HeaderPopups({
           </div>
           <div className="mt-3 border-t border-slate-100 pt-3">
             <SimpleButton className="w-full text-left">프로필 수정</SimpleButton>
-            <SimpleButton className="mt-2 w-full text-left">로그아웃</SimpleButton>
+            <SimpleButton
+              className="mt-2 w-full text-left"
+              onClick={() => {
+                onClose();
+                router.push('/');
+              }}
+            >
+              로그아웃
+            </SimpleButton>
           </div>
         </div>
       ),
@@ -1390,13 +1401,23 @@ export default function ProjectHub() {
       <div className="sticky top-0 z-10 border-b border-slate-200 bg-white/95 backdrop-blur">
         <div className="flex h-16 flex-wrap items-center justify-between gap-3 px-4 sm:px-8">
           <div className="flex min-w-0 items-center gap-4 pl-0 sm:pl-4">
-            <Link href="/landing" className="hidden shrink-0 sm:block">
-              <img
-                alt="ZEBA"
-                src="/assets/images/logo-company.png"
-                className="h-7 w-auto object-contain opacity-90"
-              />
-            </Link>
+            {view === 'home' ? (
+              <Link href="/" className="hidden shrink-0 sm:block">
+                <img
+                  alt="ZEBA"
+                  src="/assets/images/logo-company.png"
+                  className="h-7 w-auto object-contain opacity-90"
+                />
+              </Link>
+            ) : (
+              <button onClick={() => setView('home')} className="hidden shrink-0 sm:block cursor-pointer">
+                <img
+                  alt="ZEBA"
+                  src="/assets/images/logo-company.png"
+                  className="h-7 w-auto object-contain opacity-90"
+                />
+              </button>
+            )}
             <div className="min-w-0">
               <div className="text-[10px] font-semibold tracking-[0.28em] text-teal-600">ZEBA MVP PLATFORM</div>
               <div className="truncate text-base font-semibold">프로젝트 허브</div>
