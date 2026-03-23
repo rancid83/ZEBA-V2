@@ -6,18 +6,53 @@ import { useRouter } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   ArrowRight,
-  Briefcase,
-  FileText,
-  ShieldCheck,
+  BarChart2,
+  BookOpen,
+  FileSearch,
+  Link2,
+  Shield,
   Sparkles,
   SunMedium,
   Target,
   X,
+  Zap,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Modal } from 'antd';
 import LoginForm from '@/components/Auth/LoginForm';
 import SignupForm from '@/components/Auth/SignupForm';
+
+const CUSTOM_EASE = [0.22, 1, 0.36, 1] as const;
+
+const slideUp = {
+  hidden: { opacity: 0, y: 24 },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.55, ease: CUSTOM_EASE },
+  },
+};
+
+const slideUpFast = {
+  hidden: { opacity: 0, y: 16 },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.42, ease: CUSTOM_EASE },
+  },
+};
+
+const staggerContainer = {
+  hidden: {},
+  show: {
+    transition: {
+      staggerChildren: 0.09,
+    },
+  },
+};
+
+const inputClassName =
+  'w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-[15px] text-slate-800 outline-none transition focus:border-teal-400 focus:ring-2 focus:ring-teal-100';
 
 type DiagnosisCard = {
   label: string;
@@ -38,23 +73,6 @@ type FieldProps = {
   label: string;
   children: React.ReactNode;
 };
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 18 },
-  show: { opacity: 1, y: 0 },
-};
-
-const staggerContainer = {
-  hidden: {},
-  show: {
-    transition: {
-      staggerChildren: 0.08,
-    },
-  },
-};
-
-const inputClassName =
-  'w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-[15px] text-slate-800 outline-none transition focus:border-teal-400 focus:ring-2 focus:ring-teal-100';
 
 export default function Landing() {
   const router = useRouter();
@@ -128,7 +146,7 @@ export default function Landing() {
     },
     {
       label: 'ZEB 의무 등급',
-      icon: ShieldCheck,
+      icon: Shield,
       subtitle: 'Required',
       ratio: 20.8,
       grade: '5등급',
@@ -165,9 +183,9 @@ export default function Landing() {
   ];
 
   const identityCards = [
-    { icon: ShieldCheck, title: '설계 판단', body: '초기 판단값을 먼저 고정' },
-    { icon: FileText, title: '판단 확장', body: '필요 시 법규 리스크 확장' },
-    { icon: Briefcase, title: '실행 연결', body: '전문가 연계와 내역 전달' },
+    { icon: Shield, title: '설계 판단', body: '초기 판단값을 먼저 고정' },
+    { icon: FileSearch, title: '판단 확장', body: '필요 시 법규 리스크 확장' },
+    { icon: Link2, title: '실행 연결', body: '전문가 연계와 내역 전달' },
   ];
 
   const flow = [
@@ -187,16 +205,19 @@ export default function Landing() {
 
   const coreServices = [
     {
+      icon: Zap,
       title: '설계 판단',
       body: '초기 입력만으로 핵심 판단값을 빠르게 고정합니다.',
       badge: '핵심 기능',
     },
     {
+      icon: BookOpen,
       title: '사전 검토',
       body: '필요 시 신재생, EPI, 기타 법규 검토로 확장할 수 있습니다.',
       badge: '선택 기능',
     },
     {
+      icon: Link2,
       title: '실행 지원',
       body: '판단 결과를 실무 전달 구조로 연결해 용역 이행을 돕습니다.',
       badge: '실무 수행',
@@ -220,14 +241,14 @@ export default function Landing() {
         <motion.header
           initial={{ opacity: 0, y: -12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45 }}
+          transition={{ duration: 0.45, ease: CUSTOM_EASE }}
           className="mb-6 flex flex-col gap-4 rounded-[28px] border border-slate-200 bg-white px-6 py-4 shadow-sm md:flex-row md:items-center md:justify-between"
         >
           <div>
             <div className="text-xs font-semibold tracking-[0.24em] text-teal-700">
               ZEBA MVP LANDING
             </div>
-            <div className="mt-1 text-[26px] font-semibold tracking-[-0.03em] text-slate-900">
+            <div className="mt-1 text-[22px] font-semibold tracking-[-0.03em] text-slate-900">
               세움터 이전 단계의 설계 판단 플랫폼
             </div>
           </div>
@@ -260,11 +281,12 @@ export default function Landing() {
         </motion.header>
 
         <section className="mt-8 grid items-start gap-8 lg:grid-cols-[1.08fr_0.92fr]">
+          {/* Hero Left */}
           <motion.div
-            variants={fadeUp}
+            variants={slideUp}
             initial="hidden"
-            animate="show"
-            transition={{ duration: 0.45 }}
+            whileInView="show"
+            viewport={{ once: true, margin: '-80px' }}
             className="rounded-[32px] border border-slate-200 bg-white p-8 shadow-sm"
           >
             <div className="inline-flex items-center gap-2 rounded-full border border-teal-100 bg-teal-50 px-3 py-1 text-xs font-medium text-teal-700">
@@ -272,63 +294,74 @@ export default function Landing() {
               Platform Identity
             </div>
 
-            <h1 className="mt-5 text-[42px] font-semibold leading-[1.08] tracking-[-0.05em] text-slate-950 lg:text-[46px]">
+            <h1 className="mt-5 text-[32px] font-semibold leading-[1.12] tracking-[-0.04em] text-slate-950 lg:text-[36px]">
               설계 판단을 먼저 고정하고,
               <br />
               이후에는 <span className="text-teal-700">실행을 연결</span>합니다.
             </h1>
 
-            <p className="mt-5 max-w-[700px] text-[16px] leading-8 text-slate-600">
+            <p className="mt-5 max-w-[700px] text-[14px] leading-8 text-slate-600">
               ZEBA는 설계 초기의 불확실성을 줄이기 위해 입력값을 구조화하고, 기준 모델을 생성한 뒤,
               핵심 판단값을 먼저 고정하는 플랫폼입니다.
             </p>
 
-            <div className="mt-8 grid gap-4 md:grid-cols-3">
-              {identityCards.map((item, idx) => {
+            <motion.div
+              variants={staggerContainer}
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true, margin: '-60px' }}
+              className="mt-8 grid gap-4 md:grid-cols-3"
+            >
+              {identityCards.map((item) => {
                 const Icon = item.icon;
                 return (
                   <motion.div
                     key={item.title}
-                    initial={{ opacity: 0, y: 14 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.28, delay: 0.08 * idx + 0.12 }}
+                    variants={slideUpFast}
                     whileHover={{ y: -3 }}
                     className="rounded-[24px] border border-slate-200 bg-slate-50 p-5"
                   >
-                    <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-teal-50 text-teal-700">
+                    <IconContainer>
                       <Icon className="h-5 w-5" />
-                    </div>
-                    <div className="mt-4 text-[16px] font-semibold text-slate-800">
+                    </IconContainer>
+                    <div className="mt-4 text-[14px] font-semibold text-slate-800">
                       {item.title}
                     </div>
                     <div className="mt-2 text-sm leading-6 text-slate-500">{item.body}</div>
                   </motion.div>
                 );
               })}
-            </div>
+            </motion.div>
 
             <motion.div
-              variants={fadeUp}
+              variants={staggerContainer}
               initial="hidden"
-              animate="show"
-              transition={{ duration: 0.4, delay: 0.3 }}
+              whileInView="show"
+              viewport={{ once: true, margin: '-60px' }}
               className="mt-8 space-y-8"
             >
-              <div className="rounded-[28px] border border-slate-200 bg-slate-50 p-6">
+              <motion.div
+                variants={slideUp}
+                className="rounded-[28px] border border-slate-200 bg-slate-50 p-6"
+              >
                 <div className="text-xs font-semibold tracking-[0.2em] text-slate-500">
                   SERVICE FLOW
                 </div>
-                <div className="mt-3 text-[22px] font-semibold tracking-[-0.03em] text-slate-900">
+                <div className="mt-3 text-[18px] font-semibold tracking-[-0.03em] text-slate-900">
                   판단 엔진의 흐름과 서비스 제공 흐름을 한 번에 보여줍니다.
                 </div>
 
-                <div className="mt-5 grid gap-3 md:grid-cols-5">
+                <motion.div
+                  variants={staggerContainer}
+                  initial="hidden"
+                  whileInView="show"
+                  viewport={{ once: true, margin: '-40px' }}
+                  className="mt-5 grid gap-3 md:grid-cols-5"
+                >
                   {flow.map((step, idx) => (
                     <motion.div
                       key={step}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.25, delay: 0.36 + idx * 0.05 }}
+                      variants={slideUpFast}
                       className="relative rounded-[20px] border border-slate-200 bg-white px-4 py-4"
                     >
                       <div className="text-[11px] font-semibold tracking-[0.18em] text-slate-400">
@@ -342,7 +375,7 @@ export default function Landing() {
                       ) : null}
                     </motion.div>
                   ))}
-                </div>
+                </motion.div>
 
                 <div className="mt-6 rounded-[22px] border border-slate-200 bg-white px-5 py-4">
                   <div className="text-xs font-semibold tracking-[0.18em] text-slate-400">
@@ -359,39 +392,52 @@ export default function Landing() {
                     ))}
                   </div>
                 </div>
-              </div>
+              </motion.div>
 
-              <div className="rounded-[28px] border border-slate-200 bg-slate-50 p-6">
+              <motion.div
+                variants={slideUp}
+                className="rounded-[28px] border border-slate-200 bg-slate-50 p-6"
+              >
                 <div className="text-xs font-medium tracking-[0.22em] text-slate-500">
                   CORE SERVICES · EXPANSION
                 </div>
-                <div className="mt-2 text-[28px] font-semibold tracking-[-0.03em] text-slate-900">
+                <div className="mt-2 text-[24px] font-semibold tracking-[-0.03em] text-slate-900">
                   현재 제공 기능과 이후 확장 구조를 함께 보여줍니다.
                 </div>
 
                 <div className="mt-5 space-y-6">
                   <div>
                     <div className="text-sm font-semibold text-slate-700">현재 제공 기능</div>
-                    <div className="mt-4 grid gap-4 md:grid-cols-3">
-                      {coreServices.map((item, idx) => (
-                        <motion.div
-                          key={item.title}
-                          initial={{ opacity: 0, y: 12 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.28, delay: 0.2 + idx * 0.08 }}
-                          whileHover={{ y: -2 }}
-                          className="rounded-[24px] border border-slate-200 bg-white p-5"
-                        >
-                          <div className="inline-flex rounded-full border border-teal-100 bg-teal-50 px-3 py-1 text-xs font-semibold text-teal-700">
-                            {item.badge}
-                          </div>
-                          <div className="mt-4 text-[18px] font-semibold text-slate-900">
-                            {item.title}
-                          </div>
-                          <div className="mt-3 text-sm leading-7 text-slate-500">{item.body}</div>
-                        </motion.div>
-                      ))}
-                    </div>
+                    <motion.div
+                      variants={staggerContainer}
+                      initial="hidden"
+                      whileInView="show"
+                      viewport={{ once: true, margin: '-40px' }}
+                      className="mt-4 grid gap-4 md:grid-cols-3"
+                    >
+                      {coreServices.map((item) => {
+                        const Icon = item.icon;
+                        return (
+                          <motion.div
+                            key={item.title}
+                            variants={slideUpFast}
+                            whileHover={{ y: -2 }}
+                            className="rounded-[24px] border border-slate-200 bg-white p-5"
+                          >
+                            <IconContainer>
+                              <Icon className="h-5 w-5" />
+                            </IconContainer>
+                            <div className="mt-3 inline-flex rounded-full border border-teal-100 bg-teal-50 px-3 py-1 text-xs font-semibold text-teal-700">
+                              {item.badge}
+                            </div>
+                            <div className="mt-3 text-[14px] font-semibold text-slate-900">
+                              {item.title}
+                            </div>
+                            <div className="mt-2 text-sm leading-7 text-slate-500">{item.body}</div>
+                          </motion.div>
+                        );
+                      })}
+                    </motion.div>
                   </div>
 
                   <div className="border-t border-slate-200 pt-6">
@@ -399,31 +445,37 @@ export default function Landing() {
                     <div className="mt-4 text-sm leading-7 text-slate-500">
                       현재는 설계 판단과 인허가 전 검토에 집중하지만, 판단 결과 저장과 파일 축적 구조는 이후 협업과 실행 전달의 기반이 됩니다.
                     </div>
-                    <div className="mt-5 space-y-3">
+                    <motion.div
+                      variants={staggerContainer}
+                      initial="hidden"
+                      whileInView="show"
+                      viewport={{ once: true, margin: '-40px' }}
+                      className="mt-5 space-y-3"
+                    >
                       {expansionNotes.map((text, idx) => (
                         <motion.div
                           key={`${text}-${idx}`}
-                          initial={{ opacity: 0, x: 10 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ duration: 0.28, delay: 0.24 + idx * 0.08 }}
+                          variants={slideUpFast}
                           className="flex items-start gap-3 rounded-[18px] border border-slate-200 bg-white px-4 py-4"
                         >
                           <div className="mt-1 h-2.5 w-2.5 rounded-full bg-teal-700" />
                           <div className="text-sm leading-6 text-slate-600">{text}</div>
                         </motion.div>
                       ))}
-                    </div>
+                    </motion.div>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             </motion.div>
           </motion.div>
 
+          {/* Hero Right */}
           <motion.div
-            variants={fadeUp}
+            variants={slideUp}
             initial="hidden"
-            animate="show"
-            transition={{ duration: 0.45, delay: 0.1 }}
+            whileInView="show"
+            viewport={{ once: true, margin: '-80px' }}
+            transition={{ delay: 0.1 }}
             className="rounded-[32px] border border-slate-200 bg-white p-6 shadow-sm"
           >
             <div className="flex items-center justify-between gap-4">
@@ -431,7 +483,7 @@ export default function Landing() {
                 <div className="text-xs font-medium tracking-[0.22em] text-slate-500">
                   QUICK ENTRY
                 </div>
-                <div className="mt-1 text-[22px] font-semibold tracking-[-0.03em] text-slate-900">
+                <div className="mt-1 text-[18px] font-semibold tracking-[-0.03em] text-slate-900">
                   간편 진단 박스
                 </div>
               </div>
@@ -459,7 +511,7 @@ export default function Landing() {
                     return (
                       <motion.div
                         key={item.label}
-                        variants={fadeUp}
+                        variants={slideUpFast}
                         whileHover={{ y: -2 }}
                         className={`rounded-[22px] border p-5 ${
                           strong
@@ -469,14 +521,10 @@ export default function Landing() {
                       >
                         <div className="min-h-[64px]">
                           <div className="flex items-center gap-2">
-                            <div
-                              className={`flex h-8 w-8 items-center justify-center rounded-xl ${
-                                strong ? 'bg-white text-teal-700' : 'bg-slate-50 text-slate-600'
-                              }`}
-                            >
+                            <IconContainer variant={strong ? 'strong' : 'default'}>
                               <CardIcon className="h-4 w-4" />
-                            </div>
-                            <div className="text-[18px] font-semibold leading-6 text-slate-800">
+                            </IconContainer>
+                            <div className="text-[14px] font-semibold leading-6 text-slate-800">
                               {item.label}
                             </div>
                           </div>
@@ -484,13 +532,13 @@ export default function Landing() {
                         </div>
                         <div className="mt-3 text-sm text-slate-500">{item.metricLabel}</div>
                         <div
-                          className={`mt-6 flex items-end gap-1 text-[42px] font-semibold tracking-[-0.04em] ${
+                          className={`mt-6 flex items-end gap-1 text-[30px] font-semibold tracking-[-0.04em] ${
                             strong ? 'text-teal-700' : 'text-slate-700'
                           }`}
                         >
                           <span>{item.ratio}</span>
                           {item.metricSuffix ? (
-                            <span className="mb-1 text-[22px] font-semibold">
+                            <span className="mb-1 text-[18px] font-semibold">
                               {item.metricSuffix}
                             </span>
                           ) : null}
@@ -508,7 +556,7 @@ export default function Landing() {
                           {item.gradeLabel}
                         </div>
                         <div
-                          className={`mt-1 text-[24px] font-semibold ${
+                          className={`mt-1 text-[20px] font-semibold ${
                             strong ? 'text-teal-700' : 'text-slate-700'
                           }`}
                         >
@@ -531,6 +579,11 @@ export default function Landing() {
               ) : (
                 <div className="flex min-h-[320px] items-center justify-center rounded-[22px] border border-dashed border-slate-300 bg-white text-center">
                   <div>
+                    <div className="mx-auto mb-4">
+                      <IconContainer size="lg">
+                        <BarChart2 className="h-6 w-6" />
+                      </IconContainer>
+                    </div>
                     <div className="text-sm font-medium text-slate-500">
                       아직 생성된 간편 진단 결과가 없습니다
                     </div>
@@ -544,7 +597,7 @@ export default function Landing() {
 
             {showResult ? (
               <div className="mt-6 rounded-[28px] border border-slate-200 bg-white p-6">
-                <div className="text-[15px] font-medium leading-7 text-slate-700">
+                <div className="text-[14px] font-medium leading-7 text-slate-700">
                   {summary.guidance}
                 </div>
                 <div className="mt-3 text-sm leading-6 text-slate-500">
@@ -607,7 +660,7 @@ export default function Landing() {
                   <div className="text-xs font-semibold tracking-[0.18em] text-slate-500">
                     PROJECT TRANSITION
                   </div>
-                  <div className="mt-2 text-[28px] font-semibold tracking-[-0.04em] text-slate-900">
+                  <div className="mt-2 text-[24px] font-semibold tracking-[-0.04em] text-slate-900">
                     표준모델 결과를 프로젝트로 이어갑니다
                   </div>
                   <div className="mt-3 text-sm leading-6 text-slate-500">
@@ -671,7 +724,7 @@ export default function Landing() {
             <div className="w-full max-w-[740px] rounded-[24px] border border-slate-200 bg-slate-50 p-6 shadow-2xl">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <div className="text-[31px] font-semibold tracking-[-0.04em] text-slate-900">
+                  <div className="text-[26px] font-semibold tracking-[-0.04em] text-slate-900">
                     간편 진단
                   </div>
                   <div className="mt-2 text-sm leading-6 text-slate-500">
@@ -781,6 +834,29 @@ export default function Landing() {
   );
 }
 
+function IconContainer({
+  children,
+  variant = 'default',
+  size = 'md',
+}: {
+  children: React.ReactNode;
+  variant?: 'default' | 'strong';
+  size?: 'md' | 'lg';
+}) {
+  const sizeClass = size === 'lg' ? 'h-12 w-12 rounded-2xl' : 'h-10 w-10 rounded-xl';
+  const colorClass =
+    variant === 'strong'
+      ? 'border-teal-200 bg-gradient-to-br from-teal-50 to-teal-100/60 text-teal-700'
+      : 'border-teal-100 bg-gradient-to-br from-teal-50 to-teal-100/60 text-teal-700';
+  return (
+    <div
+      className={`flex shrink-0 items-center justify-center border ${sizeClass} ${colorClass}`}
+    >
+      {children}
+    </div>
+  );
+}
+
 function HeaderButton({
   children,
   onClick,
@@ -851,7 +927,7 @@ function IconButton({
 
 function Field({ label, children }: FieldProps) {
   return (
-    <motion.label variants={fadeUp} className="block">
+    <motion.label variants={slideUpFast} className="block">
       <div className="mb-2 text-sm font-semibold text-slate-700">{label}</div>
       {children}
     </motion.label>

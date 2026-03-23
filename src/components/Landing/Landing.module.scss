@@ -15,6 +15,36 @@ $dark: #07111f;
 $gray: #4c5561;
 $grayBorder: #d6dde4;
 
+// Typography scale — 4-step hierarchy
+// T1: Hero title
+// T2: Section / card titles
+// T3: Sub-titles / flow titles
+// T4: Body / labels
+$font-t1: 36px;      // hero title (lg), reduced from 46px
+$font-t2: 24px;      // section titles, reduced from 28px
+$font-t3: 18px;      // flow/quick-entry titles, reduced from 22px
+$font-t4-lg: 14px;   // body (large context)
+$font-t4-sm: 12px;   // labels / badges
+
+// Icon container token
+$icon-size-md: 40px;
+$icon-size-lg: 48px;
+$icon-radius: 14px;
+
+// Shared icon container mixin — unified across all icon surfaces
+@mixin iconContainer($size: $icon-size-md) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: $size;
+  height: $size;
+  background: linear-gradient(135deg, $tealLight 0%, rgba($tealLight, 0.6) 100%);
+  border: 1px solid $tealBorder;
+  color: $teal;
+  border-radius: $icon-radius;
+  flex-shrink: 0;
+}
+
 .page {
   min-height: 100vh;
   background: $bg;
@@ -146,10 +176,10 @@ $grayBorder: #d6dde4;
 
 .heroTitle {
   margin-top: 20px;
-  font-size: 46px;
+  font-size: $font-t1;
   font-weight: 600;
-  line-height: 1.08;
-  letter-spacing: -0.05em;
+  line-height: 1.12;
+  letter-spacing: -0.04em;
   color: $title;
 }
 
@@ -187,14 +217,7 @@ $grayBorder: #d6dde4;
 }
 
 .platformCardIcon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  background: $tealLight;
-  color: $teal;
-  border-radius: 16px;
+  @include iconContainer($icon-size-md);
   font-size: 20px;
 }
 
@@ -229,7 +252,7 @@ $grayBorder: #d6dde4;
 
 .flowTitle {
   margin-top: 12px;
-  font-size: 22px;
+  font-size: $font-t3;
   font-weight: 600;
   letter-spacing: -0.03em;
   color: $text;
@@ -302,7 +325,7 @@ $grayBorder: #d6dde4;
 
 .quickEntryTitle {
   margin-top: 4px;
-  font-size: 22px;
+  font-size: $font-t3;
   font-weight: 600;
   letter-spacing: -0.03em;
   color: $text;
@@ -458,7 +481,7 @@ $grayBorder: #d6dde4;
 
 .sectionTitle {
   margin-top: 8px;
-  font-size: 28px;
+  font-size: $font-t2;
   font-weight: 600;
   letter-spacing: -0.03em;
   color: $text;
@@ -538,16 +561,9 @@ $grayBorder: #d6dde4;
 }
 
 .resultPlaceholderIcon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 56px;
-  height: 56px;
+  @include iconContainer($icon-size-lg);
   margin: 0 auto;
-  background: $tealLight;
-  color: $teal;
-  border-radius: 16px;
-  font-size: 28px;
+  font-size: 24px;
 }
 
 .resultPlaceholderTitle {
@@ -599,7 +615,7 @@ $grayBorder: #d6dde4;
 
 .resultKpiValue {
   margin-top: 8px;
-  font-size: 34px;
+  font-size: 28px; // T2-adjacent: KPI numeric value (between T2 and T1)
   font-weight: 600;
   letter-spacing: -0.04em;
   color: #24303b;
@@ -607,7 +623,7 @@ $grayBorder: #d6dde4;
 
 .resultKpiValueAccent {
   margin-top: 8px;
-  font-size: 34px;
+  font-size: 28px; // T2-adjacent: KPI numeric value (between T2 and T1)
   font-weight: 600;
   letter-spacing: -0.04em;
   color: #0b7f86;
@@ -775,7 +791,7 @@ $grayBorder: #d6dde4;
 
 .barCardRatio {
   margin-top: 8px;
-  font-size: 42px;
+  font-size: 30px;
   font-weight: 600;
   letter-spacing: -0.04em;
   color: #28464b;
@@ -794,7 +810,7 @@ $grayBorder: #d6dde4;
 
 .barCardGrade {
   margin-top: 8px;
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 600;
   color: #0b7f86;
 }
