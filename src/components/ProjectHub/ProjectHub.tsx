@@ -765,6 +765,17 @@ function ProjectSummaryPanel({
             <NotebookPen className="h-3.5 w-3.5" />
             운영 기록
           </button>
+          {latestOpsRecord(selected) ? (
+            <div className="mt-3 text-[12px] leading-relaxed text-slate-600">
+              <span className="font-semibold text-slate-800">{latestOpsRecord(selected)?.title}</span>
+              <span className="mx-2 text-[10px] text-slate-300">●</span>
+              {latestOpsRecord(selected)?.summary}
+            </div>
+          ) : selected.note ? (
+            <div className="mt-3 text-[12px] leading-relaxed text-slate-600">
+              {selected.note}
+            </div>
+          ) : null}
         </div>
       </InfoCard>
 
@@ -1137,18 +1148,125 @@ function HeaderBreadcrumb(props: {
 function HeaderActionIcon({
   icon: Icon,
   label,
+  onClick,
 }: {
   icon: React.ComponentType<{ className?: string }>;
   label: string;
+  onClick?: () => void;
 }) {
   return (
     <button
       type="button"
       title={label}
+      onClick={onClick}
       className="flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-500 transition hover:border-slate-300 hover:text-slate-900"
     >
       <Icon className="h-4 w-4" />
     </button>
+  );
+}
+
+function HeaderPopups({
+  kind,
+  onClose,
+}: {
+  kind: 'user' | 'settings' | 'bell' | 'help' | null;
+  onClose: () => void;
+}) {
+  if (!kind) return null;
+
+  const content = {
+    user: {
+      title: '마이페이지',
+      body: (
+        <div className="space-y-3">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-500">
+              <User className="h-5 w-5" />
+            </div>
+            <div>
+              <div className="text-sm font-semibold">담당자 님</div>
+              <div className="text-xs text-slate-500">admin@company.com</div>
+            </div>
+          </div>
+          <div className="mt-3 border-t border-slate-100 pt-3">
+            <SimpleButton className="w-full text-left">프로필 수정</SimpleButton>
+            <SimpleButton className="mt-2 w-full text-left">로그아웃</SimpleButton>
+          </div>
+        </div>
+      ),
+    },
+    settings: {
+      title: '설정',
+      body: (
+        <div className="space-y-3">
+          <div className="text-sm font-medium">알림 설정</div>
+          <div className="flex items-center justify-between text-xs text-slate-600">
+            <span>이메일 알림 수신</span>
+            <input type="checkbox" defaultChecked className="accent-teal-600" />
+          </div>
+          <div className="flex items-center justify-between text-xs text-slate-600">
+            <span>프로젝트 업데이트 알림</span>
+            <input type="checkbox" defaultChecked className="accent-teal-600" />
+          </div>
+          <div className="mt-4 border-t border-slate-100 pt-3 text-sm font-medium">표시 설정</div>
+          <div className="flex items-center justify-between text-xs text-slate-600">
+            <span>다크 모드</span>
+            <input type="checkbox" className="accent-teal-600" />
+          </div>
+        </div>
+      ),
+    },
+    bell: {
+      title: '알림 내역',
+      body: (
+        <div className="space-y-3">
+          <div className="rounded-xl bg-slate-50 p-3">
+            <div className="text-xs text-slate-500">10분 전</div>
+            <div className="mt-1 text-sm font-medium">성수 업무시설 프로젝트가 업데이트되었습니다.</div>
+          </div>
+          <div className="rounded-xl bg-slate-50 p-3">
+            <div className="text-xs text-slate-500">1시간 전</div>
+            <div className="mt-1 text-sm font-medium">
+              동탄 교육연구시설 ZEB 검토가 완료되었습니다.
+            </div>
+          </div>
+          <div className="rounded-xl bg-slate-50 p-3">
+            <div className="text-xs text-slate-500">어제</div>
+            <div className="mt-1 text-sm font-medium">새로운 메시지가 도착했습니다.</div>
+          </div>
+        </div>
+      ),
+    },
+    help: {
+      title: '도움말',
+      body: (
+        <div className="space-y-3">
+          <SimpleButton className="w-full text-left">가이드 문서 보기</SimpleButton>
+          <SimpleButton className="mt-2 w-full text-left">1:1 문의하기</SimpleButton>
+          <div className="mt-4 rounded-xl bg-slate-50 p-3 text-xs leading-5 text-slate-500">
+            도움이 필요하신가요? 고객센터(1588-0000)로 연락주시면 친절히 안내해 드립니다.
+          </div>
+        </div>
+      ),
+    },
+  };
+
+  const current = content[kind];
+
+  return (
+    <>
+      <div className="fixed inset-0 z-40" onClick={onClose} />
+      <div className="fixed right-4 top-16 z-50 mt-2 w-80 rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_8px_30px_rgb(0,0,0,0.12)] sm:right-8">
+        <div className="mb-4 flex items-center justify-between border-b border-slate-100 pb-3">
+          <h3 className="text-base font-semibold text-slate-800">{current.title}</h3>
+          <button onClick={onClose} className="text-slate-400 transition hover:text-slate-600">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+        {current.body}
+      </div>
+    </>
   );
 }
 
@@ -1165,6 +1283,7 @@ export default function ProjectHub() {
   const [openCreate, setOpenCreate] = useState(false);
   const [opsTitleDraft, setOpsTitleDraft] = useState('');
   const [opsDraft, setOpsDraft] = useState('');
+  const [activePopup, setActivePopup] = useState<'user' | 'settings' | 'bell' | 'help' | null>(null);
 
   const [formName, setFormName] = useState('');
   const [formRegion, setFormRegion] = useState('서울');
@@ -1285,14 +1404,14 @@ export default function ProjectHub() {
           </div>
 
           <div className="flex shrink-0 items-center gap-1 sm:gap-2">
-            <HeaderActionIcon icon={User} label="마이페이지" />
-            <HeaderActionIcon icon={Settings} label="설정" />
-            <HeaderActionIcon icon={CreditCard} label="구독" />
-            <HeaderActionIcon icon={Bell} label="알림" />
-            <HeaderActionIcon icon={HelpCircle} label="도움말" />
+            <HeaderActionIcon icon={User} label="마이페이지" onClick={() => setActivePopup(activePopup === 'user' ? null : 'user')} />
+            <HeaderActionIcon icon={Settings} label="설정" onClick={() => setActivePopup(activePopup === 'settings' ? null : 'settings')} />
+            <HeaderActionIcon icon={Bell} label="알림" onClick={() => setActivePopup(activePopup === 'bell' ? null : 'bell')} />
+            <HeaderActionIcon icon={HelpCircle} label="도움말" onClick={() => setActivePopup(activePopup === 'help' ? null : 'help')} />
           </div>
         </div>
       </div>
+      <HeaderPopups kind={activePopup} onClose={() => setActivePopup(null)} />
 
       {view === 'home' ? (
         <div className="flex min-h-[calc(100vh-64px)] flex-col md:flex-row">
