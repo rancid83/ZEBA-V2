@@ -183,9 +183,9 @@ export default function Landing() {
   ];
 
   const identityCards = [
-    { icon: Shield, title: '설계 판단', body: '초기 판단값을 먼저 고정' },
-    { icon: FileSearch, title: '판단 확장', body: '필요 시 법규 리스크 확장' },
-    { icon: Link2, title: '실행 연결', body: '전문가 연계와 내역 전달' },
+    { icon: Shield, title: '설계 판단', body: '초기 판단값을 먼저 고정', color: 'indigo' as const },
+    { icon: FileSearch, title: '판단 확장', body: '필요 시 법규 리스크 확장', color: 'violet' as const },
+    { icon: Link2, title: '실행 연결', body: '전문가 연계와 내역 전달', color: 'emerald' as const },
   ];
 
   const flow = [
@@ -209,18 +209,21 @@ export default function Landing() {
       title: '설계 판단',
       body: '초기 입력만으로 핵심 판단값을 빠르게 고정합니다.',
       badge: '핵심 기능',
+      color: 'amber' as const,
     },
     {
       icon: BookOpen,
       title: '사전 검토',
       body: '필요 시 신재생, EPI, 기타 법규 검토로 확장할 수 있습니다.',
       badge: '선택 기능',
+      color: 'sky' as const,
     },
     {
       icon: Link2,
       title: '실행 지원',
       body: '판단 결과를 실무 전달 구조로 연결해 용역 이행을 돕습니다.',
       badge: '실무 수행',
+      color: 'emerald' as const,
     },
   ];
 
@@ -321,7 +324,7 @@ export default function Landing() {
                     whileHover={{ y: -3 }}
                     className="rounded-[24px] border border-slate-200 bg-slate-50 p-5"
                   >
-                    <IconContainer>
+                    <IconContainer color={item.color}>
                       <Icon className="h-5 w-5" />
                     </IconContainer>
                     <div className="mt-4 text-[14px] font-semibold text-slate-800">
@@ -424,7 +427,7 @@ export default function Landing() {
                             whileHover={{ y: -2 }}
                             className="rounded-[24px] border border-slate-200 bg-white p-5"
                           >
-                            <IconContainer>
+                            <IconContainer color={item.color}>
                               <Icon className="h-5 w-5" />
                             </IconContainer>
                             <div className="mt-3 inline-flex rounded-full border border-teal-100 bg-teal-50 px-3 py-1 text-xs font-semibold text-teal-700">
@@ -834,20 +837,48 @@ export default function Landing() {
   );
 }
 
+type IconColor = 'teal' | 'indigo' | 'violet' | 'emerald' | 'amber' | 'sky';
+
+const iconColorMap: Record<IconColor, { default: string; strong: string }> = {
+  teal: {
+    default: 'border-teal-100 bg-gradient-to-br from-teal-50 to-teal-100/60 text-teal-700',
+    strong: 'border-teal-200 bg-gradient-to-br from-teal-50 to-teal-100/60 text-teal-700',
+  },
+  indigo: {
+    default: 'border-indigo-100 bg-gradient-to-br from-indigo-50 to-indigo-100/60 text-indigo-700',
+    strong: 'border-indigo-200 bg-gradient-to-br from-indigo-50 to-indigo-100/60 text-indigo-700',
+  },
+  violet: {
+    default: 'border-violet-100 bg-gradient-to-br from-violet-50 to-violet-100/60 text-violet-700',
+    strong: 'border-violet-200 bg-gradient-to-br from-violet-50 to-violet-100/60 text-violet-700',
+  },
+  emerald: {
+    default: 'border-emerald-100 bg-gradient-to-br from-emerald-50 to-emerald-100/60 text-emerald-700',
+    strong: 'border-emerald-200 bg-gradient-to-br from-emerald-50 to-emerald-100/60 text-emerald-700',
+  },
+  amber: {
+    default: 'border-amber-100 bg-gradient-to-br from-amber-50 to-amber-100/60 text-amber-700',
+    strong: 'border-amber-200 bg-gradient-to-br from-amber-50 to-amber-100/60 text-amber-700',
+  },
+  sky: {
+    default: 'border-sky-100 bg-gradient-to-br from-sky-50 to-sky-100/60 text-sky-700',
+    strong: 'border-sky-200 bg-gradient-to-br from-sky-50 to-sky-100/60 text-sky-700',
+  },
+};
+
 function IconContainer({
   children,
   variant = 'default',
   size = 'md',
+  color = 'teal',
 }: {
   children: React.ReactNode;
   variant?: 'default' | 'strong';
   size?: 'md' | 'lg';
+  color?: IconColor;
 }) {
   const sizeClass = size === 'lg' ? 'h-12 w-12 rounded-2xl' : 'h-10 w-10 rounded-xl';
-  const colorClass =
-    variant === 'strong'
-      ? 'border-teal-200 bg-gradient-to-br from-teal-50 to-teal-100/60 text-teal-700'
-      : 'border-teal-100 bg-gradient-to-br from-teal-50 to-teal-100/60 text-teal-700';
+  const colorClass = iconColorMap[color][variant];
   return (
     <div
       className={`flex shrink-0 items-center justify-center border ${sizeClass} ${colorClass}`}
