@@ -450,7 +450,7 @@ function ServiceNavMetricButton(props: {
     <button
       type="button"
       onClick={props.onClick}
-      className={`block w-full text-left transition ${props.active ? 'scale-[1.005]' : 'hover:opacity-95'}`}
+      className={`block w-full text-left transition ${props.active ? 'scale-[1.005]' : 'cursor-pointer hover:scale-[1.02] hover:opacity-100 hover:shadow-md hover:brightness-[1.02]'}`}
     >
       <div
         className={`rounded-2xl ${props.active ? `ring-2 ${props.ringClass} ${props.bgClass}` : ''}`}
@@ -761,7 +761,7 @@ function ProjectSummaryPanel({
             type="button"
             onClick={() => setActiveTab('ops')}
             aria-pressed={activeTab === 'ops'}
-            className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[12px] font-medium text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
+            className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[12px] font-medium text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
           >
             <NotebookPen className="h-3.5 w-3.5" />
             운영 기록
