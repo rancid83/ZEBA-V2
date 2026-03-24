@@ -3,7 +3,10 @@
 import { Form, Input, Button } from 'antd';
 import { UserOutlined, LockOutlined, MailOutlined } from '@ant-design/icons';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import styles from './Auth.module.scss';
+import { useStore } from '@/store';
 
 type SignupFormProps = {
   embedded?: boolean;
@@ -11,9 +14,49 @@ type SignupFormProps = {
 };
 
 const SignupForm = ({ embedded, onSwitchToLogin }: SignupFormProps) => {
-  const onFinish = () => {
-    // DB 연동 전이므로 화면만 동작
-    console.log('회원가입 제출 (미연동)');
+  const router = useRouter();
+  const setUser = useStore((state) => state.setUser);
+  const [loading, setLoading] = useState(false);
+  const [serverError, setServerError] = useState('');
+
+  const onFinish = async (values: {
+    email: string;
+    password: string;
+    name: string;
+    passwordConfirm: string;
+  }) => {
+    setServerError('');
+    setLoading(true);
+
+    try {
+      const response = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: values.email,
+          password: values.password,
+          name: values.name,
+        }),
+      });
+
+      const payload = await response.json();
+      if (!response.ok || !payload?.status) {
+        setServerError(payload?.error || '회원가입에 실패했습니다.');
+        return;
+      }
+
+      setUser({
+        email: values.email,
+        name: values.name,
+      });
+      router.push('/project-hub');
+    } catch (error: any) {
+      setServerError(error?.message || '회원가입 요청 처리 중 오류가 발생했습니다.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -89,11 +132,12 @@ const SignupForm = ({ embedded, onSwitchToLogin }: SignupFormProps) => {
           />
         </Form.Item>
         <Form.Item>
-          <Button type="primary" htmlType="submit" className={styles.submitButton}>
+          <Button type="primary" htmlType="submit" className={styles.submitButton} loading={loading}>
             가입하기
           </Button>
         </Form.Item>
       </Form>
+      {serverError ? <p className={styles.serverError}>{serverError}</p> : null}
       <p className={styles.footerLink}>
         이미 계정이 있으신가요?
         {embedded && onSwitchToLogin ? (

@@ -3,7 +3,10 @@
 import { Form, Input, Button } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import styles from './Auth.module.scss';
+import { useStore } from '@/store';
 
 type LoginFormProps = {
   embedded?: boolean;
@@ -11,8 +14,40 @@ type LoginFormProps = {
 };
 
 const LoginForm = ({ embedded, onSwitchToSignup }: LoginFormProps) => {
-  const onFinish = () => {
-    console.log('로그인 제출 (미연동)');
+  const router = useRouter();
+  const setUser = useStore((state) => state.setUser);
+  const [loading, setLoading] = useState(false);
+  const [serverError, setServerError] = useState('');
+
+  const onFinish = async (values: { email: string; password: string }) => {
+    setServerError('');
+    setLoading(true);
+
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(values),
+      });
+
+      const payload = await response.json();
+      if (!response.ok || !payload?.status) {
+        setServerError(payload?.error || '로그인에 실패했습니다.');
+        return;
+      }
+
+      setUser({
+        email: values.email,
+        name: payload?.data?.name || payload?.data?.user?.name,
+      });
+      router.push('/project-hub');
+    } catch (error: any) {
+      setServerError(error?.message || '로그인 요청 처리 중 오류가 발생했습니다.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -59,11 +94,12 @@ const LoginForm = ({ embedded, onSwitchToSignup }: LoginFormProps) => {
           />
         </Form.Item>
         <Form.Item>
-          <Button type="primary" htmlType="submit" className={styles.submitButton}>
+          <Button type="primary" htmlType="submit" className={styles.submitButton} loading={loading}>
             로그인
           </Button>
         </Form.Item>
       </Form>
+      {serverError ? <p className={styles.serverError}>{serverError}</p> : null}
       <p className={styles.footerLink}>
         아직 계정이 없으신가요?
         {embedded && onSwitchToSignup ? (

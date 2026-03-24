@@ -31,6 +31,7 @@ import { createBarChartSlice, BarChartSlice } from './slices/barChartSlice';
 import { createFormDataSlice, FormDataSlice } from './slices/formDataSlice';
 import { createRequestSlice, RequestSlice } from './slices/requestSlice';
 import { createEnergyTabSlice, EnergyTabSlice } from './slices/energyTabSlice';
+import { AuthSlice, createAuthSlice } from './slices/authSlice';
 
 // 모든 슬라이스를 합친 스토어 타입
 type StoreState = LoadingSlice &
@@ -45,7 +46,8 @@ type StoreState = LoadingSlice &
   BarChartSlice &
   FormDataSlice &
   RequestSlice &
-  EnergyTabSlice;
+  EnergyTabSlice &
+  AuthSlice;
 
 // 통합 스토어 생성
 export const useStore = create<StoreState>()(
@@ -64,6 +66,7 @@ export const useStore = create<StoreState>()(
       ...createFormDataSlice(set),
       ...createRequestSlice(set),
       ...createEnergyTabSlice(set),
+      ...createAuthSlice(set),
     }),
     {
       name: 'zeba-store',

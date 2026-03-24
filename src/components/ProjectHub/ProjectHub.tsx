@@ -1196,7 +1196,12 @@ function HeaderPopups({
             <SimpleButton className="w-full text-left">프로필 수정</SimpleButton>
             <SimpleButton
               className="mt-2 w-full text-left"
-              onClick={() => {
+              onClick={async () => {
+                try {
+                  await fetch('/api/auth/logout', { method: 'POST' });
+                } catch {
+                  // 로그아웃 API 실패 시에도 화면 이동은 유지
+                }
                 onClose();
                 router.push('/');
               }}
