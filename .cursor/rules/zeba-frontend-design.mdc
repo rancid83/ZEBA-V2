@@ -1,0 +1,32 @@
+---
+description: ZEBA 프론트엔드·UI·디자인 변경 시 준수 (Next.js 16, Tailwind v4, antd v6)
+globs:
+  - src/components/**/*
+  - src/app/**/*.tsx
+  - src/app/**/*.scss
+alwaysApply: false
+---
+
+# 프론트·디자인 에이전트 규칙
+
+## 스택
+- Next.js 16 App Router — 페이지는 `src/app/[lang]/` 하위만.
+- TypeScript strict, React 19.
+- 스타일: **Tailwind CSS v4** + **SASS** (`*.module.scss`, `globals.scss`). **Tailwind v3 문법 금지**.
+- UI: **Ant Design v6**; 애니메이션: **Framer Motion v12**.
+- 상태: Zustand는 `src/store/`; API는 `src/services/`만.
+
+## 디자인·UI 작업 시
+- **동작·데이터 로직**을 바꾸지 않고도 목표가 달성되는지 먼저 판단한다. 스타일·마크업·토큰만으로 해결한다.
+- 기존 컴포넌트 폴더의 **SCSS 모듈·클래스 패턴**을 읽고 동일한 스타일로 맞춘다.
+- 레이아웃·간격·반응형은 Tailwind 유틸 우선; 복잡한 컴포넌트는 antd; 컴포넌트 스코프 스타일은 SCSS 모듈.
+- 접근성: 시맨틱 태그, 포커스·대비, 아이콘-only 버튼에 적절한 레이블.
+
+## 금지
+- `package.json`에 없는 라이브러리 추가.
+- `[lang]` 라우팅 구조 무시 또는 임의 변경.
+- 이유 없는 `globals.scss` 대량 덮어쓰기.
+
+## 프로젝트 AI 정의 (참고)
+- 에이전트·스킬 상세: 저장소 루트 `CLAUDE.md`, `ai/agents/`, `ai/skills/`.
+- UI·디자인 중심: **Agent `ui-design-lead`**, Skill **`design-system-ui`**, **`style-polish`**.
