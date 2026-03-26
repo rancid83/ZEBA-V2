@@ -3,13 +3,13 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import CollaborationPanel from '@/components/Collaboration/CollaborationPanel';
 import {
   BarChart3,
   Bell,
   Building2,
   CheckCircle2,
   CircleDashed,
-  CreditCard,
   HelpCircle,
   Leaf,
   Lock,
@@ -475,19 +475,12 @@ function ServiceNavMetricButton(props: {
   );
 }
 
-const COLLAB_MESSAGES: Record<'zeb' | 'epi' | 'ren', string> = {
-  zeb: '시나리오 결과를 공유하고 의견을 남길 수 있습니다.',
-  epi: '항목별 수정 의견과 관련 파일을 협업할 수 있습니다.',
-  ren: '조합 검토 내용과 검토 자료를 서비스 안에서 바로 공유할 수 있습니다.',
-};
-
 function CollaborationRightDrawer(props: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   serviceKind: 'zeb' | 'epi' | 'ren';
 }) {
   const { open, onOpenChange, serviceKind } = props;
-  const message = COLLAB_MESSAGES[serviceKind];
   const serviceTitle =
     serviceKind === 'zeb' ? 'ZEB' : serviceKind === 'epi' ? 'EPI' : '신재생';
 
@@ -517,7 +510,7 @@ function CollaborationRightDrawer(props: {
         aria-expanded={open}
         aria-controls="project-hub-collab-drawer"
         onClick={() => onOpenChange(true)}
-        className={`fixed right-0 top-[40%] z-[35] flex h-[7.25rem] w-10 -translate-y-1/2 flex-col items-center justify-center gap-2 rounded-l-xl border border-r-0 border-slate-200 bg-white py-3 shadow-[0_4px_24px_rgba(15,23,42,0.12)] transition-[transform,opacity,box-shadow] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform hover:bg-slate-50 hover:shadow-[0_6px_28px_rgba(15,23,42,0.16)] active:scale-[0.98] ${
+        className={`fixed right-0 top-[40%] z-[35] flex h-[7.25rem] w-10 -translate-y-1/2 flex-col items-center justify-center gap-2 rounded-l-xl border border-r-0 border-slate-200 bg-white py-3 shadow-[0_4px_24px_rgba(15,23,42,0.12)] transform-gpu transition-[transform,opacity,box-shadow] duration-200 ease-out will-change-transform motion-reduce:transition-none hover:bg-slate-50 hover:shadow-[0_6px_28px_rgba(15,23,42,0.16)] active:scale-[0.98] ${
           open ? 'pointer-events-none translate-x-full opacity-0' : 'translate-x-0 opacity-100'
         }`}
       >
@@ -529,7 +522,7 @@ function CollaborationRightDrawer(props: {
 
       {/* 오버레이 */}
       <div
-        className={`fixed inset-0 z-[38] bg-slate-900/40 backdrop-blur-[2px] transition-[opacity,backdrop-filter] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+        className={`fixed inset-0 z-[38] bg-slate-900/32 transition-opacity duration-150 ease-out motion-reduce:transition-none ${
           open ? 'opacity-100' : 'pointer-events-none opacity-0'
         }`}
         aria-hidden={!open}
@@ -542,7 +535,7 @@ function CollaborationRightDrawer(props: {
         role="dialog"
         aria-modal="true"
         aria-labelledby="collab-drawer-title"
-        className={`fixed right-0 top-0 z-[40] flex h-[100dvh] w-full flex-col border-l border-slate-200 bg-white shadow-[-12px_0_40px_rgba(15,23,42,0.1)] transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform sm:w-1/2 sm:max-w-[720px] ${
+        className={`fixed right-0 top-0 z-[40] flex h-[100dvh] w-full flex-col border-l border-slate-200 bg-white shadow-[-12px_0_40px_rgba(15,23,42,0.1)] transform-gpu transition-transform duration-200 ease-out will-change-transform motion-reduce:transition-none sm:w-[72vw] sm:max-w-[1120px] ${
           open ? 'pointer-events-auto translate-x-0' : 'pointer-events-none translate-x-full'
         }`}
       >
@@ -562,36 +555,11 @@ function CollaborationRightDrawer(props: {
             <X className="h-4 w-4" />
           </button>
         </div>
-        <div className="min-h-0 flex-1 overflow-y-auto p-4">
-          <LockedCollabSection message={message} />
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          <CollaborationPanel initialService={serviceKind} inDrawer />
         </div>
       </div>
     </>
-  );
-}
-
-function LockedCollabSection({ message }: { message: string }) {
-  return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
-              <Lock className="h-4 w-4" />
-            </div>
-            <div className="text-sm font-semibold text-slate-900">협업</div>
-            <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2 py-1 text-[10px] font-medium text-slate-500">
-              <Lock className="h-3 w-3" /> Pro
-            </span>
-          </div>
-          <div className="mt-2 text-sm text-slate-700">{message}</div>
-          <div className="mt-1 text-xs text-slate-500">
-            유료 구독 시 코멘트, 파일 공유, 현재 상태 기록이 활성화됩니다.
-          </div>
-        </div>
-        <SimpleButton>구독 보기</SimpleButton>
-      </div>
-    </div>
   );
 }
 
