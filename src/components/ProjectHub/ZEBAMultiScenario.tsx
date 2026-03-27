@@ -233,7 +233,7 @@ function ScenarioCard({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 10 }}
-      className="rounded-3xl border border-slate-200 bg-white shadow-sm"
+      className="w-80 rounded-3xl border border-slate-200 bg-white shadow-sm"
     >
       {/* header */}
       <div className="flex items-start justify-between border-b border-slate-100 p-4">
@@ -678,7 +678,7 @@ export default function ZEBAMultiScenario() {
       </motion.div>
 
       {/* Scenario cards */}
-      <div className={`grid gap-4 ${ordered.length === 1 ? 'lg:grid-cols-1 max-w-sm' : ordered.length === 2 ? 'lg:grid-cols-2' : 'lg:grid-cols-3'}`}>
+      <div className="flex flex-wrap justify-center gap-4">
         <AnimatePresence>
           {ordered.map((s) => (
             <ScenarioCard
