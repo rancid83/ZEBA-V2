@@ -4,6 +4,8 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import CollaborationPanel from '@/components/Collaboration/CollaborationPanel';
+import ZEBAMultiScenario from '@/components/ProjectHub/ZEBAMultiScenario';
+import EPIStandardModel from '@/components/ProjectHub/EPIStandardModel';
 import {
   BarChart3,
   Bell,
@@ -927,9 +929,9 @@ function ProjectWorkspace(props: {
         <InfoCard className="min-h-[720px] w-full">
           <div className="mb-4 text-sm font-semibold">작업 영역</div>
 
-          {activeTab === 'zeb' || activeTab === 'epi' || activeTab === 'ren' ? (
-            <ServiceWorkspace />
-          ) : null}
+          {activeTab === 'zeb' ? <ZEBAMultiScenario /> : null}
+          {activeTab === 'epi' ? <EPIStandardModel /> : null}
+          {activeTab === 'ren' ? <ServiceWorkspace /> : null}
           {activeTab === 'consult' ? <ConsultingLockedPanel /> : null}
           {activeTab === 'ops' ? (
             <OperationsWorkspace
