@@ -36,6 +36,7 @@
 | `frontend-architect` | 구조 설계·아키텍처 |
 | `nextjs-builder` | 코드 구현 |
 | `ui-design-lead` | UI·레이아웃·비주얼·디자인 시스템 일관성 (프론트/디자인 변경 위주) |
+| `chief-designer` | 프로젝트 전반 디자인 시스템·톤앤매너·비주얼 방향 정의 및 일관성 감사 |
 
 ## 스킬 요약
 | Skill | 용도 |
@@ -49,10 +50,18 @@
 
 ## 작업 요청 방법
 ```
-Agent: frontend-architect (또는 nextjs-builder, ui-design-lead)
+Agent: frontend-architect (또는 nextjs-builder, ui-design-lead, chief-designer)
 Skill: create-page (또는 refactor-component, api-integration, code-review, design-system-ui, style-polish)
 
 [요청 내용]
+```
+
+### 전체 디자인 시스템·방향 잡기 예시
+```
+Agent: chief-designer
+Skill: design-system-ui
+
+프로젝트 전반의 색상·타이포·간격 토큰을 정리하고 antd 테마와 연결해줘
 ```
 
 ### 프론트·디자인 변경 위주 예시
