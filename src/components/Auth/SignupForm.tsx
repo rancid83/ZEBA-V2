@@ -61,6 +61,16 @@ const SignupForm = ({ embedded, onSwitchToLogin }: SignupFormProps) => {
 
   return (
     <div className={styles.cardWrap}>
+      <div className={styles.brandBar} />
+      <div className={styles.brandHeader}>
+        <img
+          src="/assets/images/zeba_logo.png"
+          alt="ZEBA"
+          className={styles.brandLogo}
+        />
+        <p className={styles.brandTagline}>세움터 이전 단계의 설계 판단 플랫폼</p>
+      </div>
+      <div className={styles.divider} />
       <h1 className={styles.title}>회원가입</h1>
       <p className={styles.subtitle}>ZEBA 서비스를 이용하려면 회원가입을 진행해 주세요.</p>
       <Form

@@ -21,6 +21,7 @@ import type { LucideIcon } from 'lucide-react';
 import { Modal } from 'antd';
 import LoginForm from '@/components/Auth/LoginForm';
 import SignupForm from '@/components/Auth/SignupForm';
+import landingStyles from './LandingStyleA.module.scss';
 
 const CUSTOM_EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -645,7 +646,8 @@ export default function Landing() {
         width={480}
         centered
         closable
-        styles={{ body: { paddingTop: 8 } }}
+        className={landingStyles.authModal}
+        styles={{ body: { padding: 0 } }}
       >
         {authModalMode === 'login' ? (
           <LoginForm embedded onSwitchToSignup={() => setAuthModalMode('signup')} />
