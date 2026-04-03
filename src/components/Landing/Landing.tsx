@@ -22,6 +22,8 @@ import { Modal } from 'antd';
 import LoginForm from '@/components/Auth/LoginForm';
 import SignupForm from '@/components/Auth/SignupForm';
 import landingStyles from './LandingStyleA.module.scss';
+import LandingHeader from './LandingHeader';
+import LandingFooter from './LandingFooter';
 
 const CUSTOM_EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -240,68 +242,38 @@ export default function Landing() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 text-slate-900">
-      <div className="mx-auto max-w-[1480px] px-6 py-6 lg:px-10">
-        <motion.header
-          initial={{ opacity: 0, y: -12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45, ease: CUSTOM_EASE }}
-          className="mb-6 flex flex-col gap-4 rounded-[28px] border border-slate-200 bg-white px-6 py-4 shadow-sm md:flex-row md:items-center md:justify-between"
-        >
-          <div>
-            <div className="text-xs font-semibold tracking-[0.24em] text-teal-700">
-              ZEBA MVP LANDING
-            </div>
-            <div className="mt-1 text-[22px] font-semibold tracking-[-0.03em] text-slate-900">
-              세움터 이전 단계의 설계 판단 플랫폼
-            </div>
-          </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <HeaderButton
-              onClick={() => {
-                setAuthModalMode('signup');
-                setAuthModalOpen(true);
-              }}
-            >
-              회원가입
-            </HeaderButton>
-            <HeaderButton
-              onClick={() => {
-                setAuthModalMode('login');
-                setAuthModalOpen(true);
-              }}
-            >
-              로그인
-            </HeaderButton>
-            <motion.div whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }} className="inline-block">
-              <Link
-                href="/project-hub"
-                className="inline-block rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 no-underline"
-              >
-                프로젝트 생성
-              </Link>
-            </motion.div>
-          </div>
-        </motion.header>
+    <div className="min-h-screen bg-slate-50 text-slate-900">
+      <LandingHeader
+        onLogin={() => {
+          setAuthModalMode('login');
+          setAuthModalOpen(true);
+        }}
+        onSignup={() => {
+          setAuthModalMode('signup');
+          setAuthModalOpen(true);
+        }}
+      />
 
-        <section className="mt-8 grid items-start gap-8 lg:grid-cols-[1.08fr_0.92fr]">
+      <div className="mx-auto max-w-[1480px] px-6 pb-6 pt-20 lg:px-10">
+        <section id="diagnosis" className="mt-8 grid items-start gap-8 lg:grid-cols-[1.08fr_0.92fr]">
           {/* Hero Left */}
           <motion.div
+            id="service"
             variants={slideUp}
             initial="hidden"
             whileInView="show"
             viewport={{ once: true, margin: '-80px' }}
             className="rounded-[32px] border border-slate-200 bg-white p-8 shadow-sm"
           >
-            <div className="inline-flex items-center gap-2 rounded-full border border-teal-100 bg-teal-50 px-3 py-1 text-xs font-medium text-teal-700">
+            <div className="inline-flex items-center gap-2 rounded-full border border-teal-200 bg-teal-50 px-3 py-1 text-xs font-medium text-teal-700">
               <Sparkles className="h-3.5 w-3.5" />
-              Platform Identity
+              ZEB 설계 판단 플랫폼
             </div>
 
-            <h1 className="mt-5 text-[32px] font-semibold leading-[1.12] tracking-[-0.04em] text-slate-950 lg:text-[36px]">
+            <h1 className="mt-5 text-[32px] font-semibold leading-[1.12] tracking-[-0.04em] text-[#0F2044] lg:text-[36px]">
               설계 판단을 먼저 고정하고,
               <br />
-              이후에는 <span className="text-teal-700">실행을 연결</span>합니다.
+              이후에는 <span className="text-teal-600">실행을 연결</span>합니다.
             </h1>
 
             <p className="mt-5 max-w-[700px] text-[14px] leading-8 text-slate-600">
@@ -345,6 +317,7 @@ export default function Landing() {
               className="mt-8 space-y-8"
             >
               <motion.div
+                id="flow"
                 variants={slideUp}
                 className="rounded-[28px] border border-slate-200 bg-slate-50 p-6"
               >
@@ -495,7 +468,7 @@ export default function Landing() {
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => setShowQuickModal(true)}
-                className="rounded-full bg-slate-950 px-5 py-2.5 text-sm font-semibold text-white shadow-sm"
+                className="rounded-full bg-[#0F2044] px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-[#1a3066]"
               >
                 간편 진단
               </motion.button>
@@ -612,7 +585,7 @@ export default function Landing() {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => setShowTransitionModal(true)}
-                    className="shrink-0 rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white"
+                    className="shrink-0 rounded-full bg-[#0F2044] px-5 py-3 text-sm font-semibold text-white hover:bg-[#1a3066]"
                   >
                     다중 시나리오로 이어서 검토하기
                   </motion.button>
@@ -638,6 +611,8 @@ export default function Landing() {
           </motion.div>
         </section>
       </div>
+
+      <LandingFooter />
 
       <Modal
         open={authModalOpen}
@@ -715,7 +690,7 @@ export default function Landing() {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={goMain}
-                  className="rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white shadow-sm"
+                  className="rounded-full bg-[#0F2044] px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#1a3066]"
                 >
                   프로젝트 생성 후 이동
                 </motion.button>
@@ -826,7 +801,7 @@ export default function Landing() {
                     setShowQuickModal(false);
                     setShowResult(true);
                   }}
-                  className="rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white shadow-sm"
+                  className="rounded-full bg-[#0F2044] px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#1a3066]"
                 >
                   예측 시작
                 </motion.button>
