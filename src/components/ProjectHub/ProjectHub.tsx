@@ -871,8 +871,8 @@ function ProjectWorkspace(props: {
 
       <div className="min-w-0 flex-1 p-4 md:p-6">
         <InfoCard className="min-h-[720px] w-full">
-          <div className="mb-4 text-sm font-semibold">
-            {activeTab === 'ops' ? '운영 기록' : '작업 영역'}
+          <div className="mb-4 min-h-5 text-sm font-semibold">
+            {activeTab === 'ops' ? '운영 기록' : null}
           </div>
 
           {activeTab === 'zeb' ? <ZEBAMultiScenario /> : null}
