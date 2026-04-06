@@ -3,8 +3,13 @@
 import React from 'react';
 import Link from 'next/link';
 import { Leaf } from 'lucide-react';
+import type { LandingNavSlideSection } from './landingData';
 
-export default function LandingFooter() {
+type LandingFooterProps = {
+  onOpenSlides?: (section: LandingNavSlideSection) => void;
+};
+
+export default function LandingFooter({ onOpenSlides }: LandingFooterProps) {
   return (
     <footer className="bg-[#07111f] text-white/60">
       <div className="mx-auto max-w-[1480px] px-6 py-12 lg:px-10">
@@ -30,19 +35,28 @@ export default function LandingFooter() {
               서비스
             </div>
             <ul className="space-y-3">
-              {[
-                { label: '서비스 소개', href: '#service' },
-                { label: '설계 판단', href: '#diagnosis' },
-                { label: '이용 흐름', href: '#flow' },
-                { label: '프로젝트 생성', href: '/project-hub' },
-              ].map((item) => (
+              {(
+                [
+                  { label: '서비스 소개', href: '#service', section: 'service' as const },
+                  { label: '설계 판단', href: '#diagnosis', section: 'diagnosis' as const },
+                  { label: '이용 흐름', href: '#flow', section: 'flow' as const },
+                  { label: '프로젝트 생성', href: '/project-hub' as const },
+                ] as const
+              ).map((item) => (
                 <li key={item.label}>
-                  <a
-                    href={item.href}
-                    className="text-[14px] text-white/50 transition hover:text-white"
-                  >
-                    {item.label}
-                  </a>
+                  {'section' in item && onOpenSlides ? (
+                    <button
+                      type="button"
+                      onClick={() => onOpenSlides(item.section)}
+                      className="text-[14px] text-white/50 transition hover:text-white"
+                    >
+                      {item.label}
+                    </button>
+                  ) : (
+                    <a href={item.href} className="text-[14px] text-white/50 transition hover:text-white">
+                      {item.label}
+                    </a>
+                  )}
                 </li>
               ))}
             </ul>

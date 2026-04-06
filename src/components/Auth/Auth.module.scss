@@ -49,6 +49,14 @@ $teal-light: #009e9e;
   overflow: hidden;
 }
 
+// 랜딩 등 모달 안: 모달 폭과 1:1로 맞춤 (여백 없이 딱 맞게)
+.cardWrapEmbedded {
+  max-width: none;
+  width: 100%;
+  margin: 0;
+  box-shadow: none;
+}
+
 .brandBar {
   height: 5px;
   background: linear-gradient(90deg, $teal 0%, $teal-light 100%);

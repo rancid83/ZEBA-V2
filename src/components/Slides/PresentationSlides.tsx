@@ -7,6 +7,16 @@ import Head from 'next/head';
 const TOTAL = 8;
 const AUTO_ADVANCE_MS = 6000;
 
+function clampSlide(idx: number) {
+  return Math.max(0, Math.min(TOTAL - 1, Math.floor(idx)));
+}
+
+export type PresentationSlidesProps = {
+  initialSlide?: number;
+  variant?: 'page' | 'overlay';
+  onClose?: () => void;
+};
+
 const icons = ['🏗️', '📋', '⚡'];
 const problems = [
   {
@@ -61,17 +71,34 @@ const features = [
   },
 ];
 
-export default function PresentationSlides() {
-  const [current, setCurrent] = useState(0);
+export default function PresentationSlides({
+  initialSlide = 0,
+  variant = 'page',
+  onClose,
+}: PresentationSlidesProps) {
+  const [current, setCurrent] = useState(() => clampSlide(initialSlide));
   const [key, setKey] = useState(0);
 
   const goTo = useCallback((idx: number) => {
-    setCurrent(idx);
+    setCurrent(clampSlide(idx));
     setKey((k) => k + 1);
   }, []);
 
-  const prev = () => current > 0 && goTo(current - 1);
-  const next = () => current < TOTAL - 1 && goTo(current + 1);
+  const prev = useCallback(() => {
+    setCurrent((c) => {
+      if (c <= 0) return c;
+      setKey((k) => k + 1);
+      return c - 1;
+    });
+  }, []);
+
+  const next = useCallback(() => {
+    setCurrent((c) => {
+      if (c >= TOTAL - 1) return c;
+      setKey((k) => k + 1);
+      return c + 1;
+    });
+  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -93,9 +120,20 @@ export default function PresentationSlides() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [current]);
+  }, [next, prev]);
+
+  useEffect(() => {
+    if (variant !== 'overlay' || !onClose || current !== TOTAL - 1) return;
+    const onEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onEsc);
+    return () => window.removeEventListener('keydown', onEsc);
+  }, [variant, onClose, current]);
 
   const progress = ((current + 1) / TOTAL) * 100;
+
+  const showOverlayClose = variant === 'overlay' && Boolean(onClose) && current === TOTAL - 1;
 
   return (
     <>
@@ -337,7 +375,7 @@ export default function PresentationSlides() {
 
       {/* ── Navigation ── */}
       <div className={styles.nav}>
-        <button className={styles.navBtn} onClick={prev} disabled={current === 0}>‹</button>
+        <button type="button" className={styles.navBtn} onClick={prev} disabled={current === 0}>‹</button>
         <div className={styles.dots}>
           {Array.from({ length: TOTAL }).map((_, i) => (
             <div
@@ -347,8 +385,14 @@ export default function PresentationSlides() {
             />
           ))}
         </div>
-        <button className={styles.navBtn} onClick={next} disabled={current === TOTAL - 1}>›</button>
+        <button type="button" className={styles.navBtn} onClick={next} disabled={current === TOTAL - 1}>›</button>
       </div>
+
+      {showOverlayClose && (
+        <button type="button" className={styles.overlayClose} onClick={onClose}>
+          닫기
+        </button>
+      )}
     </div>
     </>
   );

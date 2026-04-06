@@ -178,6 +178,37 @@
   z-index: 100;
 }
 
+.overlayClose {
+  position: fixed;
+  bottom: calc(4vh + 52px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 110;
+  padding: 12px 28px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 201, 201, 0.45);
+  background: rgba(0, 201, 201, 0.12);
+  color: #7ff0f0;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  transition: background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s;
+
+  &:hover {
+    background: rgba(0, 201, 201, 0.22);
+    border-color: rgba(0, 201, 201, 0.65);
+    color: #fff;
+    box-shadow: 0 0 24px rgba(0, 201, 201, 0.25);
+  }
+
+  &:focus-visible {
+    outline: 2px solid #00c9c9;
+    outline-offset: 3px;
+  }
+}
+
 // ─── SLIDE 1: Title ───────────────────────────────────────────────────────────
 
 .s1Bg {

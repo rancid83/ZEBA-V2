@@ -4,6 +4,15 @@ import {
   LinkOutlined,
 } from '@ant-design/icons';
 
+/** 랜딩 헤더·푸터 네비 → 슬라이드 덱 시작 인덱스 (PresentationSlides) */
+export type LandingNavSlideSection = 'service' | 'diagnosis' | 'flow';
+
+export const landingNavSlideStart: Record<LandingNavSlideSection, number> = {
+  service: 0,
+  diagnosis: 2,
+  flow: 3,
+};
+
 export const platformCards = [
   {
     icon: SafetyCertificateOutlined,

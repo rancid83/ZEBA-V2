@@ -497,10 +497,11 @@ export default function LandingStyleA() {
         open={authModalOpen}
         onCancel={() => setAuthModalOpen(false)}
         footer={null}
-        width={480}
+        width={440}
         centered
         closable={true}
         className={styles.authModal}
+        classNames={{ wrapper: styles.authModalWrap }}
       >
         <div className={styles.authModalBody}>
           {authModalMode === 'login' ? (

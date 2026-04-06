@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation';
 import CollaborationPanel from '@/components/Collaboration/CollaborationPanel';
 import ZEBAMultiScenario from '@/components/ProjectHub/ZEBAMultiScenario';
 import EPIStandardModel from '@/components/ProjectHub/EPIStandardModel';
+import RenewableInstallRateReview from '@/components/ProjectHub/RenewableInstallRateReview';
+import ConsultingConnection from '@/components/ProjectHub/ConsultingConnection';
 import {
   BarChart3,
   Bell,
@@ -522,9 +524,9 @@ function CollaborationRightDrawer(props: {
         </span>
       </button>
 
-      {/* 오버레이 */}
+      {/* 오버레이: md 이상에서는 좌측 프로젝트 메뉴(w-80)는 비워 두어 탭 전환 가능 */}
       <div
-        className={`fixed inset-0 z-[38] bg-slate-900/32 transition-opacity duration-150 ease-out motion-reduce:transition-none ${
+        className={`fixed inset-0 z-[38] bg-slate-900/32 transition-opacity duration-150 ease-out motion-reduce:transition-none md:left-80 ${
           open ? 'opacity-100' : 'pointer-events-none opacity-0'
         }`}
         aria-hidden={!open}
@@ -562,59 +564,6 @@ function CollaborationRightDrawer(props: {
         </div>
       </div>
     </>
-  );
-}
-
-function ServiceWorkspace() {
-  return (
-    <div className="space-y-4">
-      <div className="min-h-[520px] rounded-2xl border border-dashed border-slate-200 bg-slate-50" />
-      <p className="text-center text-xs text-slate-400">
-        협업은 우측 <span className="font-medium text-slate-500">책갈피 탭</span>에서 열 수 있습니다.
-      </p>
-    </div>
-  );
-}
-
-function ConsultingLockedPanel() {
-  return (
-    <div className="space-y-4">
-      <div className="rounded-2xl border border-slate-200 bg-white p-5">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <div className="flex flex-wrap items-center gap-2">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-rose-100 text-rose-700">
-                <Lock className="h-4 w-4" />
-              </div>
-              <div className="text-sm font-semibold text-slate-900">컨설팅 연계</div>
-              <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2 py-1 text-[10px] font-medium text-slate-500">
-                <Lock className="h-3 w-3" /> Pro
-              </span>
-            </div>
-            <div className="mt-2 text-sm text-slate-700">컨설팅 연계는 유료 구독에서 활성화됩니다.</div>
-            <div className="mt-1 text-xs text-slate-500">
-              전문가 연결, 프로젝트 공유, 코멘트 협업을 이 단계에서 실행합니다.
-            </div>
-          </div>
-          <SimpleButton>구독 보기</SimpleButton>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <div className="rounded-2xl border border-slate-200 bg-white p-4">
-          <div className="text-[11px] text-slate-400">실행 항목</div>
-          <div className="mt-1 text-sm font-semibold text-slate-900">전문가 연결</div>
-        </div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-4">
-          <div className="text-[11px] text-slate-400">공유 범위</div>
-          <div className="mt-1 text-sm font-semibold text-slate-900">프로젝트 단위</div>
-        </div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-4">
-          <div className="text-[11px] text-slate-400">협업 권한</div>
-          <div className="mt-1 text-sm font-semibold text-slate-900">설계사 승인 후</div>
-        </div>
-      </div>
-    </div>
   );
 }
 
@@ -928,8 +877,29 @@ function ProjectWorkspace(props: {
 
           {activeTab === 'zeb' ? <ZEBAMultiScenario /> : null}
           {activeTab === 'epi' ? <EPIStandardModel /> : null}
-          {activeTab === 'ren' ? <ServiceWorkspace /> : null}
-          {activeTab === 'consult' ? <ConsultingLockedPanel /> : null}
+          {activeTab === 'ren' ? (
+            <RenewableInstallRateReview
+              project={{
+                location: selected.region,
+                usage: selected.use,
+                grossFloorArea: selected.gfa,
+                floors: selected.floors,
+                name: selected.name,
+              }}
+            />
+          ) : null}
+          {activeTab === 'consult' ? (
+            <ConsultingConnection
+              currentProject={{
+                id: selected.id,
+                name: selected.name,
+                region: selected.region,
+                use: selected.use,
+                gfa: selected.gfa,
+                floors: selected.floors,
+              }}
+            />
+          ) : null}
           {activeTab === 'ops' ? (
             <OperationsWorkspace
               opsTitleDraft={opsTitleDraft}

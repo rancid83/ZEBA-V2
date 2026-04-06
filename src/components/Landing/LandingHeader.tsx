@@ -4,13 +4,16 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, Leaf } from 'lucide-react';
+import type { LandingNavSlideSection } from './landingData';
 
 type LandingHeaderProps = {
   onLogin: () => void;
   onSignup: () => void;
+  /** 설정 시 서비스 소개·설계 판단·이용 흐름은 앵커 대신 슬라이드 오버레이로 열립니다. */
+  onOpenSlides?: (section: LandingNavSlideSection) => void;
 };
 
-export default function LandingHeader({ onLogin, onSignup }: LandingHeaderProps) {
+export default function LandingHeader({ onLogin, onSignup, onOpenSlides }: LandingHeaderProps) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -22,10 +25,14 @@ export default function LandingHeader({ onLogin, onSignup }: LandingHeaderProps)
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const navLinks = [
-    { label: '서비스 소개', href: '#service' },
-    { label: '설계 판단', href: '#diagnosis' },
-    { label: '이용 흐름', href: '#flow' },
+  const navLinks: Array<{
+    label: string;
+    href: string;
+    section: LandingNavSlideSection;
+  }> = [
+    { label: '서비스 소개', href: '#service', section: 'service' },
+    { label: '설계 판단', href: '#diagnosis', section: 'diagnosis' },
+    { label: '이용 흐름', href: '#flow', section: 'flow' },
   ];
 
   return (
@@ -48,15 +55,26 @@ export default function LandingHeader({ onLogin, onSignup }: LandingHeaderProps)
         </div>
 
         <nav className="hidden items-center gap-1 md:flex">
-          {navLinks.map((link) => (
-            <a
-              key={link.label}
-              href={link.href}
-              className="rounded-lg px-3 py-2 text-[14px] font-medium text-white/70 transition hover:bg-white/10 hover:text-white"
-            >
-              {link.label}
-            </a>
-          ))}
+          {navLinks.map((link) =>
+            onOpenSlides ? (
+              <button
+                key={link.label}
+                type="button"
+                onClick={() => onOpenSlides(link.section)}
+                className="rounded-lg px-3 py-2 text-[14px] font-medium text-white/70 transition hover:bg-white/10 hover:text-white"
+              >
+                {link.label}
+              </button>
+            ) : (
+              <a
+                key={link.label}
+                href={link.href}
+                className="rounded-lg px-3 py-2 text-[14px] font-medium text-white/70 transition hover:bg-white/10 hover:text-white"
+              >
+                {link.label}
+              </a>
+            ),
+          )}
         </nav>
 
         <div className="hidden items-center gap-2 md:flex">
@@ -108,16 +126,30 @@ export default function LandingHeader({ onLogin, onSignup }: LandingHeaderProps)
             className="overflow-hidden border-t border-white/10 bg-[#0F2044]/95 backdrop-blur-xl md:hidden"
           >
             <div className="flex flex-col gap-1 px-6 py-4">
-              {navLinks.map((link) => (
-                <a
-                  key={link.label}
-                  href={link.href}
-                  onClick={() => setMobileOpen(false)}
-                  className="rounded-lg px-3 py-2.5 text-[15px] font-medium text-white/70 transition hover:bg-white/10 hover:text-white"
-                >
-                  {link.label}
-                </a>
-              ))}
+              {navLinks.map((link) =>
+                onOpenSlides ? (
+                  <button
+                    key={link.label}
+                    type="button"
+                    onClick={() => {
+                      setMobileOpen(false);
+                      onOpenSlides(link.section);
+                    }}
+                    className="rounded-lg px-3 py-2.5 text-left text-[15px] font-medium text-white/70 transition hover:bg-white/10 hover:text-white"
+                  >
+                    {link.label}
+                  </button>
+                ) : (
+                  <a
+                    key={link.label}
+                    href={link.href}
+                    onClick={() => setMobileOpen(false)}
+                    className="rounded-lg px-3 py-2.5 text-[15px] font-medium text-white/70 transition hover:bg-white/10 hover:text-white"
+                  >
+                    {link.label}
+                  </a>
+                ),
+              )}
               <div className="mt-3 flex flex-col gap-2 border-t border-white/10 pt-3">
                 <button
                   type="button"

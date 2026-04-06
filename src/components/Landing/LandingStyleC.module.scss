@@ -1103,21 +1103,47 @@ $gradientEnd: #00c9c9;
   box-shadow: 0 0 8px rgba(160, 255, 240, 0.5);
 }
 
-.authModal {
-  :global(.ant-modal-content) {
+.authModalWrap {
+  overflow: visible !important;
+}
+
+.authModal:global(.ant-modal) {
+  overflow: visible;
+
+  :global(.ant-modal-container) {
+    border-radius: 20px;
+    overflow: visible;
+    padding: 0;
+  }
+
+  :global(.ant-modal-body) {
+    padding: 0;
     border-radius: 20px;
     overflow: hidden;
   }
-  :global(.ant-modal-body) {
-    padding: 0;
+
+  :global(.ant-modal-close) {
+    inset: auto;
+    top: -18px;
+    inset-inline-end: -18px;
+    width: 40px;
+    height: 40px;
+    margin: 0;
+    color: #64748b;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    &:hover {
+      color: #007676;
+      background: #f4fbfb;
+    }
   }
 }
 
 .authModalBody {
-  padding: 24px 0 0;
+  padding: 0;
   > div {
     margin: 0;
-    padding: 24px 40px 32px;
     box-shadow: none;
   }
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -21,9 +21,14 @@ import type { LucideIcon } from 'lucide-react';
 import { Modal } from 'antd';
 import LoginForm from '@/components/Auth/LoginForm';
 import SignupForm from '@/components/Auth/SignupForm';
+import PresentationSlides from '@/components/Slides/PresentationSlides';
 import landingStyles from './LandingStyleA.module.scss';
 import LandingHeader from './LandingHeader';
 import LandingFooter from './LandingFooter';
+import {
+  landingNavSlideStart,
+  type LandingNavSlideSection,
+} from './landingData';
 
 const CUSTOM_EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -89,6 +94,24 @@ export default function Landing() {
   const [targetGrade, setTargetGrade] = useState('4등급');
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'login' | 'signup'>('login');
+  const [slidesOpen, setSlidesOpen] = useState(false);
+  const [slidesSessionId, setSlidesSessionId] = useState(0);
+  const [slidesSection, setSlidesSection] = useState<LandingNavSlideSection>('service');
+
+  const openSlides = useCallback((section: LandingNavSlideSection) => {
+    setSlidesSection(section);
+    setSlidesSessionId((id) => id + 1);
+    setSlidesOpen(true);
+  }, []);
+
+  useEffect(() => {
+    if (!slidesOpen) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [slidesOpen]);
 
   const safeArea =
     Number.isFinite(Number(grossFloorArea)) && Number(grossFloorArea) > 0
@@ -252,6 +275,7 @@ export default function Landing() {
           setAuthModalMode('signup');
           setAuthModalOpen(true);
         }}
+        onOpenSlides={openSlides}
       />
 
       <div className="mx-auto max-w-[1480px] px-6 pb-6 pt-20 lg:px-10">
@@ -612,16 +636,17 @@ export default function Landing() {
         </section>
       </div>
 
-      <LandingFooter />
+      <LandingFooter onOpenSlides={openSlides} />
 
       <Modal
         open={authModalOpen}
         onCancel={() => setAuthModalOpen(false)}
         footer={null}
-        width={480}
+        width={440}
         centered
         closable
         className={landingStyles.authModal}
+        classNames={{ wrapper: landingStyles.authModalWrap }}
         styles={{ body: { padding: 0 } }}
       >
         {authModalMode === 'login' ? (
@@ -808,6 +833,29 @@ export default function Landing() {
               </div>
             </div>
           </ModalBackdrop>
+        ) : null}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {slidesOpen ? (
+          <motion.div
+            key="landing-slides-overlay"
+            role="dialog"
+            aria-modal="true"
+            aria-label="ZEBA 서비스 소개 슬라이드"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.4, ease: CUSTOM_EASE }}
+            className="fixed inset-0 z-200"
+          >
+            <PresentationSlides
+              key={slidesSessionId}
+              variant="overlay"
+              initialSlide={landingNavSlideStart[slidesSection]}
+              onClose={() => setSlidesOpen(false)}
+            />
+          </motion.div>
         ) : null}
       </AnimatePresence>
     </div>

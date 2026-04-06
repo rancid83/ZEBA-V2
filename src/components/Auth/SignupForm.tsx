@@ -60,7 +60,13 @@ const SignupForm = ({ embedded, onSwitchToLogin }: SignupFormProps) => {
   };
 
   return (
-    <div className={styles.cardWrap}>
+    <div
+      className={
+        embedded
+          ? `${styles.cardWrap} ${styles.cardWrapEmbedded}`
+          : styles.cardWrap
+      }
+    >
       <div className={styles.brandBar} />
       <div className={styles.brandHeader}>
         <img

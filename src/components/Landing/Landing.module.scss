@@ -1096,19 +1096,40 @@ $icon-radius: 14px;
 }
 
 // Auth modal (로그인/회원가입)
-.authModal {
-  :global(.ant-modal-content) {
+.authModalWrap {
+  overflow: visible !important;
+}
+
+.authModal:global(.ant-modal) {
+  overflow: visible;
+
+  :global(.ant-modal-container) {
     border-radius: 16px;
-    overflow: hidden;
+    overflow: visible;
     padding: 0;
   }
+
   :global(.ant-modal-body) {
     padding: 0;
+    border-radius: 16px;
+    overflow: hidden;
   }
+
   :global(.ant-modal-close) {
-    top: 12px;
-    right: 12px;
-    color: #999;
+    inset: auto;
+    top: -18px;
+    inset-inline-end: -18px;
+    width: 40px;
+    height: 40px;
+    margin: 0;
+    color: #64748b;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    &:hover {
+      color: #007676;
+      background: #f4fbfb;
+    }
   }
 }
 
