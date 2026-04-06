@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import CollaborationPanel from '@/components/Collaboration/CollaborationPanel';
@@ -479,6 +479,28 @@ function ServiceNavMetricButton(props: {
   );
 }
 
+const COLLAB_DRAWER_WIDTH_STORAGE_KEY = 'zeba.projectHub.collabDrawerWidthPx';
+const COLLAB_DRAWER_MIN_PX = 360;
+const COLLAB_DRAWER_SIDEBAR_PX = 320; // md:left-80 (w-80), 오버레이와 동일 — 여기까지 늘리면 좌측 메뉴 바로 옆까지
+
+function collabDrawerMaxPx(): number {
+  if (typeof window === 'undefined') return 1600;
+  const vw = window.innerWidth;
+  const desktopWithSidebar = window.matchMedia('(min-width: 768px)').matches;
+  // md 이상: 좌측 프로젝트 메뉴 오른쪽 끝까지(가리지 않음). 미만: 전체 너비까지
+  const maxByViewport = desktopWithSidebar ? vw - COLLAB_DRAWER_SIDEBAR_PX : vw;
+  return Math.max(COLLAB_DRAWER_MIN_PX, maxByViewport);
+}
+
+function clampCollabDrawerWidthPx(px: number): number {
+  return Math.min(collabDrawerMaxPx(), Math.max(COLLAB_DRAWER_MIN_PX, Math.round(px)));
+}
+
+function defaultCollabDrawerWidthPx(): number {
+  if (typeof window === 'undefined') return 864;
+  return clampCollabDrawerWidthPx(window.innerWidth * 0.72);
+}
+
 function CollaborationRightDrawer(props: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -487,6 +509,39 @@ function CollaborationRightDrawer(props: {
   const { open, onOpenChange, serviceKind } = props;
   const serviceTitle =
     serviceKind === 'zeb' ? 'ZEB' : serviceKind === 'epi' ? 'EPI' : '신재생';
+
+  const [drawerWidthPx, setDrawerWidthPx] = useState(864);
+  const [viewportSmUp, setViewportSmUp] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
+  const resizingRef = useRef(false);
+
+  useEffect(() => {
+    const syncViewport = () => {
+      setViewportSmUp(window.innerWidth >= 640);
+    };
+    try {
+      const raw = localStorage.getItem(COLLAB_DRAWER_WIDTH_STORAGE_KEY);
+      if (raw) {
+        const n = Number(raw);
+        if (Number.isFinite(n)) {
+          setDrawerWidthPx(clampCollabDrawerWidthPx(n));
+        } else {
+          setDrawerWidthPx(defaultCollabDrawerWidthPx());
+        }
+      } else {
+        setDrawerWidthPx(defaultCollabDrawerWidthPx());
+      }
+    } catch {
+      setDrawerWidthPx(defaultCollabDrawerWidthPx());
+    }
+    syncViewport();
+    const onResize = () => {
+      syncViewport();
+      setDrawerWidthPx((prev) => clampCollabDrawerWidthPx(prev));
+    };
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -498,6 +553,18 @@ function CollaborationRightDrawer(props: {
   }, [open]);
 
   useEffect(() => {
+    if (!isResizing) return;
+    const prevCursor = document.body.style.cursor;
+    const prevUserSelect = document.body.style.userSelect;
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+    return () => {
+      document.body.style.cursor = prevCursor;
+      document.body.style.userSelect = prevUserSelect;
+    };
+  }, [isResizing]);
+
+  useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onOpenChange(false);
@@ -505,6 +572,54 @@ function CollaborationRightDrawer(props: {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [open, onOpenChange]);
+
+  const persistDrawerWidth = useCallback((w: number) => {
+    const next = clampCollabDrawerWidthPx(w);
+    try {
+      localStorage.setItem(COLLAB_DRAWER_WIDTH_STORAGE_KEY, String(next));
+    } catch {
+      /* ignore */
+    }
+    return next;
+  }, []);
+
+  const onResizePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    e.stopPropagation();
+    resizingRef.current = true;
+    setIsResizing(true);
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+
+  const onResizePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!resizingRef.current) return;
+    const next = clampCollabDrawerWidthPx(window.innerWidth - e.clientX);
+    setDrawerWidthPx(next);
+  };
+
+  const onResizePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!resizingRef.current) return;
+    resizingRef.current = false;
+    setIsResizing(false);
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    } catch {
+      /* ignore */
+    }
+    setDrawerWidthPx((w) => persistDrawerWidth(w));
+  };
+
+  const onResizeKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+    e.preventDefault();
+    const delta = e.key === 'ArrowLeft' ? 16 : -16;
+    setDrawerWidthPx((w) => {
+      const next = clampCollabDrawerWidthPx(w + delta);
+      persistDrawerWidth(next);
+      return next;
+    });
+  };
 
   return (
     <>
@@ -533,16 +648,31 @@ function CollaborationRightDrawer(props: {
         onClick={() => onOpenChange(false)}
       />
 
-      {/* 드로워: 우측 → 좌측으로 50% (sm 이상), 모바일은 전체 너비 */}
+      {/* 드로워: sm 이상에서 너비는 드래그 조절 + localStorage 유지, 모바일은 전체 너비 */}
       <div
         id="project-hub-collab-drawer"
         role="dialog"
         aria-modal="true"
         aria-labelledby="collab-drawer-title"
-        className={`fixed right-0 top-0 z-[40] flex h-[100dvh] w-full flex-col border-l border-slate-200 bg-white shadow-[-12px_0_40px_rgba(15,23,42,0.1)] transform-gpu transition-transform duration-200 ease-out will-change-transform motion-reduce:transition-none sm:w-[72vw] sm:max-w-[1120px] ${
-          open ? 'pointer-events-auto translate-x-0' : 'pointer-events-none translate-x-full'
-        }`}
+        className={`fixed right-0 top-0 z-[40] flex h-[100dvh] w-full max-w-none flex-col border-l border-slate-200 bg-white shadow-[-12px_0_40px_rgba(15,23,42,0.1)] transform-gpu will-change-transform motion-reduce:transition-none ${
+          isResizing ? '' : 'transition-transform duration-200 ease-out'
+        } ${open ? 'pointer-events-auto translate-x-0' : 'pointer-events-none translate-x-full'}`}
+        style={viewportSmUp ? { width: drawerWidthPx } : undefined}
       >
+        {viewportSmUp ? (
+          <div
+            role="separator"
+            aria-orientation="vertical"
+            aria-label="협업 패널 너비 조절"
+            tabIndex={open ? 0 : -1}
+            className="absolute left-0 top-0 z-[45] h-full w-3 -translate-x-1/2 cursor-col-resize touch-none select-none hover:bg-slate-900/10 focus-visible:bg-slate-900/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600"
+            onPointerDown={onResizePointerDown}
+            onPointerMove={onResizePointerMove}
+            onPointerUp={onResizePointerUp}
+            onPointerCancel={onResizePointerUp}
+            onKeyDown={onResizeKeyDown}
+          />
+        ) : null}
         <div className="flex h-14 shrink-0 items-center justify-between gap-3 border-b border-slate-100 px-4">
           <div className="min-w-0">
             <h2 id="collab-drawer-title" className="truncate text-sm font-semibold text-slate-900">
