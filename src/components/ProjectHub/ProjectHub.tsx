@@ -828,51 +828,46 @@ function OperationsWorkspace(props: {
 
   return (
     <div className="space-y-4">
-      <div className="rounded-2xl border border-slate-200 bg-white p-5">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <div className="text-sm font-semibold text-slate-900">운영 기록</div>
-            <div className="mt-1 text-xs text-slate-500">대표 제목과 요약문을 간단히 작성합니다.</div>
-          </div>
-          <SimpleButton tone="solid" onClick={onSave}>
-            기록
-          </SimpleButton>
-        </div>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="text-xs text-slate-500">대표 제목과 요약문을 간단히 작성합니다.</div>
+        <SimpleButton tone="solid" onClick={onSave}>
+          기록
+        </SimpleButton>
+      </div>
 
-        <div className="mt-4">
-          <input
-            value={opsTitleDraft}
-            onChange={(e) => setOpsTitleDraft(e.target.value)}
-            placeholder="제목을 입력하세요"
-            className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-800 outline-none transition focus:border-slate-300 focus:bg-white"
-          />
-        </div>
+      <div>
+        <input
+          value={opsTitleDraft}
+          onChange={(e) => setOpsTitleDraft(e.target.value)}
+          placeholder="제목을 입력하세요"
+          className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-800 outline-none transition focus:border-slate-300 focus:bg-white"
+        />
+      </div>
 
-        <div className="mt-3">
-          <textarea
-            value={opsDraft}
-            onChange={(e) => setOpsDraft(e.target.value)}
-            placeholder="운영 기록 대표 문구를 입력하세요"
-            className="min-h-[220px] w-full resize-none rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-slate-300 focus:bg-white"
-          />
-        </div>
+      <div>
+        <textarea
+          value={opsDraft}
+          onChange={(e) => setOpsDraft(e.target.value)}
+          placeholder="운영 기록 대표 문구를 입력하세요"
+          className="min-h-[220px] w-full resize-none rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-slate-300 focus:bg-white"
+        />
+      </div>
 
-        <div className="mt-5 border-t border-slate-100 pt-4">
-          <div className="mb-3 text-xs font-semibold tracking-[0.16em] text-slate-400">목차</div>
-          <div className="space-y-2">
-            {records.length ? (
-              records.map((item) => (
-                <div key={item.id} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-                  <div className="text-[11px] text-slate-400">{item.createdAt.slice(0, 10)}</div>
-                  <div className="mt-1 text-sm font-medium text-slate-800">{item.title}</div>
-                </div>
-              ))
-            ) : (
-              <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-400">
-                아직 기록이 없습니다.
+      <div className="border-t border-slate-100 pt-4">
+        <div className="mb-3 text-xs font-semibold tracking-[0.16em] text-slate-400">목차</div>
+        <div className="space-y-2">
+          {records.length ? (
+            records.map((item) => (
+              <div key={item.id} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                <div className="text-[11px] text-slate-400">{item.createdAt.slice(0, 10)}</div>
+                <div className="mt-1 text-sm font-medium text-slate-800">{item.title}</div>
               </div>
-            )}
-          </div>
+            ))
+          ) : (
+            <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-400">
+              아직 기록이 없습니다.
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -927,7 +922,9 @@ function ProjectWorkspace(props: {
 
       <div className="min-w-0 flex-1 p-4 md:p-6">
         <InfoCard className="min-h-[720px] w-full">
-          <div className="mb-4 text-sm font-semibold">작업 영역</div>
+          <div className="mb-4 text-sm font-semibold">
+            {activeTab === 'ops' ? '운영 기록' : '작업 영역'}
+          </div>
 
           {activeTab === 'zeb' ? <ZEBAMultiScenario /> : null}
           {activeTab === 'epi' ? <EPIStandardModel /> : null}

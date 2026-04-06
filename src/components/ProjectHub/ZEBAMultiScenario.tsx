@@ -11,18 +11,30 @@ import {
   Layers,
   SlidersHorizontal,
 } from 'lucide-react';
-import { Bar } from 'react-chartjs-2';
+import { Bar, Scatter } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
   BarElement,
+  PointElement,
   Title,
   Tooltip,
   Legend,
+  ScatterController,
 } from 'chart.js';
+import type { TooltipItem } from 'chart.js';
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  PointElement,
+  Title,
+  Tooltip,
+  Legend,
+  ScatterController,
+);
 
 // -------------------------------------------------------
 // Types
@@ -130,6 +142,12 @@ function nowStamp() {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 }
 
+function defaultScenarioName(id: ScenarioId, isStandard = false): string {
+  if (isStandard) return '표준 모델';
+  if (id === 'B') return '대안 1';
+  return '대안 2';
+}
+
 function makeScenario(id: ScenarioId, isStandard = false): Scenario {
   const spec: Spec = {
     passive: { wallU: 0.24, windowU: 0.24, roofU: 0.24, floorU: 0.24 },
@@ -138,7 +156,7 @@ function makeScenario(id: ScenarioId, isStandard = false): Scenario {
   };
   return {
     id,
-    name: isStandard ? '표준(2단계)' : `시나리오 ${id}`,
+    name: defaultScenarioName(id, isStandard),
     isStandard,
     spec,
     result: computeResultFromSpec(spec),
@@ -233,7 +251,7 @@ function ScenarioCard({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 10 }}
-      className="w-80 rounded-3xl border border-slate-200 bg-white shadow-sm"
+      className="min-w-0 w-full rounded-3xl border border-slate-200 bg-white shadow-sm"
     >
       {/* header */}
       <div className="flex items-start justify-between border-b border-slate-100 p-4">
@@ -370,22 +388,26 @@ function ScenarioCard({
   );
 }
 
+const TEAL = '#0f766e';
+
 function ComparisonChart({ scenarios }: { scenarios: Scenario[] }) {
   const data = useMemo(
     () => ({
       labels: scenarios.map((s) => s.name),
       datasets: [
         {
-          label: '생산 (kWh/m²)',
-          data: scenarios.map((s) => Number(s.result.prod.toFixed(1))),
+          label: '자립률',
+          data: scenarios.map((s) => Number(s.result.selfSuff.toFixed(1))),
           backgroundColor: '#22c55e',
           borderRadius: 8,
+          yAxisID: 'y',
         },
         {
-          label: '소요 (kWh/m²)',
-          data: scenarios.map((s) => Number(s.result.demand.toFixed(1))),
-          backgroundColor: '#0f766e',
+          label: '시공비',
+          data: scenarios.map((s) => Number(s.result.costTotal.toFixed(0))),
+          backgroundColor: TEAL,
           borderRadius: 8,
+          yAxisID: 'y1',
         },
       ],
     }),
@@ -396,40 +418,183 @@ function ComparisonChart({ scenarios }: { scenarios: Scenario[] }) {
     () => ({
       responsive: true,
       maintainAspectRatio: false,
-      plugins: { legend: { position: 'bottom' as const } },
+      interaction: { mode: 'index' as const, intersect: false },
+      plugins: {
+        legend: { position: 'bottom' as const },
+        tooltip: {
+          callbacks: {
+            label(tooltipItem: TooltipItem<'bar'>) {
+              const label = tooltipItem.dataset.label ?? '';
+              const y = tooltipItem.parsed.y;
+              if (y == null) return '';
+              if (label === '자립률') return `${label}: ${y.toFixed(1)}%`;
+              return `${label}: ${fmt(y)}`;
+            },
+          },
+        },
+      },
       scales: {
         x: { grid: { display: false } },
-        y: { beginAtZero: true },
+        y: {
+          type: 'linear' as const,
+          display: true,
+          position: 'left' as const,
+          beginAtZero: true,
+          max: 100,
+          title: { display: true, text: '자립률(%)' },
+        },
+        y1: {
+          type: 'linear' as const,
+          display: true,
+          position: 'right' as const,
+          beginAtZero: true,
+          grid: { drawOnChartArea: false },
+          title: { display: true, text: '시공비(만원)' },
+          ticks: {
+            callback: (value: string | number) => fmt(Number(value)),
+          },
+        },
       },
     }),
     [],
   );
+
+  if (scenarios.length === 0) {
+    return (
+      <div className="rounded-3xl border border-slate-200 bg-white shadow-sm">
+        <div className="border-b border-slate-100 p-4">
+          <div className="flex items-center gap-2 text-sm font-semibold text-slate-900">
+            <Layers className="h-4 w-4 text-teal-700" />
+            자립률 및 시공비 (시나리오 비교)
+          </div>
+          <div className="mt-0.5 text-xs text-slate-500">비교할 시나리오가 아직 없습니다.</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="rounded-3xl border border-slate-200 bg-white shadow-sm">
       <div className="border-b border-slate-100 p-4">
         <div className="flex items-center gap-2 text-sm font-semibold text-slate-900">
           <Layers className="h-4 w-4 text-teal-700" />
-          에너지 생산량 및 소요량 (시나리오 비교)
+          자립률 및 시공비 (시나리오 비교)
         </div>
         <div className="mt-0.5 text-xs text-slate-500">
-          동일 지표를 병렬로 비교해 '결정'을 빠르게 만듭니다.
+          각 시나리오의 자립률과 총 시공비를 동일 화면에서 병렬 비교합니다.
         </div>
       </div>
-      <div className="p-4" style={{ height: 300 }}>
+      <div className="p-4" style={{ height: 320 }}>
         <Bar data={data} options={options} />
       </div>
     </div>
   );
 }
 
-function TradeoffRow({ label, cells }: { label: string; cells: React.ReactNode[] }) {
+function CostPositionChart({ scenarios }: { scenarios: Scenario[] }) {
+  const data = useMemo(
+    () => ({
+      datasets: [
+        {
+          label: '시나리오',
+          data: scenarios.map((s) => ({
+            x: Number(s.result.costTotal.toFixed(0)),
+            y: Number(s.result.selfSuff.toFixed(1)),
+            label: s.name,
+            id: s.id,
+          })),
+          backgroundColor: TEAL,
+          pointRadius: 9,
+          pointHoverRadius: 11,
+        },
+      ],
+    }),
+    [scenarios],
+  );
+
+  const options = useMemo(
+    () => ({
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            title(items: TooltipItem<'scatter'>[]) {
+              const raw = items[0]?.raw as { label?: string; id?: string } | undefined;
+              if (!raw?.label) return '';
+              return `${raw.label} (${raw.id ?? ''})`;
+            },
+            label(tooltipItem: TooltipItem<'scatter'>) {
+              const x = tooltipItem.parsed.x;
+              const y = tooltipItem.parsed.y;
+              if (x == null || y == null) return '';
+              return [`시공비: ${fmt(x)}`, `자립률: ${fmtPct(y)}`];
+            },
+          },
+        },
+      },
+      scales: {
+        x: {
+          type: 'linear' as const,
+          position: 'bottom' as const,
+          title: { display: true, text: '시공비(만원)' },
+          ticks: {
+            callback: (value: string | number) => fmt(Number(value)),
+          },
+        },
+        y: {
+          type: 'linear' as const,
+          min: 0,
+          max: 100,
+          title: { display: true, text: '자립률(%)' },
+        },
+      },
+    }),
+    [],
+  );
+
+  if (scenarios.length === 0) {
+    return (
+      <div className="rounded-3xl border border-slate-200 bg-white shadow-sm">
+        <div className="border-b border-slate-100 p-4">
+          <div className="text-sm font-semibold text-slate-900">비용-자립률 위상</div>
+          <div className="mt-0.5 text-xs text-slate-500">비교할 시나리오가 아직 없습니다.</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="grid grid-cols-4 gap-2 rounded-2xl border border-slate-200 bg-white p-3 text-sm shadow-sm">
+    <div className="rounded-3xl border border-slate-200 bg-white shadow-sm">
+      <div className="border-b border-slate-100 p-4">
+        <div className="text-sm font-semibold text-slate-900">비용-자립률 위상</div>
+        <div className="mt-0.5 text-xs text-slate-500">
+          x축은 시공비, y축은 자립률로 각 시나리오의 위치를 비교합니다.
+        </div>
+      </div>
+      <div className="p-4" style={{ height: 320 }}>
+        <Scatter data={data} options={options} />
+      </div>
+    </div>
+  );
+}
+
+function tradeoffGridCols(n: number) {
+  return { gridTemplateColumns: `minmax(140px, 220px) repeat(${n}, minmax(0, 1fr))` } as const;
+}
+
+function TradeoffRow({ label, cells }: { label: string; cells: React.ReactNode[] }) {
+  const n = cells.length;
+  return (
+    <div
+      className="grid gap-2 rounded-2xl border border-slate-200 bg-white p-3 text-sm shadow-sm"
+      style={tradeoffGridCols(n)}
+    >
       <div className="font-medium text-slate-700">{label}</div>
-      {[0, 1, 2].map((i) => (
+      {cells.map((cell, i) => (
         <div key={i} className="text-center font-semibold text-slate-900">
-          {cells[i] ?? '-'}
+          {cell ?? '-'}
         </div>
       ))}
     </div>
@@ -447,27 +612,35 @@ function DetailsTable({
   scenarios: Scenario[];
   getValue: (s: Scenario, k: string) => number;
 }) {
+  const n = scenarios.length;
+  const cols = tradeoffGridCols(n);
   return (
     <div className="overflow-x-auto">
-      <div className="min-w-[600px] space-y-2">
-        <div className="grid grid-cols-4 gap-2 rounded-2xl bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-600">
+      <div className="min-w-[min(100%,720px)] space-y-2">
+        <div
+          className="grid gap-2 rounded-2xl bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-600"
+          style={cols}
+        >
           <div>항목</div>
-          <div className="text-center">A</div>
-          <div className="text-center">B</div>
-          <div className="text-center">C</div>
+          {scenarios.map((s) => (
+            <div key={s.id} className="text-center">
+              {s.name}
+            </div>
+          ))}
         </div>
         {rows.map((r) => (
           <div
             key={r.key}
-            className="grid grid-cols-4 gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
+            className="grid gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
+            style={cols}
           >
             <div className="text-slate-700">
               {r.label}
               {r.unit && <span className="ml-1 text-[10px] text-slate-400">({r.unit})</span>}
             </div>
-            {[0, 1, 2].map((idx) => (
-              <div key={idx} className="text-center font-semibold text-slate-900">
-                {scenarios[idx] ? getValue(scenarios[idx], r.key).toFixed(2) : '-'}
+            {scenarios.map((s) => (
+              <div key={s.id} className="text-center font-semibold text-slate-900">
+                {getValue(s, r.key).toFixed(2)}
               </div>
             ))}
           </div>
@@ -592,7 +765,7 @@ export default function ZEBAMultiScenario() {
   }, [ordered]);
 
   return (
-    <div className="space-y-5">
+    <div className="mx-auto w-full max-w-[1480px] space-y-5">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 8 }}
@@ -642,21 +815,7 @@ export default function ZEBAMultiScenario() {
 
         <div className="my-4 border-t border-slate-100" />
 
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-500">기준 시나리오</span>
-            <select
-              value={baseline}
-              onChange={(e) => setBaseline(e.target.value as ScenarioId)}
-              className="h-9 rounded-2xl border border-slate-200 bg-white px-3 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500"
-            >
-              {ordered.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.name} ({s.id})
-                </option>
-              ))}
-            </select>
-          </div>
+        <div className="flex flex-wrap items-center justify-end gap-3">
           <div className="flex items-center gap-2">
             <button
               onClick={analyzeAll}
@@ -677,9 +836,9 @@ export default function ZEBAMultiScenario() {
         </div>
       </motion.div>
 
-      {/* Scenario cards */}
-      <div className="flex flex-wrap justify-center gap-4">
-        <AnimatePresence>
+      {/* 시나리오: 고정 3열 그리드 — 추가 시 왼쪽(A)→B→C 순으로 채움 */}
+      <div className="grid w-full grid-cols-1 gap-4 *:min-w-0 sm:grid-cols-2 lg:grid-cols-3 lg:gap-5">
+        <AnimatePresence mode="popLayout">
           {ordered.map((s) => (
             <ScenarioCard
               key={s.id}
@@ -701,23 +860,49 @@ export default function ZEBAMultiScenario() {
             exit={{ opacity: 0, y: 10 }}
             className="space-y-4"
           >
-            {/* Chart + Cost */}
+            {/* 차트: 자립률·시공비 막대 + 비용-자립률 산점 */}
             <div className="grid gap-4 lg:grid-cols-2">
               <ComparisonChart scenarios={ordered} />
+              <CostPositionChart scenarios={ordered} />
+            </div>
 
-              <div className="rounded-3xl border border-slate-200 bg-white shadow-sm">
-                <div className="border-b border-slate-100 p-4">
-                  <div className="text-sm font-semibold text-slate-900">비용 트레이드오프</div>
-                  <div className="mt-0.5 text-xs text-slate-500">
-                    기준 시나리오 대비 증감률을 핵심 의사결정 포인트로 제시합니다.
+            <div className="rounded-3xl border border-slate-200 bg-white shadow-sm">
+              <div className="border-b border-slate-100 p-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <div className="text-sm font-semibold text-slate-900">비용 트레이드오프</div>
+                    <div className="mt-0.5 text-xs text-slate-500">
+                      기준 시나리오 대비 시공비와 자립률을 함께 비교합니다.
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-xs text-slate-500">기준 모델</span>
+                    <select
+                      value={baseline}
+                      onChange={(e) => setBaseline(e.target.value as ScenarioId)}
+                      className="h-9 min-w-[180px] rounded-full border border-slate-200 bg-white px-3 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    >
+                      {ordered.map((s) => (
+                        <option key={s.id} value={s.id}>
+                          {s.name} ({s.id})
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </div>
-                <div className="space-y-2 p-4">
-                  <div className="grid grid-cols-4 gap-2 rounded-2xl bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-600">
+              </div>
+              <div className="space-y-2 overflow-x-auto p-4">
+                <div className="min-w-[min(100%,720px)] space-y-2">
+                  <div
+                    className="grid gap-2 rounded-2xl bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-600"
+                    style={tradeoffGridCols(ordered.length)}
+                  >
                     <div>항목</div>
-                    <div className="text-center">A</div>
-                    <div className="text-center">B</div>
-                    <div className="text-center">C</div>
+                    {ordered.map((s) => (
+                      <div key={s.id} className="text-center">
+                        {s.name}
+                      </div>
+                    ))}
                   </div>
                   <TradeoffRow
                     label="총 시공비(만원)"
@@ -725,10 +910,10 @@ export default function ZEBAMultiScenario() {
                   />
                   <TradeoffRow
                     label="기준 대비(%)"
-                    cells={(['A', 'B', 'C'] as ScenarioId[]).map((id) => {
-                      const entry = costSummary.find((x) => x.id === id);
+                    cells={ordered.map((s) => {
+                      const entry = costSummary.find((x) => x.id === s.id);
                       if (!entry) return '-';
-                      return baseline === id ? '0.0%' : `${entry.deltaPct.toFixed(1)}%`;
+                      return baseline === s.id ? '0.0%' : `${entry.deltaPct.toFixed(1)}%`;
                     })}
                   />
                   <TradeoffRow
