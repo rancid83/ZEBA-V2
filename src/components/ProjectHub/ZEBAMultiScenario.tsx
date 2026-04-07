@@ -799,13 +799,15 @@ export default function ZEBAMultiScenario() {
                 role="switch"
                 aria-checked={compareMode}
                 onClick={() => setCompareMode((v) => !v)}
-                className={`relative h-5 w-9 rounded-full transition-colors ${
+                type="button"
+                className={`relative inline-flex h-5 w-9 shrink-0 items-center justify-start rounded-full p-0.5 transition-colors ${
                   compareMode ? 'bg-teal-700' : 'bg-slate-300'
                 }`}
               >
                 <span
-                  className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${
-                    compareMode ? 'translate-x-4' : 'translate-x-0.5'
+                  aria-hidden
+                  className={`pointer-events-none h-4 w-4 shrink-0 rounded-full bg-white shadow transition-[transform] duration-200 ease-out ${
+                    compareMode ? 'translate-x-4' : 'translate-x-0'
                   }`}
                 />
               </button>
