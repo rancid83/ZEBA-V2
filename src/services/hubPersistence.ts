@@ -1,5 +1,6 @@
 import type { CollaborationByService } from '@/types/collaboration';
 import type { OpsRecord, Project } from '@/types/projectHubData';
+import type { ZebMultiScenarioWorkspaceState } from '@/types/zebMultiScenario';
 
 export type HubDataSlug = 'collaboration' | 'consulting' | 'epi-seed' | 'renewable';
 
@@ -76,6 +77,19 @@ export async function deleteOpsRecordApi(
     { method: 'DELETE' },
   );
   if (!res.ok) throw new Error('deleteOpsRecordApi failed');
+  return (await res.json()) as { project: Project };
+}
+
+export async function updateZebWorkspaceApi(
+  projectId: string,
+  workspace: ZebMultiScenarioWorkspaceState,
+): Promise<{ project: Project }> {
+  const res = await fetch(`/api/projects/${encodeURIComponent(projectId)}/zeb-workspace`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(workspace),
+  });
+  if (!res.ok) throw new Error('updateZebWorkspaceApi failed');
   return (await res.json()) as { project: Project };
 }
 

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   AlertTriangle,
@@ -28,6 +28,15 @@ import {
 } from 'chart.js';
 import type { TooltipItem } from 'chart.js';
 import { Collapse } from 'antd';
+import type {
+  Result,
+  SavedScenarioRecord,
+  Scenario,
+  ScenarioId,
+  ScenarioStatus,
+  Spec,
+  ZebMultiScenarioWorkspaceState,
+} from '@/types/zebMultiScenario';
 
 ChartJS.register(
   CategoryScale,
@@ -39,47 +48,6 @@ ChartJS.register(
   Legend,
   ScatterController,
 );
-
-type ScenarioId = 'A' | 'B' | 'C';
-type ScenarioStatus = 'draft' | 'saved' | 'final';
-
-type Spec = {
-  passive: { wallU: number; windowU: number; roofU: number; floorU: number };
-  active: { ehpCOP: number; ventilationEff: number; lightingLPD: number; boilerEff: number };
-  renewable: { pvArea: number; pvEff: number; fuelCellKW: number };
-};
-
-type Result = {
-  zebGrade: number;
-  selfSuff: number;
-  prod: number;
-  demand: number;
-  costTotal: number;
-  costBreakdown: { passive: number; active: number; renewable: number };
-};
-
-type Scenario = {
-  id: ScenarioId;
-  name: string;
-  isStandard: boolean;
-  status: ScenarioStatus;
-  note: string;
-  savedAt?: string;
-  spec: Spec;
-  result: Result;
-  updatedAt: string;
-  analyzed: boolean;
-};
-
-type SavedScenarioRecord = {
-  recordId: string;
-  sourceId: ScenarioId;
-  name: string;
-  status: ScenarioStatus;
-  savedAt: string;
-  note: string;
-  snapshot: Scenario;
-};
 
 type SliderProps = {
   label: string;
@@ -230,6 +198,42 @@ function buildRecord(scenario: Scenario, name: string, status: ScenarioStatus): 
     note: scenario.note,
     snapshot: scenario,
   };
+}
+
+/** 저장/불러오기용 기본 워크스페이스 */
+export function createDefaultZebWorkspace(): ZebMultiScenarioWorkspaceState {
+  return {
+    compareMode: true,
+    baseline: 'A',
+    selected: 'A',
+    managerNote: '',
+    scenarios: [createScenario('A', true)],
+    savedLibrary: [],
+    selectedSavedRecordId: '',
+  };
+}
+
+function cloneWorkspaceFromStored(
+  raw: ZebMultiScenarioWorkspaceState | null | undefined,
+): ZebMultiScenarioWorkspaceState {
+  if (!raw) return createDefaultZebWorkspace();
+  try {
+    const parsed = JSON.parse(JSON.stringify(raw)) as ZebMultiScenarioWorkspaceState;
+    if (!Array.isArray(parsed.scenarios) || parsed.scenarios.length === 0) {
+      return createDefaultZebWorkspace();
+    }
+    return {
+      compareMode: parsed.compareMode ?? true,
+      baseline: parsed.baseline ?? 'A',
+      selected: parsed.selected ?? 'A',
+      managerNote: parsed.managerNote ?? '',
+      scenarios: parsed.scenarios,
+      savedLibrary: Array.isArray(parsed.savedLibrary) ? parsed.savedLibrary : [],
+      selectedSavedRecordId: parsed.selectedSavedRecordId ?? '',
+    };
+  } catch {
+    return createDefaultZebWorkspace();
+  }
 }
 
 function StatusPill({ status }: { status: ScenarioStatus }) {
@@ -906,7 +910,18 @@ function ScenarioCard({
   );
 }
 
-export default function ZEBAMultiScenario() {
+type ZEBAMultiScenarioProps = {
+  projectId: string;
+  initialWorkspace?: ZebMultiScenarioWorkspaceState | null;
+  onPersist: (workspace: ZebMultiScenarioWorkspaceState) => void | Promise<void>;
+};
+
+export default function ZEBAMultiScenario({
+  projectId,
+  initialWorkspace,
+  onPersist,
+}: ZEBAMultiScenarioProps) {
+  const [hydrating, setHydrating] = useState(true);
   const [compareMode, setCompareMode] = useState(true);
   const [baseline, setBaseline] = useState<ScenarioId>('A');
   const [selected, setSelected] = useState<ScenarioId>('A');
@@ -916,6 +931,46 @@ export default function ZEBAMultiScenario() {
   const [selectedSavedRecordId, setSelectedSavedRecordId] = useState('');
   const [editingScenarioId, setEditingScenarioId] = useState<ScenarioId | null>(null);
   const [renameDraft, setRenameDraft] = useState('');
+
+  const initialWorkspaceRef = useRef(initialWorkspace);
+  initialWorkspaceRef.current = initialWorkspace;
+
+  useEffect(() => {
+    const w = cloneWorkspaceFromStored(initialWorkspaceRef.current);
+    setCompareMode(w.compareMode);
+    setBaseline(w.baseline);
+    setSelected(w.selected);
+    setManagerNote(w.managerNote);
+    setScenarios(w.scenarios);
+    setSavedLibrary(w.savedLibrary);
+    setSelectedSavedRecordId(w.selectedSavedRecordId);
+    setEditingScenarioId(null);
+    setRenameDraft('');
+    setHydrating(true);
+    const t = window.setTimeout(() => setHydrating(false), 200);
+    return () => clearTimeout(t);
+  }, [projectId]);
+
+  const buildWorkspace = useCallback((): ZebMultiScenarioWorkspaceState => {
+    return {
+      compareMode,
+      baseline,
+      selected,
+      managerNote,
+      scenarios,
+      savedLibrary,
+      selectedSavedRecordId,
+    };
+  }, [compareMode, baseline, selected, managerNote, scenarios, savedLibrary, selectedSavedRecordId]);
+
+  useEffect(() => {
+    if (!projectId || hydrating) return;
+    const payload = buildWorkspace();
+    const timer = window.setTimeout(() => {
+      void Promise.resolve(onPersist(payload)).catch(() => {});
+    }, 1400);
+    return () => clearTimeout(timer);
+  }, [projectId, hydrating, buildWorkspace, onPersist]);
 
   const ordered = useMemo(
     () => ORDER.map((id) => scenarios.find((s) => s.id === id)).filter(Boolean) as Scenario[],
@@ -1180,6 +1235,9 @@ export default function ZEBAMultiScenario() {
             </div>
             <p className="mt-1 text-[15px] leading-7 text-slate-600">
               2단계 표준모델을 기준으로 최대 3개의 시나리오를 만들고, 결과를 병렬 비교합니다.
+            </p>
+            <p className="mt-2 text-xs text-slate-400">
+              변경 내용은 잠시 후 이 프로젝트에 자동 저장됩니다.
             </p>
           </div>
           <div className="flex items-center gap-3">
