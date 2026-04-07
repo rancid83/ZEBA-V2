@@ -9,12 +9,14 @@ import EPIStandardModel from '@/components/ProjectHub/EPIStandardModel';
 import RenewableInstallRateReview from '@/components/ProjectHub/RenewableInstallRateReview';
 import ConsultingConnection from '@/components/ProjectHub/ConsultingConnection';
 import type { ModuleKey, ModuleState, OpsRecord, Project, ProjectStatus } from '@/types/projectHubData';
+import type { ZebMultiScenarioWorkspaceState } from '@/types/zebMultiScenario';
 import {
   appendOpsRecordApi,
   createProjectApi,
   deleteOpsRecordApi,
   fetchProjects,
   updateOpsRecordApi,
+  updateZebWorkspaceApi,
 } from '@/services/hubPersistence';
 import {
   BarChart3,
@@ -937,6 +939,7 @@ function ProjectWorkspace(props: {
   onCancelOpsEdit: () => void;
   onPickOpsRecord: (record: OpsRecord) => void;
   onDeleteOpsRecord: (recordId: string) => void;
+  onPersistZebWorkspace: (workspace: ZebMultiScenarioWorkspaceState) => void | Promise<void>;
 }) {
   const {
     breadcrumb,
@@ -952,6 +955,7 @@ function ProjectWorkspace(props: {
     onCancelOpsEdit,
     onPickOpsRecord,
     onDeleteOpsRecord,
+    onPersistZebWorkspace,
   } = props;
 
   const sortedRecords = [...(selected.opsRecords || [])].sort(
@@ -983,7 +987,13 @@ function ProjectWorkspace(props: {
             {activeTab === 'ops' ? '운영 기록' : null}
           </div>
 
-          {activeTab === 'zeb' ? <ZEBAMultiScenario /> : null}
+          {activeTab === 'zeb' ? (
+            <ZEBAMultiScenario
+              projectId={selected.id}
+              initialWorkspace={selected.zebWorkspace}
+              onPersist={onPersistZebWorkspace}
+            />
+          ) : null}
           {activeTab === 'epi' ? <EPIStandardModel /> : null}
           {activeTab === 'ren' ? (
             <RenewableInstallRateReview
@@ -1501,6 +1511,17 @@ export default function ProjectHub() {
     }
   }, [selectedId, opsTitleDraft, opsDraft, editingOpsId]);
 
+  const persistZebWorkspace = useCallback(async (workspace: ZebMultiScenarioWorkspaceState) => {
+    if (!selectedId) return;
+    try {
+      const { project } = await updateZebWorkspaceApi(selectedId, workspace);
+      setProjects((prev) => sortProjects(prev.map((p) => (p.id === project.id ? project : p))));
+      setProjectsError(null);
+    } catch {
+      setProjectsError('ZEB 다중시나리오를 저장하지 못했습니다.');
+    }
+  }, [selectedId]);
+
   const submitProject = useCallback(async () => {
     try {
       const project = await createProjectApi({
@@ -1672,6 +1693,7 @@ export default function ProjectHub() {
           onCancelOpsEdit={cancelOpsEdit}
           onPickOpsRecord={pickOpsRecord}
           onDeleteOpsRecord={deleteOpsRecordHandler}
+          onPersistZebWorkspace={persistZebWorkspace}
         />
       ) : (
         <div className="min-h-[calc(100vh-64px)] bg-[#f4f6f8] p-6">
