@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { fetchHubData, saveCollaborationData } from "@/services/hubPersistence";
 import type {
   AgendaFilter,
   AgendaFormState,
@@ -72,7 +73,27 @@ export default function CollaborationPanel({ initialService = "zeb", inDrawer = 
   const [collaborationByService, setCollaborationByService] = useState<CollaborationByService>(
     seedCollaborationByService
   );
+  const hydrateRef = useRef(true);
   const [activeService, setActiveService] = useState<ServiceId>(initialService);
+
+  useEffect(() => {
+    fetchHubData("collaboration")
+      .then((d) => {
+        hydrateRef.current = false;
+        setCollaborationByService(d as CollaborationByService);
+      })
+      .catch(() => {
+        hydrateRef.current = false;
+      });
+  }, []);
+
+  useEffect(() => {
+    if (hydrateRef.current) return;
+    const t = setTimeout(() => {
+      void saveCollaborationData(collaborationByService).catch(() => {});
+    }, 1200);
+    return () => clearTimeout(t);
+  }, [collaborationByService]);
 
   // 드로워 모드: 부모(ProjectHub)가 탭을 바꾸면 activeService 동기화
   useEffect(() => {

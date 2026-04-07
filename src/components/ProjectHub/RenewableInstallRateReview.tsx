@@ -1,39 +1,15 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { defaultRenewableHubData } from '@/constants/hubFileDefaults';
+import { fetchHubData } from '@/services/hubPersistence';
 import { ArcElement, Chart as ChartJS, Legend, Tooltip } from 'chart.js';
 import { AlertCircle, Sun, Target, Zap } from 'lucide-react';
 import { Doughnut } from 'react-chartjs-2';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-const REGION_FACTOR: Record<string, number> = {
-  서울: 1.0,
-  인천: 1.02,
-  대전: 1.01,
-  광주: 0.99,
-  대구: 0.98,
-  부산: 0.97,
-  강원: 1.06,
-  제주: 0.96,
-  경기: 1.0,
-};
-
-const UNIT_ENERGY_USE: Record<string, number> = {
-  업무시설: 120,
-  교육연구시설: 110,
-  공동주택: 95,
-  판매시설: 140,
-  문화집회시설: 130,
-};
-
-const UNIT_PRODUCTION = {
-  태양광: { unit: 1250, adj: 1.0 },
-  지열히트펌프: { unit: 850, adj: 0.95 },
-  연료전지: { unit: 4200, adj: 0.92 },
-} as const;
-
-const DONUT_COLORS = ['#0f766e', '#14b8a6', '#f59e0b'];
+type RenewableHubFile = typeof defaultRenewableHubData;
 
 export type RenewableInstallProjectInfo = {
   location: string;
@@ -147,6 +123,14 @@ const inputClass =
   'h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none transition focus:border-teal-300 focus:ring-2 focus:ring-teal-50';
 
 export default function RenewableInstallRateReview({ project }: { project: RenewableInstallProjectInfo }) {
+  const [renewConfig, setRenewConfig] = useState<RenewableHubFile | null>(null);
+  useEffect(() => {
+    fetchHubData('renewable')
+      .then((d) => setRenewConfig(d as RenewableHubFile))
+      .catch(() => setRenewConfig(defaultRenewableHubData));
+  }, []);
+  const cfg = renewConfig ?? defaultRenewableHubData;
+
   const [lastUpdated, setLastUpdated] = useState<number>(Date.now());
   const [targetInstallRate, setTargetInstallRate] = useState<number>(12);
   const [geothermalKw, setGeothermalKw] = useState<number>(0);
@@ -157,8 +141,10 @@ export default function RenewableInstallRateReview({ project }: { project: Renew
   const calc = useMemo(() => {
     const gfa = clampNumber(project.grossFloorArea, 0);
     const floors = Math.max(1, clampNumber(project.floors, 1));
-    const regionFactor = REGION_FACTOR[project.location] ?? 1;
-    const unitUse = UNIT_ENERGY_USE[project.usage] ?? 120;
+    const regionMap = cfg.regionFactor as Record<string, number>;
+    const energyMap = cfg.unitEnergyUse as Record<string, number>;
+    const regionFactor = regionMap[project.location] ?? 1;
+    const unitUse = energyMap[project.usage] ?? 120;
 
     const buildingArea = floors > 0 ? gfa / floors : 0;
     const x = Math.sqrt(Math.max(0, buildingArea));
@@ -173,11 +159,11 @@ export default function RenewableInstallRateReview({ project }: { project: Renew
     const targetRatio = clampNumber(targetInstallRate, 0, 100) / 100;
     const targetProduction = expectedAnnualUse * targetRatio;
 
-    const pvProduction = pvKw * UNIT_PRODUCTION.태양광.unit * UNIT_PRODUCTION.태양광.adj;
+    const pvProduction = pvKw * cfg.unitProduction.태양광.unit * cfg.unitProduction.태양광.adj;
     const geothermalProduction =
-      clampNumber(geothermalKw, 0) * UNIT_PRODUCTION.지열히트펌프.unit * UNIT_PRODUCTION.지열히트펌프.adj;
+      clampNumber(geothermalKw, 0) * cfg.unitProduction.지열히트펌프.unit * cfg.unitProduction.지열히트펌프.adj;
     const fuelCellProduction =
-      clampNumber(fuelCellKw, 0) * UNIT_PRODUCTION.연료전지.unit * UNIT_PRODUCTION.연료전지.adj;
+      clampNumber(fuelCellKw, 0) * cfg.unitProduction.연료전지.unit * cfg.unitProduction.연료전지.adj;
 
     const totalProduction = pvProduction + geothermalProduction + fuelCellProduction;
     const achievedRate = expectedAnnualUse > 0 ? (totalProduction / expectedAnnualUse) * 100 : 0;
@@ -186,8 +172,8 @@ export default function RenewableInstallRateReview({ project }: { project: Renew
     const geothermalBoreholes = Math.ceil(clampNumber(geothermalKw, 0) / 9);
     const geothermalEstimatedArea = geothermalBoreholes * 25;
 
-    const geoUnit = UNIT_PRODUCTION.지열히트펌프.unit * UNIT_PRODUCTION.지열히트펌프.adj;
-    const fcUnit = UNIT_PRODUCTION.연료전지.unit * UNIT_PRODUCTION.연료전지.adj;
+    const geoUnit = cfg.unitProduction.지열히트펌프.unit * cfg.unitProduction.지열히트펌프.adj;
+    const fcUnit = cfg.unitProduction.연료전지.unit * cfg.unitProduction.연료전지.adj;
     const additionalGeoKw = geoUnit > 0 ? targetGapKwh / geoUnit : 0;
     const additionalFuelCellKw = fcUnit > 0 ? targetGapKwh / fcUnit : 0;
 
@@ -248,6 +234,7 @@ export default function RenewableInstallRateReview({ project }: { project: Renew
     project.usage,
     pvManualKw,
     targetInstallRate,
+    cfg,
   ]);
 
   const status =
@@ -259,13 +246,13 @@ export default function RenewableInstallRateReview({ project }: { project: Renew
       datasets: [
         {
           data: calc.donutData.map((d) => d.value),
-          backgroundColor: calc.donutData.map((_, i) => DONUT_COLORS[i % DONUT_COLORS.length]),
+          backgroundColor: calc.donutData.map((_, i) => cfg.donutColors[i % cfg.donutColors.length]),
           borderWidth: 0,
           hoverOffset: 6,
         },
       ],
     }),
-    [calc.donutData],
+    [calc.donutData, cfg.donutColors],
   );
 
   const doughnutOptions = useMemo(
@@ -590,7 +577,7 @@ export default function RenewableInstallRateReview({ project }: { project: Renew
                             <span
                               className="inline-block h-2.5 w-2.5 rounded-full"
                               style={{
-                                backgroundColor: DONUT_COLORS[index % DONUT_COLORS.length],
+                                backgroundColor: cfg.donutColors[index % cfg.donutColors.length],
                               }}
                             />
                             {item.name}

@@ -1,0 +1,414 @@
+{
+  "zeb": {
+    "panelTitle": "ZEB 협업 서비스",
+    "agendas": [
+      {
+        "id": "zeb-1",
+        "title": "시나리오 B의 PV 용량 적정성 검토",
+        "author": "설계사",
+        "status": "진행 중",
+        "target": "시나리오 B · 옥상 PV",
+        "updatedAt": "2026-03-24 10:20",
+        "records": [
+          {
+            "id": "zeb-r-1",
+            "title": "설계사 질의",
+            "body": "옥상 면적 기준으로 PV 120kW 적용 시 ZEB 목표 등급 유지 가능 여부를 검토 부탁드립니다.",
+            "author": "설계사",
+            "time": "2026-03-24 09:20",
+            "attachments": [
+              {
+                "id": "zeb-a-1",
+                "name": "시나리오B_검토도면.pdf",
+                "size": "2.1 MB"
+              },
+              {
+                "id": "zeb-a-2",
+                "name": "PV_예상용량_검토.xlsx",
+                "size": "340 KB"
+              }
+            ]
+          },
+          {
+            "id": "zeb-r-2",
+            "title": "컨설턴트 답변",
+            "body": "현재 시나리오 B 기준으로는 가능성이 높으나, 옥탑 설비 간섭 여부와 구조 여유 확인이 필요합니다.",
+            "author": "컨설턴트",
+            "time": "2026-03-24 10:20",
+            "attachments": []
+          }
+        ],
+        "timeline": [
+          {
+            "id": "zt-1",
+            "type": "created",
+            "icon": "sparkles",
+            "label": "협의 안건 등록",
+            "time": "03.24",
+            "title": "시나리오 B의 PV 용량 적정성 검토",
+            "body": "",
+            "author": "설계사",
+            "recordId": null,
+            "hasAttachment": false
+          },
+          {
+            "id": "zt-2",
+            "type": "comment",
+            "icon": "message",
+            "label": "협의 기록 추가",
+            "time": "03.24",
+            "title": "설계사 질의",
+            "body": "옥상 면적 기준으로 PV 120kW 적용 시 ZEB 목표 등급 유지 가능 여부를 검토 부탁드립니다.",
+            "author": "설계사",
+            "recordId": "zeb-r-1",
+            "hasAttachment": true
+          },
+          {
+            "id": "zt-3",
+            "type": "comment",
+            "icon": "message",
+            "label": "협의 기록 추가",
+            "time": "03.24",
+            "title": "컨설턴트 답변",
+            "body": "현재 시나리오 B 기준으로는 가능성이 높으나, 옥탑 설비 간섭 여부와 구조 여유 확인이 필요합니다.",
+            "author": "컨설턴트",
+            "recordId": "zeb-r-2",
+            "hasAttachment": false
+          }
+        ]
+      },
+      {
+        "id": "zeb-2",
+        "title": "입면형 BIPV 대안 비교",
+        "author": "컨설턴트",
+        "status": "해결",
+        "target": "시나리오 C · 입면 BIPV",
+        "updatedAt": "2026-03-23 16:45",
+        "records": [
+          {
+            "id": "zeb-r-3",
+            "title": "검토 결론",
+            "body": "입면형 BIPV는 공사비 증가와 유지관리 부담이 커서 MVP 범위에서는 배제하고 옥상형 안으로 정리합니다.",
+            "author": "컨설턴트",
+            "time": "2026-03-23 16:45",
+            "attachments": [
+              {
+                "id": "zeb-a-3",
+                "name": "BIPV_대안비교.pdf",
+                "size": "1.4 MB"
+              }
+            ]
+          }
+        ],
+        "timeline": [
+          {
+            "id": "zt-4",
+            "type": "created",
+            "icon": "sparkles",
+            "label": "협의 안건 등록",
+            "time": "03.23",
+            "title": "입면형 BIPV 대안 비교",
+            "body": "",
+            "author": "컨설턴트",
+            "recordId": null,
+            "hasAttachment": false
+          },
+          {
+            "id": "zt-5",
+            "type": "comment",
+            "icon": "message",
+            "label": "협의 기록 추가",
+            "time": "03.23",
+            "title": "검토 결론",
+            "body": "입면형 BIPV는 공사비 증가와 유지관리 부담이 커서 MVP 범위에서는 배제하고 옥상형 안으로 정리합니다.",
+            "author": "컨설턴트",
+            "recordId": "zeb-r-3",
+            "hasAttachment": true
+          }
+        ]
+      },
+      {
+        "id": "zeb-3",
+        "title": "공사비 상승폭 질의",
+        "author": "설계사",
+        "status": "진행 중",
+        "target": "기타 일반 질의",
+        "updatedAt": "2026-03-22 13:10",
+        "records": [
+          {
+            "id": "zeb-r-4",
+            "title": "설계사 질의",
+            "body": "현재 표준모델 대비 시나리오 B로 갈 경우 공사비 상승폭이 어느 수준인지 개략 검토 부탁드립니다.",
+            "author": "설계사",
+            "time": "2026-03-22 13:10",
+            "attachments": []
+          }
+        ],
+        "timeline": [
+          {
+            "id": "zt-6",
+            "type": "created",
+            "icon": "sparkles",
+            "label": "협의 안건 등록",
+            "time": "03.22",
+            "title": "공사비 상승폭 질의",
+            "body": "",
+            "author": "설계사",
+            "recordId": null,
+            "hasAttachment": false
+          },
+          {
+            "id": "zt-7",
+            "type": "comment",
+            "icon": "message",
+            "label": "협의 기록 추가",
+            "time": "03.22",
+            "title": "설계사 질의",
+            "body": "현재 표준모델 대비 시나리오 B로 갈 경우 공사비 상승폭이 어느 수준인지 개략 검토 부탁드립니다.",
+            "author": "설계사",
+            "recordId": "zeb-r-4",
+            "hasAttachment": false
+          }
+        ]
+      }
+    ]
+  },
+  "epi": {
+    "panelTitle": "EPI 협업 서비스",
+    "agendas": [
+      {
+        "id": "epi-1",
+        "title": "외벽 열관류율 보완 방향 검토",
+        "author": "설계사",
+        "status": "진행 중",
+        "target": "건축부문 1번 · 외벽 평균 열관류율",
+        "updatedAt": "2026-03-24 11:10",
+        "records": [
+          {
+            "id": "epi-r-1",
+            "title": "설계사 질의",
+            "body": "현재 안이 중부2 기준에 근접해 있어 외단열 두께 상향이 필요한지 판단 부탁드립니다.",
+            "author": "설계사",
+            "time": "2026-03-24 10:30",
+            "attachments": [
+              {
+                "id": "epi-a-1",
+                "name": "외피_단열검토.pdf",
+                "size": "860 KB"
+              }
+            ]
+          },
+          {
+            "id": "epi-r-2",
+            "title": "컨설턴트 답변",
+            "body": "현재 수치라면 점수 여유가 작아 20mm 상향안을 우선 검토하는 것이 안전합니다.",
+            "author": "컨설턴트",
+            "time": "2026-03-24 11:10",
+            "attachments": []
+          }
+        ],
+        "timeline": [
+          {
+            "id": "et-1",
+            "type": "created",
+            "icon": "sparkles",
+            "label": "협의 안건 등록",
+            "time": "03.24",
+            "title": "외벽 열관류율 보완 방향 검토",
+            "body": "",
+            "author": "설계사",
+            "recordId": null,
+            "hasAttachment": false
+          },
+          {
+            "id": "et-2",
+            "type": "comment",
+            "icon": "message",
+            "label": "협의 기록 추가",
+            "time": "03.24",
+            "title": "설계사 질의",
+            "body": "현재 안이 중부2 기준에 근접해 있어 외단열 두께 상향이 필요한지 판단 부탁드립니다.",
+            "author": "설계사",
+            "recordId": "epi-r-1",
+            "hasAttachment": true
+          },
+          {
+            "id": "et-3",
+            "type": "comment",
+            "icon": "message",
+            "label": "협의 기록 추가",
+            "time": "03.24",
+            "title": "컨설턴트 답변",
+            "body": "현재 수치라면 점수 여유가 작아 20mm 상향안을 우선 검토하는 것이 안전합니다.",
+            "author": "컨설턴트",
+            "recordId": "epi-r-2",
+            "hasAttachment": false
+          }
+        ]
+      },
+      {
+        "id": "epi-2",
+        "title": "고효율 환기장치 적용 여부 정리",
+        "author": "컨설턴트",
+        "status": "해결",
+        "target": "기계부문 6번 · 열회수형 환기장치",
+        "updatedAt": "2026-03-23 17:05",
+        "records": [
+          {
+            "id": "epi-r-3",
+            "title": "정리",
+            "body": "기계부문 점수 여유 확보를 위해 고효율 열회수형 환기장치를 적용하는 것으로 정리합니다.",
+            "author": "컨설턴트",
+            "time": "2026-03-23 17:05",
+            "attachments": []
+          }
+        ],
+        "timeline": [
+          {
+            "id": "et-4",
+            "type": "created",
+            "icon": "sparkles",
+            "label": "협의 안건 등록",
+            "time": "03.23",
+            "title": "고효율 환기장치 적용 여부 정리",
+            "body": "",
+            "author": "컨설턴트",
+            "recordId": null,
+            "hasAttachment": false
+          },
+          {
+            "id": "et-5",
+            "type": "comment",
+            "icon": "message",
+            "label": "협의 기록 추가",
+            "time": "03.23",
+            "title": "정리",
+            "body": "기계부문 점수 여유 확보를 위해 고효율 열회수형 환기장치를 적용하는 것으로 정리합니다.",
+            "author": "컨설턴트",
+            "recordId": "epi-r-3",
+            "hasAttachment": false
+          }
+        ]
+      }
+    ]
+  },
+  "ren": {
+    "panelTitle": "신재생 협업 서비스",
+    "agendas": [
+      {
+        "id": "ren-1",
+        "title": "태양광 + 지열 조합 달성률 검토",
+        "author": "설계사",
+        "status": "진행 중",
+        "target": "조합안 A · PV + 지열",
+        "updatedAt": "2026-03-24 08:50",
+        "records": [
+          {
+            "id": "ren-r-1",
+            "title": "설계사 질의",
+            "body": "현재 조합안 A에서 지열 비중을 줄이고 PV 비중을 높여도 의무비율 달성이 가능한지 검토 부탁드립니다.",
+            "author": "설계사",
+            "time": "2026-03-24 08:10",
+            "attachments": [
+              {
+                "id": "ren-a-1",
+                "name": "설비조합_A안.xlsx",
+                "size": "420 KB"
+              }
+            ]
+          },
+          {
+            "id": "ren-r-2",
+            "title": "컨설턴트 답변",
+            "body": "PV 비중 상향으로 일부 대체 가능하지만, 설치 면적과 구조 검토가 선행되어야 합니다.",
+            "author": "컨설턴트",
+            "time": "2026-03-24 08:50",
+            "attachments": []
+          }
+        ],
+        "timeline": [
+          {
+            "id": "rt-1",
+            "type": "created",
+            "icon": "sparkles",
+            "label": "협의 안건 등록",
+            "time": "03.24",
+            "title": "태양광 + 지열 조합 달성률 검토",
+            "body": "",
+            "author": "설계사",
+            "recordId": null,
+            "hasAttachment": false
+          },
+          {
+            "id": "rt-2",
+            "type": "comment",
+            "icon": "message",
+            "label": "협의 기록 추가",
+            "time": "03.24",
+            "title": "설계사 질의",
+            "body": "현재 조합안 A에서 지열 비중을 줄이고 PV 비중을 높여도 의무비율 달성이 가능한지 검토 부탁드립니다.",
+            "author": "설계사",
+            "recordId": "ren-r-1",
+            "hasAttachment": true
+          },
+          {
+            "id": "rt-3",
+            "type": "comment",
+            "icon": "message",
+            "label": "협의 기록 추가",
+            "time": "03.24",
+            "title": "컨설턴트 답변",
+            "body": "PV 비중 상향으로 일부 대체 가능하지만, 설치 면적과 구조 검토가 선행되어야 합니다.",
+            "author": "컨설턴트",
+            "recordId": "ren-r-2",
+            "hasAttachment": false
+          }
+        ]
+      },
+      {
+        "id": "ren-2",
+        "title": "옥상 면적 부족 대응안",
+        "author": "컨설턴트",
+        "status": "해결",
+        "target": "기타 일반 질의",
+        "updatedAt": "2026-03-21 15:35",
+        "records": [
+          {
+            "id": "ren-r-3",
+            "title": "정리",
+            "body": "옥상 단독으로는 면적이 부족하므로 주차장 캐노피 병행안을 우선안으로 정리합니다.",
+            "author": "컨설턴트",
+            "time": "2026-03-21 15:35",
+            "attachments": []
+          }
+        ],
+        "timeline": [
+          {
+            "id": "rt-4",
+            "type": "created",
+            "icon": "sparkles",
+            "label": "협의 안건 등록",
+            "time": "03.21",
+            "title": "옥상 면적 부족 대응안",
+            "body": "",
+            "author": "컨설턴트",
+            "recordId": null,
+            "hasAttachment": false
+          },
+          {
+            "id": "rt-5",
+            "type": "comment",
+            "icon": "message",
+            "label": "협의 기록 추가",
+            "time": "03.21",
+            "title": "정리",
+            "body": "옥상 단독으로는 면적이 부족하므로 주차장 캐노피 병행안을 우선안으로 정리합니다.",
+            "author": "컨설턴트",
+            "recordId": "ren-r-3",
+            "hasAttachment": false
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -8,6 +8,14 @@ import ZEBAMultiScenario from '@/components/ProjectHub/ZEBAMultiScenario';
 import EPIStandardModel from '@/components/ProjectHub/EPIStandardModel';
 import RenewableInstallRateReview from '@/components/ProjectHub/RenewableInstallRateReview';
 import ConsultingConnection from '@/components/ProjectHub/ConsultingConnection';
+import type { ModuleKey, ModuleState, OpsRecord, Project, ProjectStatus } from '@/types/projectHubData';
+import {
+  appendOpsRecordApi,
+  createProjectApi,
+  deleteOpsRecordApi,
+  fetchProjects,
+  updateOpsRecordApi,
+} from '@/services/hubPersistence';
 import {
   BarChart3,
   Bell,
@@ -19,41 +27,16 @@ import {
   Lock,
   MessageSquare,
   NotebookPen,
+  Pencil,
   PhoneCall,
   Settings,
+  Trash2,
   TriangleAlert,
   User,
   X,
 } from 'lucide-react';
 
-// ------------------------------------------------------------
-// Types
-// ------------------------------------------------------------
-type ModuleKey = 'zeb' | 'epi' | 'ren' | 'consult';
-export type ModuleState = 'pass' | 'fail' | 'none';
-export type ProjectStatus = '신규' | '진행중' | '완료';
-
-export type OpsRecord = {
-  id: string;
-  title: string;
-  summary: string;
-  createdAt: string;
-};
-
-export type Project = {
-  id: string;
-  name: string;
-  region: string;
-  use: string;
-  gfa: number;
-  floors: number;
-  targetGrade: number;
-  status: ProjectStatus;
-  updatedAt: string;
-  map: Record<ModuleKey, ModuleState>;
-  note: string;
-  opsRecords: OpsRecord[];
-};
+export type { ModuleState, OpsRecord, Project, ProjectStatus } from '@/types/projectHubData';
 
 type WorkspaceTab = ModuleKey | 'ops';
 
@@ -66,84 +49,11 @@ type ModuleMetrics = {
   renMargin: number | '–';
 };
 
-const initialProjects: Project[] = [
-  {
-    id: 'p-001',
-    name: '성수 업무시설',
-    region: '서울',
-    use: '업무시설',
-    gfa: 12800,
-    floors: 12,
-    targetGrade: 3,
-    status: '진행중',
-    updatedAt: '2026-03-03 17:20',
-    map: { zeb: 'pass', epi: 'fail', ren: 'pass', consult: 'none' },
-    note: 'EPI 재검토 필요 · 62점 / 기준 65점',
-    opsRecords: [
-      {
-        id: 'ops-001',
-        title: 'EPI 재검토 요청',
-        summary: '설계팀에 EPI 보완안 요청, 외피 항목 우선 확인 필요',
-        createdAt: '2026-03-03 17:20',
-      },
-    ],
-  },
-  {
-    id: 'p-002',
-    name: '동탄 교육연구시설',
-    region: '경기',
-    use: '교육연구시설',
-    gfa: 9200,
-    floors: 7,
-    targetGrade: 4,
-    status: '진행중',
-    updatedAt: '2026-03-02 11:05',
-    map: { zeb: 'pass', epi: 'pass', ren: 'none', consult: 'none' },
-    note: 'ZEB · EPI 검토 완료',
-    opsRecords: [
-      {
-        id: 'ops-002',
-        title: '검토 완료 공유',
-        summary: 'ZEB 및 EPI 1차 검토 완료, 신재생 검토만 남음',
-        createdAt: '2026-03-02 11:05',
-      },
-    ],
-  },
-  {
-    id: 'p-003',
-    name: '여의도 공동주택(가칭)',
-    region: '서울',
-    use: '공동주택',
-    gfa: 18500,
-    floors: 20,
-    targetGrade: 2,
-    status: '신규',
-    updatedAt: '2026-03-03 09:12',
-    map: { zeb: 'none', epi: 'none', ren: 'none', consult: 'none' },
-    note: '초기 검토 대기',
-    opsRecords: [],
-  },
-];
-
 // ------------------------------------------------------------
 // Helpers
 // ------------------------------------------------------------
 function fmt(n: number) {
   return new Intl.NumberFormat('ko-KR').format(n);
-}
-
-function nowStamp() {
-  const d = new Date();
-  const yy = d.getFullYear();
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  const dd = String(d.getDate()).padStart(2, '0');
-  const hh = String(d.getHours()).padStart(2, '0');
-  const mi = String(d.getMinutes()).padStart(2, '0');
-  return `${yy}-${mm}-${dd} ${hh}:${mi}`;
-}
-
-function makeId() {
-  return Math.random().toString(16).slice(2, 10);
 }
 
 function stateIcon(state: ModuleState) {
@@ -247,12 +157,14 @@ function SimpleButton({
   type = 'button',
   onClick,
   className = '',
+  disabled = false,
 }: {
   children: React.ReactNode;
   tone?: 'solid';
   type?: 'button' | 'submit';
   onClick?: () => void;
   className?: string;
+  disabled?: boolean;
 }) {
   const toneCls =
     tone === 'solid'
@@ -261,8 +173,9 @@ function SimpleButton({
   return (
     <button
       type={type}
+      disabled={disabled}
       onClick={onClick}
-      className={`rounded-2xl border px-4 py-2 text-sm font-medium transition hover:opacity-90 ${toneCls} ${className}`.trim()}
+      className={`rounded-2xl border px-4 py-2 text-sm font-medium transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 ${toneCls} ${className}`.trim()}
     >
       {children}
     </button>
@@ -894,7 +807,11 @@ function OperationsWorkspace(props: {
   opsDraft: string;
   setOpsDraft: (v: string) => void;
   records: OpsRecord[];
+  editingOpsId: string | null;
   onSave: () => void;
+  onCancelEdit: () => void;
+  onPickRecord: (record: OpsRecord) => void;
+  onDeleteRecord: (recordId: string) => void;
 }) {
   const {
     opsTitleDraft,
@@ -902,16 +819,35 @@ function OperationsWorkspace(props: {
     opsDraft,
     setOpsDraft,
     records,
+    editingOpsId,
     onSave,
+    onCancelEdit,
+    onPickRecord,
+    onDeleteRecord,
   } = props;
 
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="text-xs text-slate-500">대표 제목과 요약문을 간단히 작성합니다.</div>
-        <SimpleButton tone="solid" onClick={onSave}>
-          기록
-        </SimpleButton>
+        <div className="text-xs text-slate-500">
+          {editingOpsId
+            ? '선택한 기록을 수정한 뒤 «수정 반영»을 누르세요.'
+            : '대표 제목과 요약문을 간단히 작성합니다.'}
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {editingOpsId ? (
+            <>
+              <SimpleButton onClick={onCancelEdit}>취소</SimpleButton>
+              <SimpleButton tone="solid" onClick={onSave}>
+                수정 반영
+              </SimpleButton>
+            </>
+          ) : (
+            <SimpleButton tone="solid" onClick={onSave}>
+              기록
+            </SimpleButton>
+          )}
+        </div>
       </div>
 
       <div>
@@ -937,9 +873,43 @@ function OperationsWorkspace(props: {
         <div className="space-y-2">
           {records.length ? (
             records.map((item) => (
-              <div key={item.id} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-                <div className="text-[11px] text-slate-400">{item.createdAt.slice(0, 10)}</div>
-                <div className="mt-1 text-sm font-medium text-slate-800">{item.title}</div>
+              <div
+                key={item.id}
+                className={`rounded-2xl border px-4 py-3 ${
+                  editingOpsId === item.id
+                    ? 'border-teal-300 bg-teal-50/60 ring-1 ring-teal-100'
+                    : 'border-slate-200 bg-slate-50'
+                }`}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[11px] text-slate-400">{item.createdAt.slice(0, 10)}</div>
+                    <div className="mt-1 text-sm font-medium text-slate-800">{item.title}</div>
+                    {item.summary ? (
+                      <p className="mt-1 line-clamp-2 text-xs text-slate-500">{item.summary}</p>
+                    ) : null}
+                  </div>
+                  <div className="flex shrink-0 gap-1">
+                    <button
+                      type="button"
+                      onClick={() => onPickRecord(item)}
+                      className="flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition hover:border-teal-200 hover:text-teal-800"
+                      aria-label={`${item.title} 수정`}
+                      title="수정"
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onDeleteRecord(item.id)}
+                      className="flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition hover:border-rose-200 hover:text-rose-700"
+                      aria-label={`${item.title} 삭제`}
+                      title="삭제"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                </div>
               </div>
             ))
           ) : (
@@ -962,7 +932,11 @@ function ProjectWorkspace(props: {
   setOpsTitleDraft: (v: string) => void;
   opsDraft: string;
   setOpsDraft: (v: string) => void;
+  editingOpsId: string | null;
   onSaveOps: () => void;
+  onCancelOpsEdit: () => void;
+  onPickOpsRecord: (record: OpsRecord) => void;
+  onDeleteOpsRecord: (recordId: string) => void;
 }) {
   const {
     breadcrumb,
@@ -973,7 +947,11 @@ function ProjectWorkspace(props: {
     setOpsTitleDraft,
     opsDraft,
     setOpsDraft,
+    editingOpsId,
     onSaveOps,
+    onCancelOpsEdit,
+    onPickOpsRecord,
+    onDeleteOpsRecord,
   } = props;
 
   const sortedRecords = [...(selected.opsRecords || [])].sort(
@@ -1037,7 +1015,11 @@ function ProjectWorkspace(props: {
               opsDraft={opsDraft}
               setOpsDraft={setOpsDraft}
               records={sortedRecords}
+              editingOpsId={editingOpsId}
               onSave={onSaveOps}
+              onCancelEdit={onCancelOpsEdit}
+              onPickRecord={onPickOpsRecord}
+              onDeleteRecord={onDeleteOpsRecord}
             />
           ) : null}
         </InfoCard>
@@ -1361,11 +1343,14 @@ export default function ProjectHub() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<ProjectStatus | '전체'>('전체');
-  const [projects, setProjects] = useState<Project[]>(initialProjects);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [projectsLoading, setProjectsLoading] = useState(true);
+  const [projectsError, setProjectsError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<WorkspaceTab>('zeb');
   const [openCreate, setOpenCreate] = useState(false);
   const [opsTitleDraft, setOpsTitleDraft] = useState('');
   const [opsDraft, setOpsDraft] = useState('');
+  const [editingOpsId, setEditingOpsId] = useState<string | null>(null);
   const [activePopup, setActivePopup] = useState<'user' | 'settings' | 'bell' | 'help' | null>(null);
 
   const [formName, setFormName] = useState('');
@@ -1380,16 +1365,50 @@ export default function ProjectHub() {
     [projects, selectedId]
   );
 
+  const loadProjects = useCallback(() => {
+    setProjectsLoading(true);
+    setProjectsError(null);
+    fetchProjects()
+      .then((list) => setProjects(sortProjects(list)))
+      .catch(() => {
+        setProjectsError(
+          '프로젝트 데이터를 불러오지 못했습니다. 자체 서버에서 data/projects.json과 API를 확인하세요.',
+        );
+      })
+      .finally(() => setProjectsLoading(false));
+  }, []);
+
   useEffect(() => {
-    if (!selected) {
+    loadProjects();
+  }, [loadProjects]);
+
+  useEffect(() => {
+    if (!projectsLoading && selectedId && !projects.some((p) => p.id === selectedId)) {
+      setSelectedId(null);
+      setView('home');
+    }
+  }, [projects, selectedId, projectsLoading]);
+
+  useEffect(() => {
+    setEditingOpsId(null);
+    if (!selectedId) {
       setOpsTitleDraft('');
       setOpsDraft('');
-      return;
     }
-    const latest = latestOpsRecord(selected);
+  }, [selectedId]);
+
+  useEffect(() => {
+    if (!selectedId || editingOpsId) return;
+    const p = projects.find((x) => x.id === selectedId);
+    if (!p) return;
+    const latest = latestOpsRecord(p);
     setOpsTitleDraft(latest?.title ?? '');
     setOpsDraft(latest?.summary ?? '');
-  }, [selected]);
+  }, [projects, selectedId, editingOpsId]);
+
+  useEffect(() => {
+    if (activeTab !== 'ops') setEditingOpsId(null);
+  }, [activeTab]);
 
   const kpi = useMemo(() => {
     const total = projects.length;
@@ -1418,54 +1437,93 @@ export default function ProjectHub() {
     setView('project');
   }, []);
 
-  const saveOpsRecord = useCallback(() => {
+  const cancelOpsEdit = useCallback(() => {
+    setEditingOpsId(null);
+    if (!selectedId) return;
+    const p = projects.find((x) => x.id === selectedId);
+    if (!p) return;
+    const latest = latestOpsRecord(p);
+    setOpsTitleDraft(latest?.title ?? '');
+    setOpsDraft(latest?.summary ?? '');
+  }, [selectedId, projects]);
+
+  const pickOpsRecord = useCallback((record: OpsRecord) => {
+    setEditingOpsId(record.id);
+    setOpsTitleDraft(record.title);
+    setOpsDraft(record.summary);
+  }, []);
+
+  const deleteOpsRecordHandler = useCallback(
+    async (recordId: string) => {
+      if (!selectedId) return;
+      if (typeof window !== 'undefined' && !window.confirm('이 운영 기록을 삭제할까요?')) return;
+      try {
+        const { project } = await deleteOpsRecordApi(selectedId, recordId);
+        setProjects((prev) => sortProjects(prev.map((p) => (p.id === project.id ? project : p))));
+        setProjectsError(null);
+        if (editingOpsId === recordId || editingOpsId === null) {
+          const latest = latestOpsRecord(project);
+          setOpsTitleDraft(latest?.title ?? '');
+          setOpsDraft(latest?.summary ?? '');
+        }
+        if (editingOpsId === recordId) setEditingOpsId(null);
+      } catch {
+        setProjectsError('운영 기록을 삭제하지 못했습니다.');
+      }
+    },
+    [selectedId, editingOpsId],
+  );
+
+  const saveOpsRecord = useCallback(async () => {
     if (!selectedId) return;
     const title = opsTitleDraft.trim();
     const summary = opsDraft.trim();
     if (!title && !summary) return;
 
-    const createdAt = nowStamp();
-    const record: OpsRecord = {
-      id: `ops-${makeId()}`,
-      title: title || '무제 기록',
-      summary: summary || '내용 없음',
-      createdAt,
-    };
+    try {
+      if (editingOpsId) {
+        const { project } = await updateOpsRecordApi(selectedId, editingOpsId, { title, summary });
+        setProjects((prev) => sortProjects(prev.map((p) => (p.id === project.id ? project : p))));
+        setEditingOpsId(null);
+        const latest = latestOpsRecord(project);
+        setOpsTitleDraft(latest?.title ?? '');
+        setOpsDraft(latest?.summary ?? '');
+      } else {
+        const { project } = await appendOpsRecordApi(selectedId, { title, summary });
+        setProjects((prev) => sortProjects(prev.map((p) => (p.id === project.id ? project : p))));
+        const latest = latestOpsRecord(project);
+        setOpsTitleDraft(latest?.title ?? '');
+        setOpsDraft(latest?.summary ?? '');
+      }
+      setProjectsError(null);
+    } catch {
+      setProjectsError('운영 기록을 저장하지 못했습니다.');
+    }
+  }, [selectedId, opsTitleDraft, opsDraft, editingOpsId]);
 
-    setProjects((prev) =>
-      prev.map((project) => {
-        if (project.id !== selectedId) return project;
-        return {
-          ...project,
-          updatedAt: createdAt,
-          opsRecords: [record, ...(project.opsRecords || [])],
-        };
-      })
-    );
-  }, [selectedId, opsTitleDraft, opsDraft]);
-
-  const submitProject = useCallback(() => {
-    const id = `p-${makeId()}`;
-    const project: Project = {
-      id,
-      name: formName.trim() || `${formRegion} ${formUse} (신규)`,
-      region: formRegion,
-      use: formUse,
-      gfa: Number(formGfa),
-      floors: Number(formFloors),
-      targetGrade: Number(formTarget),
-      status: '신규',
-      updatedAt: nowStamp(),
-      map: { zeb: 'none', epi: 'none', ren: 'none', consult: 'none' },
-      note: '초기 검토 대기',
-      opsRecords: [],
-    };
-
-    setProjects((prev) => [project, ...prev]);
-    setSelectedId(id);
-    setActiveTab('zeb');
-    setOpenCreate(false);
-    setView('project');
+  const submitProject = useCallback(async () => {
+    try {
+      const project = await createProjectApi({
+        name: formName.trim() || `${formRegion} ${formUse} (신규)`,
+        region: formRegion,
+        use: formUse,
+        gfa: Number(formGfa),
+        floors: Number(formFloors),
+        targetGrade: Number(formTarget),
+        status: '신규',
+        map: { zeb: 'none', epi: 'none', ren: 'none', consult: 'none' },
+        note: '초기 검토 대기',
+        opsRecords: [],
+      });
+      setProjects((prev) => sortProjects([project, ...prev]));
+      setProjectsError(null);
+      setSelectedId(project.id);
+      setActiveTab('zeb');
+      setOpenCreate(false);
+      setView('project');
+    } catch {
+      setProjectsError('프로젝트를 생성하지 못했습니다.');
+    }
   }, [formName, formRegion, formUse, formGfa, formFloors, formTarget]);
 
   return (
@@ -1506,6 +1564,19 @@ export default function ProjectHub() {
       </div>
       <HeaderPopups kind={activePopup} onClose={() => setActivePopup(null)} />
 
+      {projectsError ? (
+        <div className="flex flex-wrap items-center justify-center gap-2 border-b border-rose-200 bg-rose-50 px-4 py-2 text-center text-sm text-rose-800 sm:px-8">
+          <span>{projectsError}</span>
+          <button
+            type="button"
+            className="rounded-lg border border-rose-300 bg-white px-2 py-0.5 text-xs font-medium text-rose-900 hover:bg-rose-100"
+            onClick={() => loadProjects()}
+          >
+            다시 시도
+          </button>
+        </div>
+      ) : null}
+
       {view === 'home' ? (
         <div className="flex min-h-[calc(100vh-64px)] flex-col md:flex-row">
           <HomeSidebar
@@ -1524,13 +1595,27 @@ export default function ProjectHub() {
               <InfoCard>
                 <div className="flex min-h-[250px] flex-col items-center justify-center gap-3">
                   <div className="text-xs tracking-[0.24em] text-slate-400">NEW PROJECT</div>
-                  <SimpleButton tone="solid" className="px-5" onClick={() => setOpenCreate(true)}>
+                  <SimpleButton
+                    tone="solid"
+                    className="px-5"
+                    disabled={projectsLoading}
+                    onClick={() => setOpenCreate(true)}
+                  >
                     + 새 프로젝트 생성
                   </SimpleButton>
                 </div>
               </InfoCard>
 
-              {filtered.map((p) => (
+              {projectsLoading ? (
+                <InfoCard>
+                  <div className="flex min-h-[250px] flex-col items-center justify-center gap-2 text-sm text-slate-500">
+                    프로젝트 목록을 불러오는 중…
+                  </div>
+                </InfoCard>
+              ) : null}
+
+              {!projectsLoading &&
+                filtered.map((p) => (
                 <InfoCard key={p.id}>
                   <button type="button" onClick={() => openProject(p.id)} className="w-full text-left">
                     <div className="flex items-start justify-between gap-2">
@@ -1560,10 +1645,10 @@ export default function ProjectHub() {
                     <div className="mt-2 text-[11px] text-slate-400">업데이트 · {p.updatedAt}</div>
                   </button>
                 </InfoCard>
-              ))}
+                ))}
             </div>
 
-            {filtered.length === 0 && (
+            {!projectsLoading && filtered.length === 0 && (
               <div className="mt-8 rounded-3xl border border-dashed border-slate-200 bg-white p-8 text-center text-sm text-slate-500">
                 조건에 맞는 프로젝트가 없습니다.
               </div>
@@ -1582,7 +1667,11 @@ export default function ProjectHub() {
           setOpsTitleDraft={setOpsTitleDraft}
           opsDraft={opsDraft}
           setOpsDraft={setOpsDraft}
+          editingOpsId={editingOpsId}
           onSaveOps={saveOpsRecord}
+          onCancelOpsEdit={cancelOpsEdit}
+          onPickOpsRecord={pickOpsRecord}
+          onDeleteOpsRecord={deleteOpsRecordHandler}
         />
       ) : (
         <div className="min-h-[calc(100vh-64px)] bg-[#f4f6f8] p-6">

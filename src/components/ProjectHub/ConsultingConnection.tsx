@@ -1,6 +1,8 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { defaultConsultingHubData } from '@/constants/hubFileDefaults';
+import { fetchHubData } from '@/services/hubPersistence';
 
 type ProjectOption = {
   id: string;
@@ -46,53 +48,6 @@ type RequestLog = {
 };
 
 type ChatMessage = { author: string; text: string };
-
-const consultingCompanies: ConsultingCompany[] = [
-  {
-    id: 1,
-    name: 'A 에너지컨설팅',
-    fields: ['ZEB 인증', '건축물의 에너지절약설계검토 (EPI)'],
-    response: '평균 3시간',
-    projects: 12,
-    coffeeChat: true,
-    intro: '공공업무 및 ZEB 예비인증 대응 경험이 많은 기업',
-  },
-  {
-    id: 2,
-    name: 'B 녹색건축기술',
-    fields: ['지자체 녹색건축설계 기준 검토(신재생에너지설비 의무 설치 비율)'],
-    response: '평균 5시간',
-    projects: 8,
-    coffeeChat: true,
-    intro: '서울시 녹색건축물 설계 기준 및 태양광·지열 검토 특화',
-  },
-  {
-    id: 3,
-    name: 'C 인증솔루션랩',
-    fields: ['그 밖의 인증', 'ZEB 인증'],
-    response: '평균 1일',
-    projects: 15,
-    coffeeChat: false,
-    intro: '녹색건축인증, BF 인증, 저영향개발 사전협의 등 복합 대응 가능',
-  },
-];
-
-const specialtyOptions = [
-  'ZEB 인증',
-  '지자체 녹색건축설계 기준 검토(신재생에너지설비 의무 설치 비율)',
-  '건축물의 에너지절약설계검토 (EPI)',
-  '그 밖의 인증',
-];
-
-const requestTypeOptions: Array<'커피챗 보내기' | '컨설팅 계약 요청'> = [
-  '커피챗 보내기',
-  '컨설팅 계약 요청',
-];
-
-const responseModeOptions = [
-  { id: 'coffeechat', label: '커피챗 회신' },
-  { id: 'contract', label: '계약 검토 회신' },
-] as const;
 
 function Card({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   return (
@@ -250,11 +205,24 @@ function formatProjectMeta(project: ProjectOption | null) {
   return `${project.region} · ${project.use} · ${project.gfa.toLocaleString()}㎡ · ${project.floors}F`;
 }
 
-function getCompanyName(companyId: number | null) {
-  return consultingCompanies.find((item) => item.id === companyId)?.name || '미지정 기업';
-}
-
 export default function ConsultingConnection({ currentProject }: { currentProject: ProjectOption }) {
+  type ConsultingHubFile = typeof defaultConsultingHubData;
+  const [consultConfig, setConsultConfig] = useState<ConsultingHubFile | null>(null);
+  useEffect(() => {
+    fetchHubData('consulting')
+      .then((d) => setConsultConfig(d as ConsultingHubFile))
+      .catch(() => setConsultConfig(defaultConsultingHubData));
+  }, []);
+  const cfg = consultConfig ?? defaultConsultingHubData;
+  const consultingCompanies = cfg.consultingCompanies;
+  const specialtyOptions = cfg.specialtyOptions;
+  const requestTypeOptions = cfg.requestTypeOptions as Array<'커피챗 보내기' | '컨설팅 계약 요청'>;
+  const responseModeOptions = cfg.responseModeOptions;
+
+  function getCompanyName(companyId: number | null) {
+    return consultingCompanies.find((item) => item.id === companyId)?.name || '미지정 기업';
+  }
+
   const projectsMock: ProjectOption[] = useMemo(
     () => [
       currentProject,
@@ -289,14 +257,11 @@ export default function ConsultingConnection({ currentProject }: { currentProjec
   );
 
   const [visibility, setVisibility] = useState<'public' | 'selected'>('public');
-  const [selectedSpecialties, setSelectedSpecialties] = useState<string[]>([
-    'ZEB 인증',
-    '건축물의 에너지절약설계검토 (EPI)',
+  const [selectedSpecialties, setSelectedSpecialties] = useState<string[]>(() => [
+    ...defaultConsultingHubData.uiDefaults.selectedSpecialties,
   ]);
   const [customSpecialty, setCustomSpecialty] = useState('');
-  const [requestSummary, setRequestSummary] = useState(
-    '목표 ZEB 3등급 및 초기 허가 대응 검토 필요',
-  );
+  const [requestSummary, setRequestSummary] = useState(() => defaultConsultingHubData.uiDefaults.requestSummary);
   const [requestCards, setRequestCards] = useState<RequestCard[]>([]);
   const [activeRequestId, setActiveRequestId] = useState<number | null>(null);
   const [searchTriggeredRequestId, setSearchTriggeredRequestId] = useState<number | null>(null);
@@ -309,32 +274,29 @@ export default function ConsultingConnection({ currentProject }: { currentProjec
   const [selectedRequestType, setSelectedRequestType] =
     useState<'커피챗 보내기' | '컨설팅 계약 요청'>('커피챗 보내기');
   const [requestOpinion, setRequestOpinion] = useState('검토 가능 범위와 예상 일정 확인 요청');
-  const [requestLogs, setRequestLogs] = useState<RequestLog[]>([
-    {
-      id: 1,
-      companyId: 1,
-      projectId: 'seed-project',
-      companyName: 'A 에너지컨설팅',
-      type: '커피챗 보내기',
-      opinion: '예비인증 가능 범위와 예상 일정 확인 요청',
-      status: '요청',
-    },
-  ]);
+  const [requestLogs, setRequestLogs] = useState<RequestLog[]>(() =>
+    defaultConsultingHubData.uiDefaults.requestLogs.map((r) => ({ ...r })),
+  );
 
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
-    {
-      author: '설계사',
-      text: '초기 허가 대응 기준으로 검토 가능 범위를 먼저 확인하고 싶습니다.',
-    },
-    {
-      author: '컨설팅 기업',
-      text: '가능합니다. ZEB 예비인증 범위와 EPI 범위를 나눠서 설명드리겠습니다.',
-    },
-  ]);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>(() =>
+    defaultConsultingHubData.uiDefaults.chatMessages.map((m) => ({ ...m })),
+  );
   const [draftMessage, setDraftMessage] = useState('');
-  const [uploadedFiles, setUploadedFiles] = useState(['배치도_v1.pdf', '에너지개요_초안.xlsx']);
+  const [uploadedFiles, setUploadedFiles] = useState<string[]>(() => [
+    ...defaultConsultingHubData.uiDefaults.uploadedFiles,
+  ]);
   const [selectedRequestId, setSelectedRequestId] = useState<number | null>(null);
   const [responseMode, setResponseMode] = useState<'coffeechat' | 'contract'>('coffeechat');
+
+  useEffect(() => {
+    if (!consultConfig) return;
+    const u = consultConfig.uiDefaults;
+    setRequestLogs(u.requestLogs.map((r) => ({ ...r })) as RequestLog[]);
+    setChatMessages(u.chatMessages.map((m) => ({ ...m })));
+    setUploadedFiles([...u.uploadedFiles]);
+    setRequestSummary(u.requestSummary);
+    setSelectedSpecialties([...u.selectedSpecialties]);
+  }, [consultConfig]);
 
   const activeRequest =
     requestCards.find((request) => request.id === activeRequestId) || requestCards[0] || null;
@@ -359,7 +321,7 @@ export default function ConsultingConnection({ currentProject }: { currentProjec
         (activeRequest.specialties.includes('그 밖의 인증') &&
           company.fields.includes('그 밖의 인증')),
     );
-  }, [activeRequest, searchableSpecialties, searchTriggeredRequestId]);
+  }, [activeRequest, searchableSpecialties, searchTriggeredRequestId, consultingCompanies]);
 
   const selectedCompanies = useMemo(
     () => filteredCompanies.filter((company) => selectedCompanyIds.includes(company.id)),
@@ -1189,7 +1151,7 @@ export default function ConsultingConnection({ currentProject }: { currentProjec
                           <SoftBadge
                             key={option.id}
                             active={responseMode === option.id}
-                            onClick={() => setResponseMode(option.id)}
+                            onClick={() => setResponseMode(option.id as 'coffeechat' | 'contract')}
                           >
                             {option.label}
                           </SoftBadge>

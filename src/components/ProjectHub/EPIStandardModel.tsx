@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { fetchHubData } from '@/services/hubPersistence';
 import {
   Building2,
   CheckCircle2,
@@ -71,17 +72,15 @@ type SelectedStatusBadge = {
   className: string;
 };
 
+type EpiSeedProject = { name: string; region: string; usage: string; gfa: string; floors: string };
+type EpiSeedFile = {
+  project: EpiSeedProject;
+  seedItems: Record<BuildingScale, Record<HvacType, Item[]>>;
+};
+
 // -------------------------------------------------------
 // Constants
 // -------------------------------------------------------
-const PROJECT = {
-  name: '성수 업무시설',
-  region: '서울',
-  usage: '업무시설',
-  gfa: '2,400㎡',
-  floors: '8층',
-};
-
 const VALUE_OPTIONS: ValueOption[] = ['1.0', '0.9', '0.8', '0.7', '0.6', '적용', '미적용'];
 const HVAC_OPTIONS: Array<{ value: HvacType; label: string }> = [
   { value: 'individual', label: '개별식' },
@@ -149,491 +148,15 @@ const BOARD_META: Record<
   },
 };
 
-const SEED_ITEMS: Record<BuildingScale, Record<HvacType, Item[]>> = {
-  small: {
-    individual: [
-      {
-        id: 'A1',
-        section: 'arch',
-        title: '외벽 평균 열관류율',
-        standardValue: '0.8',
-        currentValue: '0.8',
-        standardScore: 27.2,
-        currentScore: 27.2,
-        maxScore: 34,
-        boardState: 'selected',
-        sourceType: '표준',
-        locked: true,
-        holdReason: '사유 없음',
-        note: '소형·개별식 표준 모델',
-      },
-      {
-        id: 'M1',
-        section: 'mech',
-        title: '난방설비 효율',
-        standardValue: '0.7',
-        currentValue: '0.7',
-        standardScore: 4.2,
-        currentScore: 4.2,
-        maxScore: 6,
-        boardState: 'selected',
-        sourceType: '표준',
-        locked: false,
-        holdReason: '사유 없음',
-        note: '소형·개별식 표준 모델',
-      },
-      {
-        id: 'M17',
-        section: 'mech',
-        title: '개별식 보상 점수',
-        standardValue: '적용',
-        currentValue: '적용',
-        standardScore: 2,
-        currentScore: 2,
-        maxScore: 2,
-        boardState: 'selected',
-        sourceType: '표준',
-        locked: true,
-        holdReason: '사유 없음',
-        note: '개별식일 때만 기본 반영',
-      },
-      {
-        id: 'E1',
-        section: 'elec',
-        title: '조명 밀도',
-        standardValue: '0.8',
-        currentValue: '0.8',
-        standardScore: 6.4,
-        currentScore: 6.4,
-        maxScore: 8,
-        boardState: 'selected',
-        sourceType: '표준',
-        locked: true,
-        holdReason: '사유 없음',
-        note: '소형 공통 항목',
-      },
-      {
-        id: 'R4',
-        section: 'renew',
-        title: '조명 설비 신재생에너지 설비 적용',
-        standardValue: '0.6',
-        currentValue: '0.6',
-        standardScore: 2.4,
-        currentScore: 2.4,
-        maxScore: 4,
-        boardState: 'selected',
-        sourceType: '표준',
-        locked: false,
-        holdReason: '사유 없음',
-        note: '신재생 기본 반영',
-      },
-      {
-        id: 'M6',
-        section: 'mech',
-        title: '열교환기 효율',
-        standardValue: '0.8',
-        currentValue: '0.8',
-        standardScore: 2.4,
-        currentScore: 2.4,
-        maxScore: 3,
-        boardState: 'backlog',
-        sourceType: '추가',
-        locked: false,
-        holdReason: '사유 없음',
-        note: '보완 검토용 더미 항목',
-      },
-      {
-        id: 'E8',
-        section: 'elec',
-        title: 'BEMS 적용',
-        standardValue: '0.7',
-        currentValue: '0.7',
-        standardScore: 2.1,
-        currentScore: 2.1,
-        maxScore: 3,
-        boardState: 'backlog',
-        sourceType: '추가',
-        locked: false,
-        holdReason: '사유 없음',
-        note: '추가 채택 후보',
-      },
-      {
-        id: 'R1',
-        section: 'renew',
-        title: '난방 설비 신재생에너지 설비 적용',
-        standardValue: '0.6',
-        currentValue: '0.6',
-        standardScore: 2.4,
-        currentScore: 2.4,
-        maxScore: 4,
-        boardState: 'hold',
-        sourceType: '추가',
-        locked: false,
-        holdReason: '기술 검토 필요',
-        note: '자문 요청 예시',
-      },
-      {
-        id: 'M10',
-        section: 'mech',
-        title: '전기 제외한 냉방 에너지원 적용',
-        standardValue: '0.7',
-        currentValue: '0.7',
-        standardScore: 0.7,
-        currentScore: 0.7,
-        maxScore: 1,
-        boardState: 'hold',
-        sourceType: '추가',
-        locked: false,
-        holdReason: '설비 적용 가능 여부 확인 필요',
-        note: '보류 예시',
-      },
-    ],
-    central: [
-      {
-        id: 'A1',
-        section: 'arch',
-        title: '외벽 평균 열관류율',
-        standardValue: '0.8',
-        currentValue: '0.8',
-        standardScore: 27.2,
-        currentScore: 27.2,
-        maxScore: 34,
-        boardState: 'selected',
-        sourceType: '표준',
-        locked: true,
-        holdReason: '사유 없음',
-        note: '소형·중앙식 표준 모델',
-      },
-      {
-        id: 'M1',
-        section: 'mech',
-        title: '난방설비 효율',
-        standardValue: '0.8',
-        currentValue: '0.8',
-        standardScore: 4.8,
-        currentScore: 4.8,
-        maxScore: 6,
-        boardState: 'selected',
-        sourceType: '표준',
-        locked: true,
-        holdReason: '사유 없음',
-        note: '중앙식 기준 기본 적용',
-      },
-      {
-        id: 'M2',
-        section: 'mech',
-        title: '냉방설비 COP',
-        standardValue: '0.8',
-        currentValue: '0.8',
-        standardScore: 1.6,
-        currentScore: 1.6,
-        maxScore: 2,
-        boardState: 'selected',
-        sourceType: '표준',
-        locked: false,
-        holdReason: '사유 없음',
-        note: '중앙식에서 기본 포함',
-      },
-      {
-        id: 'E1',
-        section: 'elec',
-        title: '조명 밀도',
-        standardValue: '0.8',
-        currentValue: '0.8',
-        standardScore: 6.4,
-        currentScore: 6.4,
-        maxScore: 8,
-        boardState: 'selected',
-        sourceType: '표준',
-        locked: true,
-        holdReason: '사유 없음',
-        note: '소형 공통 항목',
-      },
-      {
-        id: 'R4',
-        section: 'renew',
-        title: '조명 설비 신재생에너지 설비 적용',
-        standardValue: '0.6',
-        currentValue: '0.6',
-        standardScore: 2.4,
-        currentScore: 2.4,
-        maxScore: 4,
-        boardState: 'selected',
-        sourceType: '표준',
-        locked: false,
-        holdReason: '사유 없음',
-        note: '신재생 기본 반영',
-      },
-      {
-        id: 'M6',
-        section: 'mech',
-        title: '열교환기 효율',
-        standardValue: '0.8',
-        currentValue: '0.8',
-        standardScore: 2.4,
-        currentScore: 2.4,
-        maxScore: 3,
-        boardState: 'backlog',
-        sourceType: '추가',
-        locked: false,
-        holdReason: '사유 없음',
-        note: '보완 검토용 더미 항목',
-      },
-      {
-        id: 'R1',
-        section: 'renew',
-        title: '난방 설비 신재생에너지 설비 적용',
-        standardValue: '0.6',
-        currentValue: '0.6',
-        standardScore: 2.4,
-        currentScore: 2.4,
-        maxScore: 4,
-        boardState: 'hold',
-        sourceType: '추가',
-        locked: false,
-        holdReason: '기술 검토 필요',
-        note: '자문 요청 예시',
-      },
-    ],
-  },
-  large: {
-    individual: [
-      {
-        id: 'A1',
-        section: 'arch',
-        title: '외벽 평균 열관류율',
-        standardValue: '0.8',
-        currentValue: '0.8',
-        standardScore: 16.8,
-        currentScore: 16.8,
-        maxScore: 21,
-        boardState: 'selected',
-        sourceType: '표준',
-        locked: true,
-        holdReason: '사유 없음',
-        note: '대형·개별식 표준 모델',
-      },
-      {
-        id: 'A2',
-        section: 'arch',
-        title: '지붕 열관류율',
-        standardValue: '0.8',
-        currentValue: '0.8',
-        standardScore: 5.6,
-        currentScore: 5.6,
-        maxScore: 7,
-        boardState: 'selected',
-        sourceType: '표준',
-        locked: true,
-        holdReason: '사유 없음',
-        note: '대형 공통 항목',
-      },
-      {
-        id: 'M1',
-        section: 'mech',
-        title: '난방설비 효율',
-        standardValue: '0.7',
-        currentValue: '0.7',
-        standardScore: 4.2,
-        currentScore: 4.2,
-        maxScore: 6,
-        boardState: 'selected',
-        sourceType: '표준',
-        locked: false,
-        holdReason: '사유 없음',
-        note: '개별식 기준',
-      },
-      {
-        id: 'M17',
-        section: 'mech',
-        title: '개별식 보상 점수',
-        standardValue: '적용',
-        currentValue: '적용',
-        standardScore: 2,
-        currentScore: 2,
-        maxScore: 2,
-        boardState: 'selected',
-        sourceType: '표준',
-        locked: true,
-        holdReason: '사유 없음',
-        note: '개별식 더미 항목',
-      },
-      {
-        id: 'E1',
-        section: 'elec',
-        title: '조명 밀도',
-        standardValue: '0.8',
-        currentValue: '0.8',
-        standardScore: 7.2,
-        currentScore: 7.2,
-        maxScore: 9,
-        boardState: 'selected',
-        sourceType: '표준',
-        locked: true,
-        holdReason: '사유 없음',
-        note: '대형 기준 반영',
-      },
-      {
-        id: 'R1',
-        section: 'renew',
-        title: '난방 신재생 비율',
-        standardValue: '0.6',
-        currentValue: '0.6',
-        standardScore: 2.4,
-        currentScore: 2.4,
-        maxScore: 4,
-        boardState: 'hold',
-        sourceType: '추가',
-        locked: false,
-        holdReason: '기술 검토 필요',
-        note: '보류 예시',
-      },
-      {
-        id: 'E8',
-        section: 'elec',
-        title: 'BEMS 적용',
-        standardValue: '0.7',
-        currentValue: '0.7',
-        standardScore: 2.1,
-        currentScore: 2.1,
-        maxScore: 3,
-        boardState: 'backlog',
-        sourceType: '추가',
-        locked: false,
-        holdReason: '사유 없음',
-        note: '추가 검토 예시',
-      },
-    ],
-    central: [
-      {
-        id: 'A1',
-        section: 'arch',
-        title: '외벽 평균 열관류율',
-        standardValue: '0.8',
-        currentValue: '0.8',
-        standardScore: 16.8,
-        currentScore: 16.8,
-        maxScore: 21,
-        boardState: 'selected',
-        sourceType: '표준',
-        locked: true,
-        holdReason: '사유 없음',
-        note: '대형·중앙식 표준 모델',
-      },
-      {
-        id: 'A2',
-        section: 'arch',
-        title: '지붕 열관류율',
-        standardValue: '0.8',
-        currentValue: '0.8',
-        standardScore: 5.6,
-        currentScore: 5.6,
-        maxScore: 7,
-        boardState: 'selected',
-        sourceType: '표준',
-        locked: true,
-        holdReason: '사유 없음',
-        note: '대형 공통 항목',
-      },
-      {
-        id: 'M1',
-        section: 'mech',
-        title: '난방설비 효율',
-        standardValue: '0.8',
-        currentValue: '0.8',
-        standardScore: 4.8,
-        currentScore: 4.8,
-        maxScore: 6,
-        boardState: 'selected',
-        sourceType: '표준',
-        locked: true,
-        holdReason: '사유 없음',
-        note: '중앙식 기준',
-      },
-      {
-        id: 'M2',
-        section: 'mech',
-        title: '냉방설비 COP',
-        standardValue: '0.8',
-        currentValue: '0.8',
-        standardScore: 4.8,
-        currentScore: 4.8,
-        maxScore: 6,
-        boardState: 'selected',
-        sourceType: '표준',
-        locked: false,
-        holdReason: '사유 없음',
-        note: '중앙식일 때 포함',
-      },
-      {
-        id: 'E1',
-        section: 'elec',
-        title: '조명 밀도',
-        standardValue: '0.8',
-        currentValue: '0.8',
-        standardScore: 7.2,
-        currentScore: 7.2,
-        maxScore: 9,
-        boardState: 'selected',
-        sourceType: '표준',
-        locked: true,
-        holdReason: '사유 없음',
-        note: '대형 기준 반영',
-      },
-      {
-        id: 'R4',
-        section: 'renew',
-        title: '조명 신재생 비율',
-        standardValue: '0.6',
-        currentValue: '0.6',
-        standardScore: 2.4,
-        currentScore: 2.4,
-        maxScore: 4,
-        boardState: 'selected',
-        sourceType: '표준',
-        locked: false,
-        holdReason: '사유 없음',
-        note: '신재생 기본 반영',
-      },
-      {
-        id: 'M6',
-        section: 'mech',
-        title: '열교환기 효율',
-        standardValue: '0.8',
-        currentValue: '0.8',
-        standardScore: 2.4,
-        currentScore: 2.4,
-        maxScore: 3,
-        boardState: 'backlog',
-        sourceType: '추가',
-        locked: false,
-        holdReason: '사유 없음',
-        note: '보완 검토 예시',
-      },
-      {
-        id: 'R1',
-        section: 'renew',
-        title: '난방 신재생 비율',
-        standardValue: '0.6',
-        currentValue: '0.6',
-        standardScore: 2.4,
-        currentScore: 2.4,
-        maxScore: 4,
-        boardState: 'hold',
-        sourceType: '추가',
-        locked: false,
-        holdReason: '기술 검토 필요',
-        note: '자문 요청 예시',
-      },
-    ],
-  },
-};
-
 // -------------------------------------------------------
 // Helpers
 // -------------------------------------------------------
-function cloneSeed(scale: BuildingScale, type: HvacType): Item[] {
-  return SEED_ITEMS[scale][type].map((item) => ({ ...item }));
+function cloneSeedWithTable(
+  seedItems: Record<BuildingScale, Record<HvacType, Item[]>>,
+  scale: BuildingScale,
+  type: HvacType,
+): Item[] {
+  return seedItems[scale][type].map((item) => ({ ...item }));
 }
 
 function cx(...tokens: Array<string | false | null | undefined>): string {
@@ -921,11 +444,13 @@ function PanelCard({
 // -------------------------------------------------------
 // Main
 // -------------------------------------------------------
-export default function EPIStandardModel() {
+function EPIStandardModelInner({ epiSeed }: { epiSeed: EpiSeedFile }) {
+  const PROJECT = epiSeed.project;
+  const SEED_ITEMS = epiSeed.seedItems;
   const initialScale = parseScaleFromGfa(PROJECT.gfa);
   const [buildingScale, setBuildingScale] = useState<BuildingScale>(initialScale);
   const [hvacType, setHvacType] = useState<HvacType>('individual');
-  const [items, setItems] = useState<Item[]>(() => cloneSeed(initialScale, 'individual'));
+  const [items, setItems] = useState<Item[]>(() => cloneSeedWithTable(SEED_ITEMS, initialScale, 'individual'));
   const [selectedId, setSelectedId] = useState<string>(
     () => SEED_ITEMS[initialScale].individual[0]?.id ?? '',
   );
@@ -986,7 +511,7 @@ export default function EPIStandardModel() {
   }, [items]);
 
   const resetSeed = (nextScale: BuildingScale, nextType: HvacType) => {
-    const nextItems = cloneSeed(nextScale, nextType);
+    const nextItems = cloneSeedWithTable(SEED_ITEMS, nextScale, nextType);
     setBuildingScale(nextScale);
     setHvacType(nextType);
     setItems(nextItems);
@@ -1386,4 +911,19 @@ export default function EPIStandardModel() {
       </p>
     </div>
   );
+}
+
+export default function EPIStandardModel() {
+  const [epiSeed, setEpiSeed] = useState<EpiSeedFile | null>(null);
+  useEffect(() => {
+    void fetchHubData('epi-seed').then((d) => setEpiSeed(d as EpiSeedFile));
+  }, []);
+  if (!epiSeed) {
+    return (
+      <div className="flex min-h-[320px] items-center justify-center text-sm text-slate-500">
+        EPI 표준모델 데이터를 불러오는 중…
+      </div>
+    );
+  }
+  return <EPIStandardModelInner epiSeed={epiSeed} />;
 }
