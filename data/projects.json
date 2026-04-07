@@ -9,7 +9,7 @@
       "floors": 10,
       "targetGrade": 3,
       "status": "신규",
-      "updatedAt": "2026-04-07 12:29",
+      "updatedAt": "2026-04-07 12:38",
       "map": {
         "zeb": "none",
         "epi": "none",
@@ -17,7 +17,14 @@
         "consult": "none"
       },
       "note": "초기 검토 대기",
-      "opsRecords": []
+      "opsRecords": [
+        {
+          "id": "ops-1fcb83a5",
+          "title": "test",
+          "summary": "test",
+          "createdAt": "2026-04-07 12:38"
+        }
+      ]
     },
     {
       "id": "p-001",
@@ -28,7 +35,7 @@
       "floors": 12,
       "targetGrade": 3,
       "status": "진행중",
-      "updatedAt": "2026-04-07 12:34",
+      "updatedAt": "2026-04-07 12:37",
       "map": {
         "zeb": "pass",
         "epi": "fail",
@@ -41,12 +48,6 @@
           "id": "ops-cb613c97",
           "title": "EPI 재검토 요청222333",
           "summary": "설계팀에 EPI 보완안 요청, 외피 항목 우선 확인 필요22",
-          "createdAt": "2026-04-07 12:30"
-        },
-        {
-          "id": "ops-13f0e4c3",
-          "title": "EPI 재검토 요청222",
-          "summary": "설계팀에 EPI 보완안 요청, 외피 항목 우선 확인 필요",
           "createdAt": "2026-04-07 12:30"
         },
         {
