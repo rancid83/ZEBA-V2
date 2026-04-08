@@ -637,12 +637,10 @@ export default function ZEBAProjectHub() {
 
   const kpi = useMemo(() => {
     const total = projects.length;
-    const active = projects.filter((p) => p.status === "진행중").length;
-    const done = projects.filter((p) => p.status === "완료").length;
-    const need = projects.filter(
-      (p) => p.map.epi === "fail" || p.map.ren === "fail" || p.map.zeb === "fail",
-    ).length;
-    return { total, active, done, need };
+    const newCount = projects.filter((p) => p.status === "신규").length;
+    const inProgressCount = projects.filter((p) => p.status === "진행중").length;
+    const completedCount = projects.filter((p) => p.status === "완료").length;
+    return { total, newCount, inProgressCount, completedCount };
   }, [projects]);
 
   const filtered = useMemo(() => {
@@ -914,9 +912,9 @@ export default function ZEBAProjectHub() {
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 <KpiTile label="전체 프로젝트" value={kpi.total} />
-                <KpiTile label="진행중" value={kpi.active} />
-                <KpiTile label="완료" value={kpi.done} />
-                <KpiTile label="보완 필요" value={kpi.need} />
+                <KpiTile label="신규" value={kpi.newCount} />
+                <KpiTile label="진행중" value={kpi.inProgressCount} />
+                <KpiTile label="완료" value={kpi.completedCount} />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">

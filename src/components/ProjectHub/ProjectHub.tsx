@@ -286,7 +286,7 @@ function MiniMap({ map, compact }: { map: Project['map']; compact?: boolean }) {
 
 function HomeSidebar(props: {
   breadcrumb: React.ReactNode;
-  kpi: { total: number; active: number; done: number; need: number };
+  kpi: { total: number; newCount: number; inProgressCount: number; completedCount: number };
   query: string;
   setQuery: (v: string) => void;
   statusFilter: ProjectStatus | '전체';
@@ -307,16 +307,16 @@ function HomeSidebar(props: {
             </div>
             <div className="grid grid-cols-3 gap-2">
               <div className="rounded-2xl border p-3">
-                <div className="text-[11px] text-slate-500">검토 진행</div>
-                <div className="mt-1 font-semibold">{kpi.active}</div>
+                <div className="text-[11px] text-slate-500">신규</div>
+                <div className="mt-1 font-semibold">{kpi.newCount}</div>
               </div>
               <div className="rounded-2xl border p-3">
-                <div className="text-[11px] text-slate-500">판단 완료</div>
-                <div className="mt-1 font-semibold">{kpi.done}</div>
+                <div className="text-[11px] text-slate-500">진행중</div>
+                <div className="mt-1 font-semibold">{kpi.inProgressCount}</div>
               </div>
               <div className="rounded-2xl border p-3">
-                <div className="text-[11px] text-slate-500">재검토 필요</div>
-                <div className="mt-1 font-semibold">{kpi.need}</div>
+                <div className="text-[11px] text-slate-500">완료</div>
+                <div className="mt-1 font-semibold">{kpi.completedCount}</div>
               </div>
             </div>
           </div>
@@ -1422,12 +1422,10 @@ export default function ProjectHub() {
 
   const kpi = useMemo(() => {
     const total = projects.length;
-    const active = projects.filter((p) => p.status === '진행중').length;
-    const done = projects.filter((p) => p.status === '완료').length;
-    const need = projects.filter(
-      (p) => p.map.zeb === 'fail' || p.map.epi === 'fail' || p.map.ren === 'fail'
-    ).length;
-    return { total, active, done, need };
+    const newCount = projects.filter((p) => p.status === '신규').length;
+    const inProgressCount = projects.filter((p) => p.status === '진행중').length;
+    const completedCount = projects.filter((p) => p.status === '완료').length;
+    return { total, newCount, inProgressCount, completedCount };
   }, [projects]);
 
   const filtered = useMemo(() => {
@@ -1613,6 +1611,47 @@ export default function ProjectHub() {
 
           <div className="flex-1 p-4 md:p-6">
             <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
+              {projectsLoading ? (
+                <InfoCard>
+                  <div className="flex min-h-[250px] flex-col items-center justify-center gap-2 text-sm text-slate-500">
+                    프로젝트 목록을 불러오는 중…
+                  </div>
+                </InfoCard>
+              ) : null}
+
+              {!projectsLoading &&
+                filtered.map((p) => (
+                  <InfoCard key={p.id}>
+                    <button type="button" onClick={() => openProject(p.id)} className="w-full text-left">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="truncate text-base font-semibold">{p.name}</div>
+                        <span
+                          className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-medium ${statusBadgeClass(p.status)}`}
+                        >
+                          {p.status}
+                        </span>
+                      </div>
+                      <div className="mt-3 text-sm leading-6 text-slate-500">
+                        {p.region} · {p.use} · {fmt(p.gfa)}㎡ · {p.floors}F
+                      </div>
+                      <div className="mt-4">
+                        <MiniMap map={p.map} />
+                      </div>
+                      <div
+                        className="mt-3 overflow-hidden rounded-xl border border-slate-100 bg-slate-50 px-3 py-2 text-[11px] leading-5 text-slate-500"
+                        style={{
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                        }}
+                      >
+                        {projectStatusText(p)}
+                      </div>
+                      <div className="mt-2 text-[11px] text-slate-400">업데이트 · {p.updatedAt}</div>
+                    </button>
+                  </InfoCard>
+                ))}
+
               <InfoCard>
                 <div className="flex min-h-[250px] flex-col items-center justify-center gap-3">
                   <div className="text-xs tracking-[0.24em] text-slate-400">NEW PROJECT</div>
@@ -1626,47 +1665,6 @@ export default function ProjectHub() {
                   </SimpleButton>
                 </div>
               </InfoCard>
-
-              {projectsLoading ? (
-                <InfoCard>
-                  <div className="flex min-h-[250px] flex-col items-center justify-center gap-2 text-sm text-slate-500">
-                    프로젝트 목록을 불러오는 중…
-                  </div>
-                </InfoCard>
-              ) : null}
-
-              {!projectsLoading &&
-                filtered.map((p) => (
-                <InfoCard key={p.id}>
-                  <button type="button" onClick={() => openProject(p.id)} className="w-full text-left">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="truncate text-base font-semibold">{p.name}</div>
-                      <span
-                        className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-medium ${statusBadgeClass(p.status)}`}
-                      >
-                        {p.status}
-                      </span>
-                    </div>
-                    <div className="mt-3 text-sm leading-6 text-slate-500">
-                      {p.region} · {p.use} · {fmt(p.gfa)}㎡ · {p.floors}F
-                    </div>
-                    <div className="mt-4">
-                      <MiniMap map={p.map} />
-                    </div>
-                    <div
-                      className="mt-3 overflow-hidden rounded-xl border border-slate-100 bg-slate-50 px-3 py-2 text-[11px] leading-5 text-slate-500"
-                      style={{
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical',
-                      }}
-                    >
-                      {projectStatusText(p)}
-                    </div>
-                    <div className="mt-2 text-[11px] text-slate-400">업데이트 · {p.updatedAt}</div>
-                  </button>
-                </InfoCard>
-                ))}
             </div>
 
             {!projectsLoading && filtered.length === 0 && (
