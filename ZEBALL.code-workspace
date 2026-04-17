@@ -1,0 +1,53 @@
+{
+  "folders": [
+    {
+      "name": "ZEBA-V2-1",
+      "path": "."
+    },
+    {
+      "name": "ZEBAGATEWAY_MAC",
+      "path": "../ZEBAGATEWAY_MAC"
+    },
+    {
+      "name": "Algorithm",
+      "path": "../GitHub/Code_---_v5.0"
+    }
+  ],
+  "launch": {
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "ZEBA-V2-1",
+        "type": "node-terminal",
+        "request": "launch",
+        "command": "npm run dev",
+        "cwd": "${workspaceFolder:ZEBA-V2-1}"
+      },
+      {
+        "name": "ZEBAGATEWAY_MAC",
+        "type": "node-terminal",
+        "request": "launch",
+        "command": "npm run dev",
+        "cwd": "${workspaceFolder:ZEBAGATEWAY_MAC}"
+      },
+      {
+        "name": "Algorithm API",
+        "type": "node-terminal",
+        "request": "launch",
+        "command": "python3 run.py",
+        "cwd": "${workspaceFolder:Algorithm}"
+      }
+    ],
+    "compounds": [
+      {
+        "name": "Run ZEBALL 3 Projects",
+        "configurations": [
+          "ZEBA-V2-1",
+          "ZEBAGATEWAY_MAC",
+          "Algorithm API"
+        ],
+        "stopAll": true
+      }
+    ]
+  }
+}

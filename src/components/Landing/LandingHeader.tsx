@@ -2,9 +2,11 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, Leaf } from 'lucide-react';
 import type { LandingNavSlideSection } from './landingData';
+import { useAuthStatus } from '@/hooks/useAuthStatus';
 
 type LandingHeaderProps = {
   onLogin: () => void;
@@ -14,8 +16,10 @@ type LandingHeaderProps = {
 };
 
 export default function LandingHeader({ onLogin, onSignup, onOpenSlides }: LandingHeaderProps) {
+  const router = useRouter();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { authenticated, logout } = useAuthStatus();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -78,24 +82,49 @@ export default function LandingHeader({ onLogin, onSignup, onOpenSlides }: Landi
         </nav>
 
         <div className="hidden items-center gap-2 md:flex">
-          <motion.button
-            whileHover={{ y: -1 }}
-            whileTap={{ scale: 0.98 }}
-            type="button"
-            onClick={onLogin}
-            className="rounded-full border border-white/20 px-4 py-2 text-[14px] font-medium text-white/80 transition hover:border-white/40 hover:text-white"
-          >
-            로그인
-          </motion.button>
-          <motion.button
-            whileHover={{ y: -1 }}
-            whileTap={{ scale: 0.98 }}
-            type="button"
-            onClick={onSignup}
-            className="rounded-full border border-white/20 px-4 py-2 text-[14px] font-medium text-white/80 transition hover:border-white/40 hover:text-white"
-          >
-            회원가입
-          </motion.button>
+          {authenticated ? (
+            <>
+              <motion.button
+                whileHover={{ y: -1 }}
+                whileTap={{ scale: 0.98 }}
+                type="button"
+                onClick={() => router.push('/project-hub')}
+                className="rounded-full border border-white/20 px-4 py-2 text-[14px] font-medium text-white/80 transition hover:border-white/40 hover:text-white"
+              >
+                마이페이지
+              </motion.button>
+              <motion.button
+                whileHover={{ y: -1 }}
+                whileTap={{ scale: 0.98 }}
+                type="button"
+                onClick={logout}
+                className="rounded-full border border-white/20 px-4 py-2 text-[14px] font-medium text-white/80 transition hover:border-white/40 hover:text-white"
+              >
+                로그아웃
+              </motion.button>
+            </>
+          ) : (
+            <>
+              <motion.button
+                whileHover={{ y: -1 }}
+                whileTap={{ scale: 0.98 }}
+                type="button"
+                onClick={onLogin}
+                className="rounded-full border border-white/20 px-4 py-2 text-[14px] font-medium text-white/80 transition hover:border-white/40 hover:text-white"
+              >
+                로그인
+              </motion.button>
+              <motion.button
+                whileHover={{ y: -1 }}
+                whileTap={{ scale: 0.98 }}
+                type="button"
+                onClick={onSignup}
+                className="rounded-full border border-white/20 px-4 py-2 text-[14px] font-medium text-white/80 transition hover:border-white/40 hover:text-white"
+              >
+                회원가입
+              </motion.button>
+            </>
+          )}
           <motion.div whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}>
             <Link
               href="/project-hub"
@@ -151,26 +180,53 @@ export default function LandingHeader({ onLogin, onSignup, onOpenSlides }: Landi
                 ),
               )}
               <div className="mt-3 flex flex-col gap-2 border-t border-white/10 pt-3">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMobileOpen(false);
-                    onLogin();
-                  }}
-                  className="rounded-full border border-white/20 py-2.5 text-[14px] font-medium text-white/80"
-                >
-                  로그인
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMobileOpen(false);
-                    onSignup();
-                  }}
-                  className="rounded-full border border-white/20 py-2.5 text-[14px] font-medium text-white/80"
-                >
-                  회원가입
-                </button>
+                {authenticated ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMobileOpen(false);
+                        router.push('/project-hub');
+                      }}
+                      className="rounded-full border border-white/20 py-2.5 text-[14px] font-medium text-white/80"
+                    >
+                      마이페이지
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMobileOpen(false);
+                        void logout();
+                      }}
+                      className="rounded-full border border-white/20 py-2.5 text-[14px] font-medium text-white/80"
+                    >
+                      로그아웃
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMobileOpen(false);
+                        onLogin();
+                      }}
+                      className="rounded-full border border-white/20 py-2.5 text-[14px] font-medium text-white/80"
+                    >
+                      로그인
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMobileOpen(false);
+                        onSignup();
+                      }}
+                      className="rounded-full border border-white/20 py-2.5 text-[14px] font-medium text-white/80"
+                    >
+                      회원가입
+                    </button>
+                  </>
+                )}
                 <Link
                   href="/project-hub"
                   onClick={() => setMobileOpen(false)}

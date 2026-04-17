@@ -8,6 +8,7 @@ import ZEBAMultiScenario from '@/components/ProjectHub/ZEBAMultiScenario';
 import EPIStandardModel from '@/components/ProjectHub/EPIStandardModel';
 import RenewableInstallRateReview from '@/components/ProjectHub/RenewableInstallRateReview';
 import ConsultingConnection from '@/components/ProjectHub/ConsultingConnection';
+import { useStore } from '@/store';
 import type { ModuleKey, ModuleState, OpsRecord, Project, ProjectStatus } from '@/types/projectHubData';
 import type { ZebMultiScenarioWorkspaceState } from '@/types/zebMultiScenario';
 import {
@@ -1234,6 +1235,8 @@ function HeaderPopups({
   onClose: () => void;
 }) {
   const router = useRouter();
+  const user = useStore((state) => state.user);
+  const clearUser = useStore((state) => state.clearUser);
 
   if (!kind) return null;
 
@@ -1247,8 +1250,8 @@ function HeaderPopups({
               <User className="h-5 w-5" />
             </div>
             <div>
-              <div className="text-sm font-semibold">담당자 님</div>
-              <div className="text-xs text-slate-500">admin@company.com</div>
+              <div className="text-sm font-semibold">{user?.name || '사용자'} 님</div>
+              <div className="text-xs text-slate-500">{user?.email || '로그인 사용자'}</div>
             </div>
           </div>
           <div className="mt-3 border-t border-slate-100 pt-3">
@@ -1261,6 +1264,7 @@ function HeaderPopups({
                 } catch {
                   // 로그아웃 API 실패 시에도 화면 이동은 유지
                 }
+                clearUser();
                 onClose();
                 router.push('/');
               }}
