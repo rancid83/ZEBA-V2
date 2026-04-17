@@ -11,6 +11,8 @@ type GatewayResult = {
   error?: string;
 };
 
+type GatewayMethod = 'GET' | 'POST' | 'PATCH';
+
 function getBaseUrl() {
   return process.env.ZEBAGATEWAY_MAC || process.env.NEXT_PUBLIC_API_URL || '';
 }
@@ -21,7 +23,14 @@ function joinUrl(baseUrl: string, path: string) {
   return `${trimmedBase}${normalizedPath}`;
 }
 
-async function callGateway(path: string, body: Record<string, unknown>): Promise<GatewayResult> {
+async function requestGateway(
+  path: string,
+  options: {
+    method?: GatewayMethod;
+    body?: Record<string, unknown>;
+    token?: string | null;
+  } = {},
+): Promise<GatewayResult> {
   const baseUrl = getBaseUrl();
   if (!baseUrl) {
     return {
@@ -32,12 +41,18 @@ async function callGateway(path: string, body: Record<string, unknown>): Promise
   }
 
   try {
+    const method = options.method || 'POST';
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    if (options.token) {
+      headers.Authorization = `Bearer ${options.token}`;
+    }
+
     const response = await fetch(joinUrl(baseUrl, path), {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(body),
+      method,
+      headers,
+      body: method === 'GET' ? undefined : JSON.stringify(options.body || {}),
       cache: 'no-store',
     });
 
@@ -74,6 +89,10 @@ async function callGateway(path: string, body: Record<string, unknown>): Promise
       error: error?.message || '게이트웨이 요청 처리 중 오류가 발생했습니다.',
     };
   }
+}
+
+async function callGateway(path: string, body: Record<string, unknown>): Promise<GatewayResult> {
+  return requestGateway(path, { method: 'POST', body });
 }
 
 export function getAuthPath(kind: 'login' | 'signup') {
@@ -118,6 +137,14 @@ export function toGatewayPayload(input: { email: string; password: string; name?
   return payload;
 }
 
+export function getUserPayloadFields(input: { email: string; name: string; company_name?: string }) {
+  return {
+    email: input.email,
+    name: input.name,
+    company_name: input.company_name || '',
+  };
+}
+
 export function setSessionCookie(response: NextResponse, token: string) {
   response.cookies.set({
     name: SESSION_COOKIE_NAME,
@@ -142,4 +169,4 @@ export function clearSessionCookie(response: NextResponse) {
   });
 }
 
-export { callGateway };
+export { callGateway, requestGateway };

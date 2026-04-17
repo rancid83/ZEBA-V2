@@ -22,6 +22,7 @@ import { Modal } from 'antd';
 import LoginForm from '@/components/Auth/LoginForm';
 import SignupForm from '@/components/Auth/SignupForm';
 import PresentationSlides from '@/components/Slides/PresentationSlides';
+import DaumPostcodeEmbed from 'react-daum-postcode';
 import landingStyles from './LandingStyleA.module.scss';
 import LandingHeader from './LandingHeader';
 import LandingFooter from './LandingFooter';
@@ -80,15 +81,30 @@ type DiagnosisCard = {
 type FieldProps = {
   label: string;
   children: React.ReactNode;
+  className?: string;
 };
+
+const QUICK_USAGE_OPTIONS = [
+  '업무시설(공공용)',
+  '업무시설(사업용)',
+  '교육연구시설',
+] as const;
+
+const OFFICE_SYSTEM_OPTIONS = [
+  { value: 'individual', label: '개별식' },
+  { value: 'central', label: '중앙식' },
+] as const;
 
 export default function Landing() {
   const router = useRouter();
   const [showQuickModal, setShowQuickModal] = useState(false);
+  const [showQuickAddressSearch, setShowQuickAddressSearch] = useState(false);
   const [showResult, setShowResult] = useState(false);
   const [showTransitionModal, setShowTransitionModal] = useState(false);
   const [area, setArea] = useState('서울');
-  const [usage, setUsage] = useState('업무시설');
+  const [usage, setUsage] = useState<(typeof QUICK_USAGE_OPTIONS)[number]>('업무시설(공공용)');
+  const [officeSystem, setOfficeSystem] =
+    useState<(typeof OFFICE_SYSTEM_OPTIONS)[number]['value']>('individual');
   const [grossFloorArea, setGrossFloorArea] = useState('12000');
   const [floors, setFloors] = useState('10');
   const [targetGrade, setTargetGrade] = useState('4등급');
@@ -120,7 +136,18 @@ export default function Landing() {
   const safeFloors =
     Number.isFinite(Number(floors)) && Number(floors) > 0 ? Number(floors) : 10;
 
-  const draftProjectName = `${area}_${usage}_${safeArea}㎡`;
+  const isOfficeUsage = usage.startsWith('업무시설');
+  const officeSystemLabel =
+    OFFICE_SYSTEM_OPTIONS.find((item) => item.value === officeSystem)?.label || '개별식';
+  const draftProjectName = `${area}_${usage}${isOfficeUsage ? `_${officeSystemLabel}` : ''}_${safeArea}㎡`;
+
+  const handleQuickAddressComplete = useCallback((data: any) => {
+    const selectedAddress = data?.roadAddress || data?.jibunAddress || data?.address || '';
+    if (!selectedAddress) return;
+
+    setArea(selectedAddress);
+    setShowQuickAddressSearch(false);
+  }, []);
 
   const summary = useMemo(() => {
     const selfSufficiency = Math.max(
@@ -747,30 +774,67 @@ export default function Landing() {
                 animate="show"
                 className="mt-6 grid gap-4 md:grid-cols-2"
               >
-                <Field label="지역">
-                  <select
-                    value={area}
-                    onChange={(e) => setArea(e.target.value)}
-                    className={inputClassName}
-                  >
-                    <option>서울</option>
-                    <option>경기</option>
-                    <option>인천</option>
-                    <option>부산</option>
-                  </select>
+                <Field label="지역 / 주소" className="md:col-span-2">
+                  <div className="space-y-3">
+                    <div className="flex gap-2">
+                      <input
+                        value={area}
+                        onChange={(e) => setArea(e.target.value)}
+                        className={`${inputClassName} flex-1`}
+                        placeholder="주소 검색 또는 직접 입력"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowQuickAddressSearch((prev) => !prev)}
+                        className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 transition hover:border-teal-300 hover:text-teal-700"
+                      >
+                        주소 검색
+                      </button>
+                    </div>
+
+                    {showQuickAddressSearch ? (
+                      <div className="overflow-hidden rounded-[20px] border border-slate-200 bg-white">
+                        <DaumPostcodeEmbed
+                          onComplete={handleQuickAddressComplete}
+                          onClose={() => setShowQuickAddressSearch(false)}
+                          style={{ height: '360px' }}
+                        />
+                      </div>
+                    ) : null}
+                  </div>
                 </Field>
                 <Field label="용도">
                   <select
                     value={usage}
-                    onChange={(e) => setUsage(e.target.value)}
+                    onChange={(e) => setUsage(e.target.value as (typeof QUICK_USAGE_OPTIONS)[number])}
                     className={inputClassName}
                   >
-                    <option>업무시설</option>
-                    <option>교육연구시설</option>
-                    <option>공동주택</option>
-                    <option>판매시설</option>
+                    {QUICK_USAGE_OPTIONS.map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
                   </select>
                 </Field>
+                {isOfficeUsage ? (
+                  <Field label="업무시설 방식">
+                    <select
+                      value={officeSystem}
+                      onChange={(e) =>
+                        setOfficeSystem(
+                          e.target.value as (typeof OFFICE_SYSTEM_OPTIONS)[number]['value'],
+                        )
+                      }
+                      className={inputClassName}
+                    >
+                      {OFFICE_SYSTEM_OPTIONS.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+                ) : null}
                 <Field label="연면적(㎡)">
                   <input
                     value={grossFloorArea}
@@ -981,9 +1045,9 @@ function IconButton({
   );
 }
 
-function Field({ label, children }: FieldProps) {
+function Field({ label, children, className }: FieldProps) {
   return (
-    <motion.label variants={slideUpFast} className="block">
+    <motion.label variants={slideUpFast} className={['block', className].filter(Boolean).join(' ')}>
       <div className="mb-2 text-sm font-semibold text-slate-700">{label}</div>
       {children}
     </motion.label>

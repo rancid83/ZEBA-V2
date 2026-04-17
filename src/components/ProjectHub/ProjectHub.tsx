@@ -1236,7 +1236,21 @@ function HeaderPopups({
 }) {
   const router = useRouter();
   const user = useStore((state) => state.user);
+  const setUser = useStore((state) => state.setUser);
   const clearUser = useStore((state) => state.clearUser);
+  const [editingProfile, setEditingProfile] = useState(false);
+  const [profileName, setProfileName] = useState(user?.name || '');
+  const [profileEmail, setProfileEmail] = useState(user?.email || '');
+  const [profileCompany, setProfileCompany] = useState(user?.company_name || '');
+  const [profileError, setProfileError] = useState<string | null>(null);
+  const [profileSuccess, setProfileSuccess] = useState<string | null>(null);
+  const [profileSaving, setProfileSaving] = useState(false);
+
+  useEffect(() => {
+    setProfileName(user?.name || '');
+    setProfileEmail(user?.email || '');
+    setProfileCompany(user?.company_name || '');
+  }, [user]);
 
   if (!kind) return null;
 
@@ -1255,7 +1269,106 @@ function HeaderPopups({
             </div>
           </div>
           <div className="mt-3 border-t border-slate-100 pt-3">
-            <SimpleButton className="w-full text-left">프로필 수정</SimpleButton>
+            {!editingProfile && profileSuccess ? (
+              <div className="mb-2 text-xs text-emerald-600">{profileSuccess}</div>
+            ) : null}
+            {editingProfile ? (
+              <div className="space-y-3">
+                <div>
+                  <div className="mb-1 text-xs font-medium text-slate-500">이름</div>
+                  <input
+                    value={profileName}
+                    onChange={(e) => setProfileName(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none transition focus:border-teal-500"
+                    placeholder="이름"
+                  />
+                </div>
+                <div>
+                  <div className="mb-1 text-xs font-medium text-slate-500">이메일</div>
+                  <input
+                    value={profileEmail}
+                    onChange={(e) => setProfileEmail(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none transition focus:border-teal-500"
+                    placeholder="이메일"
+                  />
+                </div>
+                <div>
+                  <div className="mb-1 text-xs font-medium text-slate-500">회사명</div>
+                  <input
+                    value={profileCompany}
+                    onChange={(e) => setProfileCompany(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none transition focus:border-teal-500"
+                    placeholder="회사명"
+                  />
+                </div>
+                {profileError ? <div className="text-xs text-rose-600">{profileError}</div> : null}
+                {profileSuccess ? <div className="text-xs text-emerald-600">{profileSuccess}</div> : null}
+                <div className="flex gap-2">
+                  <SimpleButton
+                    className="flex-1"
+                    onClick={async () => {
+                      setProfileError(null);
+                      setProfileSuccess(null);
+                      setProfileSaving(true);
+                      try {
+                        const response = await fetch('/api/auth/me', {
+                          method: 'PATCH',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            name: profileName,
+                            email: profileEmail,
+                            company_name: profileCompany,
+                          }),
+                        });
+                        const payload = await response.json();
+                        if (!response.ok || !payload?.status) {
+                          setProfileError(payload?.error || '프로필 저장에 실패했습니다.');
+                          return;
+                        }
+                        const nextUser = payload?.data?.user;
+                        if (nextUser) {
+                          setUser(nextUser);
+                        }
+                        setProfileSuccess(payload?.data?.message || payload?.message || '프로필이 수정되었습니다.');
+                        setEditingProfile(false);
+                      } catch (error: any) {
+                        setProfileError(error?.message || '프로필 저장 중 오류가 발생했습니다.');
+                      } finally {
+                        setProfileSaving(false);
+                      }
+                    }}
+                    disabled={profileSaving}
+                  >
+                    {profileSaving ? '저장 중...' : '저장'}
+                  </SimpleButton>
+                  <SimpleButton
+                    className="flex-1"
+                    onClick={() => {
+                      setEditingProfile(false);
+                      setProfileError(null);
+                      setProfileSuccess(null);
+                      setProfileName(user?.name || '');
+                      setProfileEmail(user?.email || '');
+                      setProfileCompany(user?.company_name || '');
+                    }}
+                    disabled={profileSaving}
+                  >
+                    취소
+                  </SimpleButton>
+                </div>
+              </div>
+            ) : (
+              <SimpleButton
+                className="w-full text-left"
+                onClick={() => {
+                  setProfileError(null);
+                  setProfileSuccess(null);
+                  setEditingProfile(true);
+                }}
+              >
+                프로필 수정
+              </SimpleButton>
+            )}
             <SimpleButton
               className="mt-2 w-full text-left"
               onClick={async () => {

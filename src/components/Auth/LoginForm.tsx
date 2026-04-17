@@ -39,8 +39,12 @@ const LoginForm = ({ embedded, onSwitchToSignup }: LoginFormProps) => {
       }
 
       setUser({
-        email: values.email,
+        id: payload?.data?.id || payload?.data?.user?.id,
+        email: payload?.data?.email || payload?.data?.user?.email || values.email,
         name: payload?.data?.name || payload?.data?.user?.name,
+        company_name: payload?.data?.company_name || payload?.data?.user?.company_name,
+        write_permission_yn:
+          payload?.data?.write_permission_yn || payload?.data?.user?.write_permission_yn,
       });
       router.push('/project-hub');
     } catch (error: any) {

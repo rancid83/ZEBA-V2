@@ -1,6 +1,9 @@
 export type AuthUser = {
+  id?: number;
   email: string;
   name?: string;
+  company_name?: string;
+  write_permission_yn?: 'Y' | 'N';
 };
 
 export interface AuthSlice {

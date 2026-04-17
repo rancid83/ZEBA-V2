@@ -27,7 +27,7 @@ import {
   Tooltip,
 } from 'chart.js';
 import type { TooltipItem } from 'chart.js';
-import { Collapse } from 'antd';
+import { Collapse, InputNumber, Rate, Slider as AntSlider } from 'antd';
 import type {
   Result,
   SavedScenarioRecord,
@@ -56,6 +56,9 @@ type SliderProps = {
   step: number;
   value: number;
   unit?: string;
+  average?: number;
+  rate?: number;
+  reverse?: boolean;
   onChange: (v: number) => void;
 };
 
@@ -82,6 +85,12 @@ type ScenarioCardProps = {
 
 const ORDER: ScenarioId[] = ['A', 'B', 'C'];
 const TEAL = '#0f766e';
+
+const SLIDER_REF = {
+  passive:   { wallU: 0.24, windowU: 0.24, roofU: 0.24, floorU: 0.24 },
+  active:    { ehpCOP: 3.6, ventilationEff: 70, lightingLPD: 5.0, boilerEff: 88 },
+  renewable: { pvArea: 160, pvEff: 18, fuelCellKW: 0 },
+} as const;
 
 function fmt(num: number): string {
   return new Intl.NumberFormat('ko-KR').format(Math.round(num));
@@ -255,34 +264,119 @@ function StatusPill({ status }: { status: ScenarioStatus }) {
   );
 }
 
-function MiniSlider({ label, min, max, step, value, unit, onChange }: SliderProps) {
+function MiniSlider({ label, min, max, step, value, unit, average, rate = 0, reverse = false, onChange }: SliderProps) {
+  const deltaInfo = useMemo(() => {
+    if (average === undefined) return null;
+    const diff = value - average;
+    if (Math.abs(diff) < step / 2) {
+      return { arrow: null, text: '기준', value: '', bg: '#CECECE', color: '#2A4E51' };
+    }
+    const improved = reverse ? diff < 0 : diff > 0;
+    return {
+      arrow: improved ? '↑' : '↓',
+      text: improved ? '개선' : '저하',
+      value: Math.abs(diff).toFixed(2),
+      bg: improved ? '#007676' : '#D5FAFC',
+      color: improved ? '#fff' : '#2A4E51',
+    };
+  }, [value, average, reverse, step]);
+
+  const marks = useMemo(() => {
+    const m: Record<number, React.ReactNode> = {
+      [min]: <span style={{ fontSize: 10, color: '#94a3b8' }}>{min}{unit}</span>,
+      [max]: <span style={{ fontSize: 10, color: '#94a3b8' }}>{max}{unit}</span>,
+    };
+    if (average !== undefined) {
+      m[average] = (
+        <div style={{ textAlign: 'center', position: 'relative' }}>
+          <div style={{
+            position: 'absolute',
+            bottom: 18,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            whiteSpace: 'nowrap',
+            fontSize: 10,
+            fontWeight: 600,
+            color: '#0f766e',
+            lineHeight: 1.2,
+          }}>
+            기준▼
+          </div>
+        </div>
+      );
+    }
+    return m;
+  }, [min, max, average, unit]);
+
+  const sliderStyles = useMemo(() => {
+    if (average === undefined) return {};
+    const range = max - min || 1;
+    const stdPct = ((Math.min(Math.max(average, min), max) - min) / range) * 100;
+    const curPct = ((Math.min(Math.max(value, min), max) - min) / range) * 100;
+
+    const railBg = value < average
+      ? `linear-gradient(to right, #d9d9d9 0%, #d9d9d9 ${curPct}%, #D5FAFC ${curPct}%, #D5FAFC ${stdPct}%, #d9d9d9 ${stdPct}%, #d9d9d9 100%)`
+      : `linear-gradient(to right, #1DB5BE 0%, #1DB5BE ${stdPct}%, #d9d9d9 ${stdPct}%, #d9d9d9 100%)`;
+
+    const trackBg = value > average
+      ? (() => {
+          const ratio = curPct > 0 ? (stdPct / curPct) * 100 : 100;
+          return `linear-gradient(to right, #2A4E51 0%, #2A4E51 ${ratio}%, #D5FAFC ${ratio}%, #D5FAFC 100%)`;
+        })()
+      : '#2A4E51';
+
+    return {
+      rail: { background: railBg },
+      track: { background: trackBg },
+    };
+  }, [value, min, max, average]);
+
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
-      <div className="mb-2 flex items-center justify-between">
+      {/* 헤더: 레이블 + 별표 */}
+      <div className="flex items-center justify-between">
         <div className="text-sm font-medium text-slate-800">{label}</div>
-        <div className="text-sm font-semibold text-slate-900">
-          {value}
-          {unit}
-        </div>
+        {rate > 0 && (
+          <Rate disabled value={rate} count={3} style={{ fontSize: 11, color: '#0f766e' }} />
+        )}
       </div>
-      <input
-        type="range"
-        min={min}
-        max={max}
-        step={step}
-        value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
-        className="w-full accent-teal-700"
-      />
-      <div className="mt-1 flex items-center justify-between text-xs text-slate-500">
-        <span>
-          {min}
-          {unit}
-        </span>
-        <span>
-          {max}
-          {unit}
-        </span>
+
+      {/* 슬라이더 (표준 마커 공간 확보용 mt) */}
+      <div className="mt-7 px-1">
+        <AntSlider
+          marks={marks}
+          value={value}
+          min={min}
+          max={max}
+          step={step}
+          onChange={onChange}
+          styles={sliderStyles as Parameters<typeof AntSlider>[0]['styles']}
+          tooltip={{ formatter: (v) => `${v}${unit ?? ''}` }}
+        />
+      </div>
+
+      {/* 바닥: InputNumber + 델타 배지 */}
+      <div className="mt-6 flex items-center justify-between gap-2">
+        <InputNumber
+          min={min}
+          max={max}
+          step={step}
+          value={value}
+          size="small"
+          onChange={(v) => { if (v !== null) onChange(Number(v)); }}
+          addonAfter={unit ? <span className="text-xs text-slate-400">{unit}</span> : undefined}
+          style={{ width: 110 }}
+        />
+        {deltaInfo && (
+          <div
+            className="inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[11px] font-medium"
+            style={{ background: deltaInfo.bg, color: deltaInfo.color }}
+          >
+            {deltaInfo.arrow && <span className="font-bold">{deltaInfo.arrow}</span>}
+            {deltaInfo.value && <span>{deltaInfo.value}</span>}
+            <span>{deltaInfo.text}</span>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -766,6 +860,7 @@ function ScenarioCard({
               ))}
             </div>
 
+            <div className="mt-3 h-[740px] overflow-y-auto">
             {tab === 'passive' ? (
               <div className="mt-3 space-y-2">
                 <MiniSlider
@@ -774,6 +869,10 @@ function ScenarioCard({
                   max={0.35}
                   step={0.01}
                   value={scenario.spec.passive.wallU}
+                  unit="W/m²K"
+                  average={SLIDER_REF.passive.wallU}
+                  rate={3}
+                  reverse
                   onChange={(v) => onUpdateSpec(scenario.id, { passive: { wallU: v } })}
                 />
                 <MiniSlider
@@ -782,6 +881,10 @@ function ScenarioCard({
                   max={0.35}
                   step={0.01}
                   value={scenario.spec.passive.windowU}
+                  unit="W/m²K"
+                  average={SLIDER_REF.passive.windowU}
+                  rate={3}
+                  reverse
                   onChange={(v) => onUpdateSpec(scenario.id, { passive: { windowU: v } })}
                 />
                 <MiniSlider
@@ -790,6 +893,10 @@ function ScenarioCard({
                   max={0.3}
                   step={0.01}
                   value={scenario.spec.passive.roofU}
+                  unit="W/m²K"
+                  average={SLIDER_REF.passive.roofU}
+                  rate={2}
+                  reverse
                   onChange={(v) => onUpdateSpec(scenario.id, { passive: { roofU: v } })}
                 />
                 <MiniSlider
@@ -798,6 +905,10 @@ function ScenarioCard({
                   max={0.3}
                   step={0.01}
                   value={scenario.spec.passive.floorU}
+                  unit="W/m²K"
+                  average={SLIDER_REF.passive.floorU}
+                  rate={2}
+                  reverse
                   onChange={(v) => onUpdateSpec(scenario.id, { passive: { floorU: v } })}
                 />
               </div>
@@ -811,6 +922,8 @@ function ScenarioCard({
                   max={5.0}
                   step={0.1}
                   value={scenario.spec.active.ehpCOP}
+                  average={SLIDER_REF.active.ehpCOP}
+                  rate={3}
                   onChange={(v) => onUpdateSpec(scenario.id, { active: { ehpCOP: v } })}
                 />
                 <MiniSlider
@@ -820,6 +933,8 @@ function ScenarioCard({
                   step={1}
                   value={scenario.spec.active.ventilationEff}
                   unit="%"
+                  average={SLIDER_REF.active.ventilationEff}
+                  rate={2}
                   onChange={(v) => onUpdateSpec(scenario.id, { active: { ventilationEff: v } })}
                 />
                 <MiniSlider
@@ -828,6 +943,10 @@ function ScenarioCard({
                   max={8.0}
                   step={0.1}
                   value={scenario.spec.active.lightingLPD}
+                  unit="W/m²"
+                  average={SLIDER_REF.active.lightingLPD}
+                  rate={2}
+                  reverse
                   onChange={(v) => onUpdateSpec(scenario.id, { active: { lightingLPD: v } })}
                 />
                 <MiniSlider
@@ -837,6 +956,8 @@ function ScenarioCard({
                   step={1}
                   value={scenario.spec.active.boilerEff}
                   unit="%"
+                  average={SLIDER_REF.active.boilerEff}
+                  rate={1}
                   onChange={(v) => onUpdateSpec(scenario.id, { active: { boilerEff: v } })}
                 />
               </div>
@@ -851,6 +972,8 @@ function ScenarioCard({
                   step={10}
                   value={scenario.spec.renewable.pvArea}
                   unit="m²"
+                  average={SLIDER_REF.renewable.pvArea}
+                  rate={3}
                   onChange={(v) => onUpdateSpec(scenario.id, { renewable: { pvArea: v } })}
                 />
                 <MiniSlider
@@ -860,6 +983,8 @@ function ScenarioCard({
                   step={1}
                   value={scenario.spec.renewable.pvEff}
                   unit="%"
+                  average={SLIDER_REF.renewable.pvEff}
+                  rate={2}
                   onChange={(v) => onUpdateSpec(scenario.id, { renewable: { pvEff: v } })}
                 />
                 <MiniSlider
@@ -869,10 +994,13 @@ function ScenarioCard({
                   step={10}
                   value={scenario.spec.renewable.fuelCellKW}
                   unit="kW"
+                  average={SLIDER_REF.renewable.fuelCellKW}
+                  rate={1}
                   onChange={(v) => onUpdateSpec(scenario.id, { renewable: { fuelCellKW: v } })}
                 />
               </div>
             ) : null}
+            </div>
           </div>
 
           <div className="grid gap-2 sm:grid-cols-2">
