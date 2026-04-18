@@ -216,7 +216,11 @@ export function createDefaultZebWorkspace(): ZebMultiScenarioWorkspaceState {
     baseline: 'A',
     selected: 'A',
     managerNote: '',
-    scenarios: [createScenario('A', true)],
+    scenarios: [
+      createScenario('A', true),
+      { ...createScenario('B'), analyzed: true },
+      { ...createScenario('C'), analyzed: true },
+    ],
     savedLibrary: [],
     selectedSavedRecordId: '',
   };
@@ -406,6 +410,13 @@ function ComparisonChart({ scenarios }: { scenarios: Scenario[] }) {
     [scenarios],
   );
 
+  const y1Max = useMemo(() => {
+    const maxCost = Math.max(...scenarios.map((s) => s.result.costTotal), 0);
+    if (maxCost <= 0) return undefined;
+    const step = Math.pow(10, Math.floor(Math.log10(maxCost)));
+    return Math.ceil((maxCost * 1.3) / step) * step;
+  }, [scenarios]);
+
   const options = useMemo(
     () => ({
       responsive: true,
@@ -432,7 +443,7 @@ function ComparisonChart({ scenarios }: { scenarios: Scenario[] }) {
           display: true,
           position: 'left' as const,
           beginAtZero: true,
-          max: 100,
+          max: 120,
           title: { display: true, text: '자립률(%)' },
         },
         y1: {
@@ -440,6 +451,7 @@ function ComparisonChart({ scenarios }: { scenarios: Scenario[] }) {
           display: true,
           position: 'right' as const,
           beginAtZero: true,
+          ...(y1Max !== undefined ? { max: y1Max } : {}),
           grid: { drawOnChartArea: false },
           title: { display: true, text: '시공비(만원)' },
           ticks: {
@@ -448,7 +460,7 @@ function ComparisonChart({ scenarios }: { scenarios: Scenario[] }) {
         },
       },
     }),
-    [],
+    [y1Max],
   );
 
   if (scenarios.length === 0) {
@@ -504,6 +516,13 @@ function CostPositionChart({ scenarios }: { scenarios: Scenario[] }) {
     [scenarios],
   );
 
+  const xMax = useMemo(() => {
+    const maxCost = Math.max(...scenarios.map((s) => s.result.costTotal), 0);
+    if (maxCost <= 0) return undefined;
+    const step = Math.pow(10, Math.floor(Math.log10(maxCost)));
+    return Math.ceil((maxCost * 1.3) / step) * step;
+  }, [scenarios]);
+
   const options = useMemo(
     () => ({
       responsive: true,
@@ -530,6 +549,7 @@ function CostPositionChart({ scenarios }: { scenarios: Scenario[] }) {
         x: {
           type: 'linear' as const,
           position: 'bottom' as const,
+          ...(xMax !== undefined ? { max: xMax } : {}),
           title: { display: true, text: '시공비' },
           ticks: {
             callback: (value: string | number) => fmt(Number(value)),
@@ -538,12 +558,12 @@ function CostPositionChart({ scenarios }: { scenarios: Scenario[] }) {
         y: {
           type: 'linear' as const,
           min: 0,
-          max: 100,
+          max: 120,
           title: { display: true, text: '자립률(%)' },
         },
       },
     }),
-    [],
+    [xMax],
   );
 
   if (scenarios.length === 0) {
