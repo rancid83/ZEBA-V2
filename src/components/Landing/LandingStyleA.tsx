@@ -523,6 +523,7 @@ export default function LandingStyleA() {
             <LoginForm
               embedded
               onSwitchToSignup={() => setAuthModalMode('signup')}
+              onSuccess={() => setAuthModalOpen(false)}
             />
           ) : (
             <SignupForm

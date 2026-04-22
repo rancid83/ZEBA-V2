@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { clearSessionCookie } from '../shared';
+import { clearSessionCookie, clearSessionUserCookie } from '../shared';
 
 export async function POST() {
   const response = NextResponse.json(
@@ -11,5 +11,6 @@ export async function POST() {
   );
 
   clearSessionCookie(response);
+  clearSessionUserCookie(response);
   return response;
 }

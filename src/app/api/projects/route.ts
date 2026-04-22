@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import type { Project } from '@/types/projectHubData';
 import { readProjectsFile, writeProjectsFile } from '@/server/hubJsonStore';
+import { triggerNotification } from '@/app/api/notifications/shared';
+import type { OpsRecord } from '@/types/projectHubData';
 
 export async function GET() {
   try {
@@ -31,6 +33,13 @@ export async function POST(request: Request) {
     const body = (await request.json()) as Partial<Project>;
     const projects = await readProjectsFile();
     const id = body.id && !projects.some((p) => p.id === body.id) ? body.id : `p-${makeId()}`;
+    const createdAt = nowStamp();
+    const defaultOpsRecord: OpsRecord = {
+      id: `ops-${makeId()}`,
+      title: '프로젝트 신규 생성',
+      summary: `${body.name?.trim() || '이름 없음'} 프로젝트가 신규 상태로 생성되었습니다.`,
+      createdAt,
+    };
     const project: Project = {
       id,
       name: body.name?.trim() || '이름 없음',
@@ -40,13 +49,22 @@ export async function POST(request: Request) {
       floors: typeof body.floors === 'number' ? body.floors : Number(body.floors) || 1,
       targetGrade: typeof body.targetGrade === 'number' ? body.targetGrade : Number(body.targetGrade) || 3,
       status: body.status ?? '신규',
-      updatedAt: body.updatedAt ?? nowStamp(),
+      updatedAt: body.updatedAt ?? createdAt,
       map: body.map ?? { zeb: 'none', epi: 'none', ren: 'none', consult: 'none' },
-      note: body.note ?? '',
-      opsRecords: Array.isArray(body.opsRecords) ? body.opsRecords : [],
+      note: body.note ?? '초기 검토 대기',
+      opsRecords:
+        Array.isArray(body.opsRecords) && body.opsRecords.length > 0
+          ? body.opsRecords
+          : [defaultOpsRecord],
     };
     const next = [project, ...projects.filter((p) => p.id !== id)];
     await writeProjectsFile(next);
+    void triggerNotification('project_created', {
+      project_id: project.id,
+      project_name: project.name,
+      region: project.region,
+      use: project.use,
+    });
     return NextResponse.json({ project });
   } catch (e) {
     console.error(e);

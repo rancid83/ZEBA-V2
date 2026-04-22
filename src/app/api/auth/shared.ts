@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
 export const SESSION_COOKIE_NAME = 'zeba_session';
+export const SESSION_USER_COOKIE_NAME = 'zeba_session_user';
 const DEFAULT_LOGIN_PATH = '/auth/login';
 const DEFAULT_SIGNUP_PATH = '/auth/signup';
 
@@ -47,6 +48,9 @@ async function requestGateway(
     };
     if (options.token) {
       headers.Authorization = `Bearer ${options.token}`;
+      headers['x-access-token'] = options.token;
+      headers['x-auth-token'] = options.token;
+      headers.token = options.token;
     }
 
     const response = await fetch(joinUrl(baseUrl, path), {
@@ -114,6 +118,70 @@ export function extractToken(payload: any) {
   );
 }
 
+export function extractUser(payload: any) {
+  const user = payload?.user ?? payload?.data?.user;
+  if (user?.email) {
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      company_name: user.company_name,
+      write_permission_yn: user.write_permission_yn,
+    };
+  }
+
+  const email = payload?.email ?? payload?.data?.email;
+  if (!email) {
+    return null;
+  }
+
+  return {
+    id: payload?.id ?? payload?.data?.id,
+    email,
+    name: payload?.name ?? payload?.data?.name,
+    company_name: payload?.company_name ?? payload?.data?.company_name,
+    write_permission_yn:
+      payload?.write_permission_yn ?? payload?.data?.write_permission_yn,
+  };
+}
+
+function decodeBase64Url(input: string) {
+  const normalized = input.replace(/-/g, '+').replace(/_/g, '/');
+  const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, '=');
+  return Buffer.from(padded, 'base64').toString('utf8');
+}
+
+export function getJwtPayload(token?: string | null) {
+  if (!token || token === 'authenticated') return null;
+
+  try {
+    const [, payload] = token.split('.');
+    if (!payload) return null;
+    return JSON.parse(decodeBase64Url(payload));
+  } catch {
+    return null;
+  }
+}
+
+export function isJwtExpired(token?: string | null) {
+  const payload = getJwtPayload(token);
+  if (!payload?.exp) return false;
+  return Date.now() >= Number(payload.exp) * 1000;
+}
+
+export function extractUserFromToken(token?: string | null) {
+  const payload = getJwtPayload(token);
+  if (!payload?.email) return null;
+
+  return {
+    id: payload.id,
+    email: payload.email,
+    name: payload.name,
+    company_name: payload.company_name,
+    write_permission_yn: payload.write_permission_yn,
+  };
+}
+
 export function getFieldKey(kind: 'email' | 'password' | 'name') {
   if (kind === 'email') {
     return process.env.ZEBAGATEWAY_EMAIL_KEY || 'email';
@@ -157,9 +225,49 @@ export function setSessionCookie(response: NextResponse, token: string) {
   });
 }
 
+export function setSessionUserCookie(
+  response: NextResponse,
+  user: ReturnType<typeof extractUser>,
+) {
+  if (!user?.email) return;
+
+  response.cookies.set({
+    name: SESSION_USER_COOKIE_NAME,
+    value: encodeURIComponent(JSON.stringify(user)),
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
+    maxAge: 60 * 60 * 24 * 7,
+  });
+}
+
+export function getSessionUser(cookieValue?: string | null) {
+  if (!cookieValue) return null;
+
+  try {
+    const parsed = JSON.parse(decodeURIComponent(cookieValue));
+    return parsed?.email ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
 export function clearSessionCookie(response: NextResponse) {
   response.cookies.set({
     name: SESSION_COOKIE_NAME,
+    value: '',
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
+    maxAge: 0,
+  });
+}
+
+export function clearSessionUserCookie(response: NextResponse) {
+  response.cookies.set({
+    name: SESSION_USER_COOKIE_NAME,
     value: '',
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { fetchHubData } from '@/services/hubPersistence';
+import { useStore } from '@/store';
 import {
   Building2,
   CheckCircle2,
@@ -76,6 +77,13 @@ type EpiSeedProject = { name: string; region: string; usage: string; gfa: string
 type EpiSeedFile = {
   project: EpiSeedProject;
   seedItems: Record<BuildingScale, Record<HvacType, Item[]>>;
+};
+type EpiProjectInput = {
+  name: string;
+  region: string;
+  usage: string;
+  gfa: number | string;
+  floors: number | string;
 };
 
 // -------------------------------------------------------
@@ -179,6 +187,12 @@ function parseScaleFromGfa(gfaText: string): BuildingScale {
 function buildScenarioName(scale: BuildingScale, type: HvacType) {
   const scaleKo = scale === 'small' ? '소형' : '대형';
   return type === 'central' ? `${scaleKo}(중앙식) 표준 조정안` : `${scaleKo}(개별식) 표준 조정안`;
+}
+
+function toProjectText(value: number | string | null | undefined, fallback = '-') {
+  if (typeof value === 'number') return String(value);
+  if (typeof value === 'string') return value.trim() || fallback;
+  return fallback;
 }
 
 function calcScoreFromValue(value: ValueOption, maxScore: number, fallback: number) {
@@ -444,8 +458,14 @@ function PanelCard({
 // -------------------------------------------------------
 // Main
 // -------------------------------------------------------
-function EPIStandardModelInner({ epiSeed }: { epiSeed: EpiSeedFile }) {
-  const PROJECT = epiSeed.project;
+function EPIStandardModelInner({
+  epiSeed,
+  project,
+}: {
+  epiSeed: EpiSeedFile;
+  project: EpiSeedProject;
+}) {
+  const PROJECT = project;
   const SEED_ITEMS = epiSeed.seedItems;
   const initialScale = parseScaleFromGfa(PROJECT.gfa);
   const [buildingScale, setBuildingScale] = useState<BuildingScale>(initialScale);
@@ -596,6 +616,20 @@ function EPIStandardModelInner({ epiSeed }: { epiSeed: EpiSeedFile }) {
     setAdvisoryRequests((prev) => [next, ...prev]);
     setToast('보류 항목 자문 요청 초안을 생성했습니다.');
   };
+
+  useEffect(() => {
+    const nextScale = parseScaleFromGfa(PROJECT.gfa);
+    const nextItems = cloneSeedWithTable(SEED_ITEMS, nextScale, hvacType);
+    setBuildingScale(nextScale);
+    setItems(nextItems);
+    setSelectedId(nextItems[0]?.id ?? '');
+    setScenarioName(buildScenarioName(nextScale, hvacType));
+    setToast(
+      `연면적 ${PROJECT.gfa}㎡ 기준으로 ${
+        nextScale === 'small' ? '소형' : '대형'
+      } 표준모델을 다시 적용했습니다.`,
+    );
+  }, [PROJECT.gfa, SEED_ITEMS]);
 
   return (
     <div className="mx-auto w-full max-w-[1600px] space-y-4">
@@ -907,14 +941,15 @@ function EPIStandardModelInner({ epiSeed }: { epiSeed: EpiSeedFile }) {
       </div>
 
       <p className="text-center text-[10px] text-slate-400">
-        * 본 화면은 UI 프리뷰용이며, 실제 EPI 산정·법규 로직과는 무관합니다.
+        * 연면적 3,000㎡ 기준으로 소형/대형 표준모델이 전환됩니다.
       </p>
     </div>
   );
 }
 
-export default function EPIStandardModel() {
+export default function EPIStandardModel({ project }: { project?: EpiProjectInput }) {
   const [epiSeed, setEpiSeed] = useState<EpiSeedFile | null>(null);
+  const formData = useStore((state) => state.formData);
   useEffect(() => {
     void fetchHubData('epi-seed').then((d) => setEpiSeed(d as EpiSeedFile));
   }, []);
@@ -925,5 +960,22 @@ export default function EPIStandardModel() {
       </div>
     );
   }
-  return <EPIStandardModelInner epiSeed={epiSeed} />;
+
+  const fallbackProject: EpiSeedProject = {
+    name: project?.name || epiSeed.project.name,
+    region:
+      project?.region ||
+      formData.roadName ||
+      formData.lotNumber ||
+      epiSeed.project.region,
+    usage: project?.usage || epiSeed.project.usage,
+    gfa: project
+      ? toProjectText(project.gfa, epiSeed.project.gfa)
+      : toProjectText(formData.bld_al_area, epiSeed.project.gfa),
+    floors: project
+      ? toProjectText(project.floors, epiSeed.project.floors)
+      : toProjectText(formData.bld_floor_esurf, epiSeed.project.floors),
+  };
+
+  return <EPIStandardModelInner epiSeed={epiSeed} project={fallbackProject} />;
 }

@@ -3,7 +3,7 @@
 import { Form, Input, Button } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { useState } from 'react';
 import styles from './Auth.module.scss';
 import { useStore } from '@/store';
@@ -11,10 +11,13 @@ import { useStore } from '@/store';
 type LoginFormProps = {
   embedded?: boolean;
   onSwitchToSignup?: () => void;
+  onSuccess?: () => void;
 };
 
-const LoginForm = ({ embedded, onSwitchToSignup }: LoginFormProps) => {
+const LoginForm = ({ embedded, onSwitchToSignup, onSuccess }: LoginFormProps) => {
   const router = useRouter();
+  const params = useParams();
+  const lang = typeof params?.lang === 'string' ? params.lang : 'ko';
   const setUser = useStore((state) => state.setUser);
   const [loading, setLoading] = useState(false);
   const [serverError, setServerError] = useState('');
@@ -46,6 +49,11 @@ const LoginForm = ({ embedded, onSwitchToSignup }: LoginFormProps) => {
         write_permission_yn:
           payload?.data?.write_permission_yn || payload?.data?.user?.write_permission_yn,
       });
+      if (onSuccess) {
+        onSuccess();
+        return;
+      }
+
       router.push('/project-hub');
     } catch (error: any) {
       setServerError(error?.message || '로그인 요청 처리 중 오류가 발생했습니다.');
@@ -83,7 +91,10 @@ const LoginForm = ({ embedded, onSwitchToSignup }: LoginFormProps) => {
       >
         <Form.Item
           name="email"
-          rules={[{ required: true, message: '이메일을 입력해 주세요.' }]}
+          rules={[
+            { required: true, message: '이메일을 입력해 주세요.' },
+            { type: 'email', message: '올바른 이메일 형식이 아닙니다.' },
+          ]}
         >
           <Input
             prefix={<UserOutlined />}
@@ -117,7 +128,7 @@ const LoginForm = ({ embedded, onSwitchToSignup }: LoginFormProps) => {
             회원가입
           </button>
         ) : (
-          <Link href="/signup">회원가입</Link>
+          <Link href={`/${lang}/signup`}>회원가입</Link>
         )}
       </p>
     </div>

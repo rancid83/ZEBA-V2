@@ -18,6 +18,10 @@ function nowStamp() {
   return `${yy}-${mm}-${dd} ${hh}:${mi}`;
 }
 
+function nextOperationalStatus(status: Project['status']): Project['status'] {
+  return status === '신규' ? '진행중' : status;
+}
+
 export async function POST(request: Request, context: Ctx) {
   try {
     const { id } = await context.params;
@@ -42,6 +46,7 @@ export async function POST(request: Request, context: Ctx) {
     const prev = projects[idx]!;
     const project: Project = {
       ...prev,
+      status: nextOperationalStatus(prev.status),
       updatedAt: createdAt,
       opsRecords: [record, ...(prev.opsRecords || [])],
     };
