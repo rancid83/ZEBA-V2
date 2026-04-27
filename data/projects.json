@@ -813,7 +813,7 @@
       "floors": 7,
       "targetGrade": 4,
       "status": "진행중",
-      "updatedAt": "2026-04-21 03:22",
+      "updatedAt": "2026-04-23 20:58",
       "map": {
         "zeb": "pass",
         "epi": "pass",
@@ -844,53 +844,13 @@
             "savedAt": "2026-04-18 09:23",
             "spec": {
               "passive": {
-                "wallU": 0.24,
-                "windowU": 0.24,
+                "wallU": 0.27,
+                "windowU": 0.27,
                 "roofU": 0.24,
                 "floorU": 0.24
               },
               "active": {
-                "ehpCOP": 3.6,
-                "ventilationEff": 70,
-                "lightingLPD": 5,
-                "boilerEff": 88
-              },
-              "renewable": {
-                "pvArea": 160,
-                "pvEff": 18,
-                "fuelCellKW": 0
-              }
-            },
-            "result": {
-              "zebGrade": 1,
-              "selfSuff": 99.9,
-              "prod": 138.23999999999998,
-              "demand": 58.23242202081436,
-              "costTotal": 663083.3333333333,
-              "costBreakdown": {
-                "passive": 364583.3333333333,
-                "active": 178500,
-                "renewable": 120000
-              }
-            },
-            "updatedAt": "2026-04-18 09:23",
-            "analyzed": true
-          },
-          {
-            "id": "B",
-            "name": "대안 1",
-            "isStandard": false,
-            "status": "draft",
-            "note": "",
-            "spec": {
-              "passive": {
-                "wallU": 0.24,
-                "windowU": 0.24,
-                "roofU": 0.24,
-                "floorU": 0.24
-              },
-              "active": {
-                "ehpCOP": 3.6,
+                "ehpCOP": 4,
                 "ventilationEff": 70,
                 "lightingLPD": 5,
                 "boilerEff": 88
@@ -953,8 +913,8 @@
                 "renewable": 120000
               }
             },
-            "updatedAt": "2026-04-18 09:23",
-            "analyzed": true
+            "updatedAt": "2026-04-22 16:57",
+            "analyzed": false
           }
         ],
         "savedLibrary": [],
