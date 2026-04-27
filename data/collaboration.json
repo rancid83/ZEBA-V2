@@ -3,6 +3,94 @@
     "panelTitle": "ZEB 협업 서비스",
     "agendas": [
       {
+        "id": "zeb-agenda-7fimma0",
+        "title": "BIPV PV 생산량 분리",
+        "author": "설계사",
+        "status": "진행 중",
+        "target": "태양광 설비",
+        "updatedAt": "2026-04-08 16:57",
+        "records": [
+          {
+            "id": "zeb-record-2ekxqdi",
+            "title": "BIPV PV 생산량 분리",
+            "body": "ㅇㄹㅎㅇㄹㄴㅎㅇㄹㄴ",
+            "author": "설계사",
+            "time": "2026-04-08 16:57",
+            "attachments": []
+          }
+        ],
+        "timeline": [
+          {
+            "id": "zeb-event-2naaozj",
+            "type": "created",
+            "icon": "sparkles",
+            "label": "협의 안건 등록",
+            "time": "04.08",
+            "title": "BIPV PV 생산량 분리",
+            "body": "",
+            "author": "설계사",
+            "recordId": null,
+            "hasAttachment": false
+          },
+          {
+            "id": "zeb-event-si56i0d",
+            "type": "comment",
+            "icon": "message",
+            "label": "협의 기록 추가",
+            "time": "04.08",
+            "title": "BIPV PV 생산량 분리",
+            "body": "ㅇㄹㅎㅇㄹㄴㅎㅇㄹㄴ",
+            "author": "설계사",
+            "recordId": "zeb-record-2ekxqdi",
+            "hasAttachment": false
+          }
+        ]
+      },
+      {
+        "id": "zeb-agenda-91mniri",
+        "title": "PV 랑 BIPV 용량 체크 부탁합니다.",
+        "author": "설계사",
+        "status": "진행 중",
+        "target": "Pv",
+        "updatedAt": "2026-04-07 19:08",
+        "records": [
+          {
+            "id": "zeb-record-jfrgsma",
+            "title": "PV 랑 BIPV 용량 체크 부탁합니다.",
+            "body": "내용 입력",
+            "author": "설계사",
+            "time": "2026-04-07 19:08",
+            "attachments": []
+          }
+        ],
+        "timeline": [
+          {
+            "id": "zeb-event-70x7t30",
+            "type": "created",
+            "icon": "sparkles",
+            "label": "협의 안건 등록",
+            "time": "04.07",
+            "title": "PV 랑 BIPV 용량 체크 부탁합니다.",
+            "body": "",
+            "author": "설계사",
+            "recordId": null,
+            "hasAttachment": false
+          },
+          {
+            "id": "zeb-event-hxppki7",
+            "type": "comment",
+            "icon": "message",
+            "label": "협의 기록 추가",
+            "time": "04.07",
+            "title": "PV 랑 BIPV 용량 체크 부탁합니다.",
+            "body": "내용 입력",
+            "author": "설계사",
+            "recordId": "zeb-record-jfrgsma",
+            "hasAttachment": false
+          }
+        ]
+      },
+      {
         "id": "zeb-1",
         "title": "시나리오 B의 PV 용량 적정성 검토",
         "author": "설계사",

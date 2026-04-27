@@ -1,15 +1,15 @@
 {
   "projects": [
     {
-      "id": "p-0d616fde",
-      "name": "test",
+      "id": "p-273584da",
+      "name": "서울 업무시설 (신규)",
       "region": "서울",
       "use": "업무시설",
       "gfa": 12000,
       "floors": 10,
       "targetGrade": 3,
       "status": "신규",
-      "updatedAt": "2026-04-07 12:38",
+      "updatedAt": "2026-04-17 16:47",
       "map": {
         "zeb": "none",
         "epi": "none",
@@ -17,46 +17,7 @@
         "consult": "none"
       },
       "note": "초기 검토 대기",
-      "opsRecords": [
-        {
-          "id": "ops-1fcb83a5",
-          "title": "test",
-          "summary": "test",
-          "createdAt": "2026-04-07 12:38"
-        }
-      ]
-    },
-    {
-      "id": "p-001",
-      "name": "성수 업무시설",
-      "region": "서울",
-      "use": "업무시설",
-      "gfa": 12800,
-      "floors": 12,
-      "targetGrade": 3,
-      "status": "진행중",
-      "updatedAt": "2026-04-07 12:37",
-      "map": {
-        "zeb": "pass",
-        "epi": "fail",
-        "ren": "pass",
-        "consult": "none"
-      },
-      "note": "EPI 재검토 필요 · 62점 / 기준 65점",
-      "opsRecords": [
-        {
-          "id": "ops-cb613c97",
-          "title": "EPI 재검토 요청222333",
-          "summary": "설계팀에 EPI 보완안 요청, 외피 항목 우선 확인 필요22",
-          "createdAt": "2026-04-07 12:30"
-        },
-        {
-          "id": "ops-001",
-          "title": "EPI 재검토 요청",
-          "summary": "설계팀에 EPI 보완안 요청, 외피 항목 우선 확인 필요",
-          "createdAt": "2026-03-03 17:20"
-        }
-      ],
+      "opsRecords": [],
       "zebWorkspace": {
         "compareMode": true,
         "baseline": "A",
@@ -69,7 +30,117 @@
             "isStandard": true,
             "status": "saved",
             "note": "",
-            "savedAt": "2026-04-07 14:46",
+            "savedAt": "2026-04-17 14:40",
+            "spec": {
+              "passive": {
+                "wallU": 0.22,
+                "windowU": 0.24,
+                "roofU": 0.24,
+                "floorU": 0.24
+              },
+              "active": {
+                "ehpCOP": 3.6,
+                "ventilationEff": 70,
+                "lightingLPD": 5,
+                "boilerEff": 88
+              },
+              "renewable": {
+                "pvArea": 160,
+                "pvEff": 18,
+                "fuelCellKW": 0
+              }
+            },
+            "result": {
+              "zebGrade": 1,
+              "selfSuff": 99.9,
+              "prod": 138.23999999999998,
+              "demand": 58.23242202081436,
+              "costTotal": 663083.3333333333,
+              "costBreakdown": {
+                "passive": 364583.3333333333,
+                "active": 178500,
+                "renewable": 120000
+              }
+            },
+            "updatedAt": "2026-04-17 15:52",
+            "analyzed": true
+          },
+          {
+            "id": "B",
+            "name": "대안 1",
+            "isStandard": false,
+            "status": "draft",
+            "note": "",
+            "spec": {
+              "passive": {
+                "wallU": 0.18,
+                "windowU": 0.25,
+                "roofU": 0.24,
+                "floorU": 0.24
+              },
+              "active": {
+                "ehpCOP": 3.6,
+                "ventilationEff": 70,
+                "lightingLPD": 5,
+                "boilerEff": 88
+              },
+              "renewable": {
+                "pvArea": 160,
+                "pvEff": 18,
+                "fuelCellKW": 0
+              }
+            },
+            "result": {
+              "zebGrade": 1,
+              "selfSuff": 99.9,
+              "prod": 138.23999999999998,
+              "demand": 58.23242202081436,
+              "costTotal": 663083.3333333333,
+              "costBreakdown": {
+                "passive": 364583.3333333333,
+                "active": 178500,
+                "renewable": 120000
+              }
+            },
+            "updatedAt": "2026-04-17 16:38",
+            "analyzed": false
+          }
+        ],
+        "savedLibrary": [],
+        "selectedSavedRecordId": ""
+      }
+    },
+    {
+      "id": "p-fd4e7369",
+      "name": "서울 업무시설 (신규)",
+      "region": "서울",
+      "use": "업무시설",
+      "gfa": 12000,
+      "floors": 10,
+      "targetGrade": 3,
+      "status": "신규",
+      "updatedAt": "2026-04-23 14:35",
+      "map": {
+        "zeb": "none",
+        "epi": "none",
+        "ren": "none",
+        "consult": "none"
+      },
+      "note": "초기 검토 대기",
+      "opsRecords": [],
+      "zebWorkspace": {
+        "compareMode": true,
+        "baseline": "A",
+        "selected": "A",
+        "managerNote": "",
+        "scenarios": [
+          {
+            "id": "A",
+            "name": "표준 모델",
+            "isStandard": true,
+            "status": "saved",
+            "note": "",
+            "savedAt": "2026-04-08 10:58",
             "spec": {
               "passive": {
                 "wallU": 0.24,
@@ -101,25 +172,61 @@
                 "renewable": 120000
               }
             },
-            "updatedAt": "2026-04-07 14:46",
+            "updatedAt": "2026-04-08 10:58",
             "analyzed": true
-          },
+          }
+        ],
+        "savedLibrary": [],
+        "selectedSavedRecordId": ""
+      }
+    },
+    {
+      "id": "p-0d616fde",
+      "name": "test",
+      "region": "서울",
+      "use": "업무시설",
+      "gfa": 12000,
+      "floors": 10,
+      "targetGrade": 3,
+      "status": "신규",
+      "updatedAt": "2026-04-17 14:39",
+      "map": {
+        "zeb": "none",
+        "epi": "none",
+        "ren": "none",
+        "consult": "none"
+      },
+      "note": "초기 검토 대기",
+      "opsRecords": [
+        {
+          "id": "ops-1fcb83a5",
+          "title": "test",
+          "summary": "test",
+          "createdAt": "2026-04-07 12:38"
+        }
+      ],
+      "zebWorkspace": {
+        "compareMode": true,
+        "baseline": "A",
+        "selected": "A",
+        "managerNote": "",
+        "scenarios": [
           {
-            "id": "B",
-            "name": "대안 1",
-            "isStandard": false,
+            "id": "A",
+            "name": "표준 모델",
+            "isStandard": true,
             "status": "saved",
             "note": "",
-            "savedAt": "2026-04-07 15:16",
+            "savedAt": "2026-04-07 15:21",
             "spec": {
               "passive": {
-                "wallU": 0.17,
+                "wallU": 0.24,
                 "windowU": 0.24,
                 "roofU": 0.24,
                 "floorU": 0.24
               },
               "active": {
-                "ehpCOP": 4.5,
+                "ehpCOP": 3.6,
                 "ventilationEff": 70,
                 "lightingLPD": 5,
                 "boilerEff": 88
@@ -142,8 +249,408 @@
                 "renewable": 120000
               }
             },
-            "updatedAt": "2026-04-07 14:47",
+            "updatedAt": "2026-04-07 15:21",
+            "analyzed": true
+          },
+          {
+            "id": "B",
+            "name": "대안 1",
+            "isStandard": false,
+            "status": "draft",
+            "note": "",
+            "spec": {
+              "passive": {
+                "wallU": 0.24,
+                "windowU": 0.24,
+                "roofU": 0.24,
+                "floorU": 0.24
+              },
+              "active": {
+                "ehpCOP": 3.6,
+                "ventilationEff": 70,
+                "lightingLPD": 5,
+                "boilerEff": 88
+              },
+              "renewable": {
+                "pvArea": 160,
+                "pvEff": 18,
+                "fuelCellKW": 0
+              }
+            },
+            "result": {
+              "zebGrade": 1,
+              "selfSuff": 99.9,
+              "prod": 138.23999999999998,
+              "demand": 58.23242202081436,
+              "costTotal": 663083.3333333333,
+              "costBreakdown": {
+                "passive": 364583.3333333333,
+                "active": 178500,
+                "renewable": 120000
+              }
+            },
+            "updatedAt": "2026-04-17 14:39",
             "analyzed": false
+          }
+        ],
+        "savedLibrary": [
+          {
+            "recordId": "saved-B-1775542891530-m1o11",
+            "sourceId": "B",
+            "name": "대안 1 저장안",
+            "status": "saved",
+            "savedAt": "2026-04-07 15:21",
+            "note": "",
+            "snapshot": {
+              "id": "B",
+              "name": "대안 1",
+              "isStandard": false,
+              "status": "saved",
+              "note": "",
+              "savedAt": "2026-04-07 15:21",
+              "spec": {
+                "passive": {
+                  "wallU": 0.24,
+                  "windowU": 0.24,
+                  "roofU": 0.24,
+                  "floorU": 0.24
+                },
+                "active": {
+                  "ehpCOP": 3.6,
+                  "ventilationEff": 70,
+                  "lightingLPD": 5,
+                  "boilerEff": 88
+                },
+                "renewable": {
+                  "pvArea": 160,
+                  "pvEff": 18,
+                  "fuelCellKW": 0
+                }
+              },
+              "result": {
+                "zebGrade": 1,
+                "selfSuff": 99.9,
+                "prod": 138.23999999999998,
+                "demand": 58.23242202081436,
+                "costTotal": 663083.3333333333,
+                "costBreakdown": {
+                  "passive": 364583.3333333333,
+                  "active": 178500,
+                  "renewable": 120000
+                }
+              },
+              "updatedAt": "2026-04-07 15:21",
+              "analyzed": false
+            }
+          },
+          {
+            "recordId": "saved-B-1775542892776-21bt2",
+            "sourceId": "B",
+            "name": "대안 1 저장안",
+            "status": "saved",
+            "savedAt": "2026-04-07 15:21",
+            "note": "",
+            "snapshot": {
+              "id": "B",
+              "name": "대안 1",
+              "isStandard": false,
+              "status": "saved",
+              "note": "",
+              "savedAt": "2026-04-07 15:21",
+              "spec": {
+                "passive": {
+                  "wallU": 0.24,
+                  "windowU": 0.24,
+                  "roofU": 0.24,
+                  "floorU": 0.24
+                },
+                "active": {
+                  "ehpCOP": 3.6,
+                  "ventilationEff": 70,
+                  "lightingLPD": 5,
+                  "boilerEff": 88
+                },
+                "renewable": {
+                  "pvArea": 160,
+                  "pvEff": 18,
+                  "fuelCellKW": 0
+                }
+              },
+              "result": {
+                "zebGrade": 1,
+                "selfSuff": 99.9,
+                "prod": 138.23999999999998,
+                "demand": 58.23242202081436,
+                "costTotal": 663083.3333333333,
+                "costBreakdown": {
+                  "passive": 364583.3333333333,
+                  "active": 178500,
+                  "renewable": 120000
+                }
+              },
+              "updatedAt": "2026-04-07 15:21",
+              "analyzed": false
+            }
+          },
+          {
+            "recordId": "saved-B-1775542893539-xt01f",
+            "sourceId": "B",
+            "name": "대안 1 저장안",
+            "status": "saved",
+            "savedAt": "2026-04-07 15:21",
+            "note": "",
+            "snapshot": {
+              "id": "B",
+              "name": "대안 1",
+              "isStandard": false,
+              "status": "saved",
+              "note": "",
+              "savedAt": "2026-04-07 15:21",
+              "spec": {
+                "passive": {
+                  "wallU": 0.24,
+                  "windowU": 0.24,
+                  "roofU": 0.24,
+                  "floorU": 0.24
+                },
+                "active": {
+                  "ehpCOP": 3.6,
+                  "ventilationEff": 70,
+                  "lightingLPD": 5,
+                  "boilerEff": 88
+                },
+                "renewable": {
+                  "pvArea": 160,
+                  "pvEff": 18,
+                  "fuelCellKW": 0
+                }
+              },
+              "result": {
+                "zebGrade": 1,
+                "selfSuff": 99.9,
+                "prod": 138.23999999999998,
+                "demand": 58.23242202081436,
+                "costTotal": 663083.3333333333,
+                "costBreakdown": {
+                  "passive": 364583.3333333333,
+                  "active": 178500,
+                  "renewable": 120000
+                }
+              },
+              "updatedAt": "2026-04-07 15:21",
+              "analyzed": false
+            }
+          },
+          {
+            "recordId": "saved-B-1775542893914-2ggbu",
+            "sourceId": "B",
+            "name": "대안 1 저장안",
+            "status": "saved",
+            "savedAt": "2026-04-07 15:21",
+            "note": "",
+            "snapshot": {
+              "id": "B",
+              "name": "대안 1",
+              "isStandard": false,
+              "status": "saved",
+              "note": "",
+              "savedAt": "2026-04-07 15:21",
+              "spec": {
+                "passive": {
+                  "wallU": 0.24,
+                  "windowU": 0.24,
+                  "roofU": 0.24,
+                  "floorU": 0.24
+                },
+                "active": {
+                  "ehpCOP": 3.6,
+                  "ventilationEff": 70,
+                  "lightingLPD": 5,
+                  "boilerEff": 88
+                },
+                "renewable": {
+                  "pvArea": 160,
+                  "pvEff": 18,
+                  "fuelCellKW": 0
+                }
+              },
+              "result": {
+                "zebGrade": 1,
+                "selfSuff": 99.9,
+                "prod": 138.23999999999998,
+                "demand": 58.23242202081436,
+                "costTotal": 663083.3333333333,
+                "costBreakdown": {
+                  "passive": 364583.3333333333,
+                  "active": 178500,
+                  "renewable": 120000
+                }
+              },
+              "updatedAt": "2026-04-07 15:21",
+              "analyzed": false
+            }
+          }
+        ],
+        "selectedSavedRecordId": "saved-B-1775542893914-2ggbu"
+      }
+    },
+    {
+      "id": "p-001",
+      "name": "성수 업무시설",
+      "region": "서울",
+      "use": "업무시설",
+      "gfa": 12800,
+      "floors": 12,
+      "targetGrade": 3,
+      "status": "진행중",
+      "updatedAt": "2026-04-21 17:46",
+      "map": {
+        "zeb": "pass",
+        "epi": "fail",
+        "ren": "pass",
+        "consult": "none"
+      },
+      "note": "EPI 재검토 필요 · 62점 / 기준 65점",
+      "opsRecords": [
+        {
+          "id": "ops-d5185b72",
+          "title": "BIPV 및 PV 산정 계수가 다름",
+          "summary": "보완 필요",
+          "createdAt": "2026-04-07 19:08"
+        },
+        {
+          "id": "ops-001",
+          "title": "EPI 재검토 요청",
+          "summary": "설계팀에 EPI 보완안 요청, 외피 항목 우선 확인 필요",
+          "createdAt": "2026-03-03 17:20"
+        }
+      ],
+      "zebWorkspace": {
+        "compareMode": true,
+        "baseline": "A",
+        "selected": "A",
+        "managerNote": "메모 예시",
+        "scenarios": [
+          {
+            "id": "A",
+            "name": "표준 모델",
+            "isStandard": true,
+            "status": "final",
+            "note": "메모 예시",
+            "savedAt": "2026-04-08 16:49",
+            "spec": {
+              "passive": {
+                "wallU": 0.24,
+                "windowU": 0.24,
+                "roofU": 0.24,
+                "floorU": 0.24
+              },
+              "active": {
+                "ehpCOP": 3.6,
+                "ventilationEff": 70,
+                "lightingLPD": 5,
+                "boilerEff": 88
+              },
+              "renewable": {
+                "pvArea": 100,
+                "pvEff": 18,
+                "fuelCellKW": 60
+              }
+            },
+            "result": {
+              "zebGrade": 1,
+              "selfSuff": 99.9,
+              "prod": 138.23999999999998,
+              "demand": 58.23242202081436,
+              "costTotal": 663083.3333333333,
+              "costBreakdown": {
+                "passive": 364583.3333333333,
+                "active": 178500,
+                "renewable": 120000
+              }
+            },
+            "updatedAt": "2026-04-07 19:03",
+            "analyzed": true
+          },
+          {
+            "id": "B",
+            "name": "대안 1",
+            "isStandard": false,
+            "status": "draft",
+            "note": "",
+            "spec": {
+              "passive": {
+                "wallU": 0.24,
+                "windowU": 0.24,
+                "roofU": 0.24,
+                "floorU": 0.24
+              },
+              "active": {
+                "ehpCOP": 3.6,
+                "ventilationEff": 70,
+                "lightingLPD": 5,
+                "boilerEff": 88
+              },
+              "renewable": {
+                "pvArea": 250,
+                "pvEff": 18,
+                "fuelCellKW": 40
+              }
+            },
+            "result": {
+              "zebGrade": 1,
+              "selfSuff": 99.9,
+              "prod": 516,
+              "demand": 58.23242202081436,
+              "costTotal": 858583.3333333333,
+              "costBreakdown": {
+                "passive": 364583.3333333333,
+                "active": 178500,
+                "renewable": 315500
+              }
+            },
+            "updatedAt": "2026-04-21 17:46",
+            "analyzed": true
+          },
+          {
+            "id": "C",
+            "name": "대안 2",
+            "isStandard": false,
+            "status": "draft",
+            "note": "",
+            "spec": {
+              "passive": {
+                "wallU": 0.24,
+                "windowU": 0.24,
+                "roofU": 0.24,
+                "floorU": 0.24
+              },
+              "active": {
+                "ehpCOP": 3.6,
+                "ventilationEff": 70,
+                "lightingLPD": 5,
+                "boilerEff": 88
+              },
+              "renewable": {
+                "pvArea": 160,
+                "pvEff": 18,
+                "fuelCellKW": 60
+              }
+            },
+            "result": {
+              "zebGrade": 1,
+              "selfSuff": 99.9,
+              "prod": 588.24,
+              "demand": 58.23242202081436,
+              "costTotal": 855083.3333333333,
+              "costBreakdown": {
+                "passive": 364583.3333333333,
+                "active": 178500,
+                "renewable": 312000
+              }
+            },
+            "updatedAt": "2026-04-21 17:46",
+            "analyzed": true
           }
         ],
         "savedLibrary": [
@@ -538,9 +1045,205 @@
               "updatedAt": "2026-04-07 14:47",
               "analyzed": false
             }
+          },
+          {
+            "recordId": "saved-B-1775542921169-nidnv",
+            "sourceId": "B",
+            "name": "대안 1 저장안",
+            "status": "saved",
+            "savedAt": "2026-04-07 15:22",
+            "note": "",
+            "snapshot": {
+              "id": "B",
+              "name": "대안 1",
+              "isStandard": false,
+              "status": "saved",
+              "note": "",
+              "savedAt": "2026-04-07 15:22",
+              "spec": {
+                "passive": {
+                  "wallU": 0.17,
+                  "windowU": 0.24,
+                  "roofU": 0.24,
+                  "floorU": 0.24
+                },
+                "active": {
+                  "ehpCOP": 4.5,
+                  "ventilationEff": 70,
+                  "lightingLPD": 5,
+                  "boilerEff": 88
+                },
+                "renewable": {
+                  "pvArea": 160,
+                  "pvEff": 18,
+                  "fuelCellKW": 0
+                }
+              },
+              "result": {
+                "zebGrade": 1,
+                "selfSuff": 99.9,
+                "prod": 138.23999999999998,
+                "demand": 58.23242202081436,
+                "costTotal": 663083.3333333333,
+                "costBreakdown": {
+                  "passive": 364583.3333333333,
+                  "active": 178500,
+                  "renewable": 120000
+                }
+              },
+              "updatedAt": "2026-04-07 14:47",
+              "analyzed": false
+            }
+          },
+          {
+            "recordId": "final-B-1775556247118-izvi1",
+            "sourceId": "B",
+            "name": "uytruytu 최종안",
+            "status": "final",
+            "savedAt": "2026-04-07 19:04",
+            "note": "태양광 설치 필요\n",
+            "snapshot": {
+              "id": "B",
+              "name": "uytruytu",
+              "isStandard": false,
+              "status": "final",
+              "note": "태양광 설치 필요\n",
+              "savedAt": "2026-04-07 19:04",
+              "spec": {
+                "passive": {
+                  "wallU": 0.17,
+                  "windowU": 0.24,
+                  "roofU": 0.24,
+                  "floorU": 0.24
+                },
+                "active": {
+                  "ehpCOP": 4.5,
+                  "ventilationEff": 70,
+                  "lightingLPD": 5,
+                  "boilerEff": 88
+                },
+                "renewable": {
+                  "pvArea": 30,
+                  "pvEff": 13,
+                  "fuelCellKW": 0
+                }
+              },
+              "result": {
+                "zebGrade": 4,
+                "selfSuff": 38.27445176470588,
+                "prod": 18.720000000000002,
+                "demand": 48.90991023224093,
+                "costTotal": 607384.8039215687,
+                "costBreakdown": {
+                  "passive": 383884.8039215686,
+                  "active": 201000,
+                  "renewable": 22500
+                }
+              },
+              "updatedAt": "2026-04-07 19:03",
+              "analyzed": true
+            }
+          },
+          {
+            "recordId": "final-A-1775634530853-9ge8i",
+            "sourceId": "A",
+            "name": "표준 모델 최종안",
+            "status": "final",
+            "savedAt": "2026-04-08 16:48",
+            "note": "태양광 설치 필요\n",
+            "snapshot": {
+              "id": "A",
+              "name": "표준 모델",
+              "isStandard": true,
+              "status": "final",
+              "note": "태양광 설치 필요\n",
+              "savedAt": "2026-04-08 16:48",
+              "spec": {
+                "passive": {
+                  "wallU": 0.24,
+                  "windowU": 0.24,
+                  "roofU": 0.24,
+                  "floorU": 0.24
+                },
+                "active": {
+                  "ehpCOP": 3.6,
+                  "ventilationEff": 70,
+                  "lightingLPD": 5,
+                  "boilerEff": 88
+                },
+                "renewable": {
+                  "pvArea": 160,
+                  "pvEff": 18,
+                  "fuelCellKW": 0
+                }
+              },
+              "result": {
+                "zebGrade": 1,
+                "selfSuff": 99.9,
+                "prod": 138.23999999999998,
+                "demand": 58.23242202081436,
+                "costTotal": 663083.3333333333,
+                "costBreakdown": {
+                  "passive": 364583.3333333333,
+                  "active": 178500,
+                  "renewable": 120000
+                }
+              },
+              "updatedAt": "2026-04-07 19:03",
+              "analyzed": true
+            }
+          },
+          {
+            "recordId": "final-A-1775634543859-y4g8e",
+            "sourceId": "A",
+            "name": "표준 모델 최종안",
+            "status": "final",
+            "savedAt": "2026-04-08 16:49",
+            "note": "메모 예시",
+            "snapshot": {
+              "id": "A",
+              "name": "표준 모델",
+              "isStandard": true,
+              "status": "final",
+              "note": "메모 예시",
+              "savedAt": "2026-04-08 16:49",
+              "spec": {
+                "passive": {
+                  "wallU": 0.24,
+                  "windowU": 0.24,
+                  "roofU": 0.24,
+                  "floorU": 0.24
+                },
+                "active": {
+                  "ehpCOP": 3.6,
+                  "ventilationEff": 70,
+                  "lightingLPD": 5,
+                  "boilerEff": 88
+                },
+                "renewable": {
+                  "pvArea": 160,
+                  "pvEff": 18,
+                  "fuelCellKW": 0
+                }
+              },
+              "result": {
+                "zebGrade": 1,
+                "selfSuff": 99.9,
+                "prod": 138.23999999999998,
+                "demand": 58.23242202081436,
+                "costTotal": 663083.3333333333,
+                "costBreakdown": {
+                  "passive": 364583.3333333333,
+                  "active": 178500,
+                  "renewable": 120000
+                }
+              },
+              "updatedAt": "2026-04-07 19:03",
+              "analyzed": true
+            }
           }
         ],
-        "selectedSavedRecordId": "saved-B-1775542560749-mkeeo"
+        "selectedSavedRecordId": "final-A-1775634543859-y4g8e"
       }
     },
     {
@@ -552,7 +1255,7 @@
       "floors": 7,
       "targetGrade": 4,
       "status": "진행중",
-      "updatedAt": "2026-03-02 11:05",
+      "updatedAt": "2026-04-27 09:41",
       "map": {
         "zeb": "pass",
         "epi": "pass",
@@ -567,7 +1270,138 @@
           "summary": "ZEB 및 EPI 1차 검토 완료, 신재생 검토만 남음",
           "createdAt": "2026-03-02 11:05"
         }
-      ]
+      ],
+      "zebWorkspace": {
+        "compareMode": true,
+        "baseline": "A",
+        "selected": "A",
+        "managerNote": "",
+        "scenarios": [
+          {
+            "id": "A",
+            "name": "표준 모델",
+            "isStandard": true,
+            "status": "saved",
+            "note": "",
+            "savedAt": "2026-04-08 10:58",
+            "spec": {
+              "passive": {
+                "wallU": 0.21,
+                "windowU": 0.2,
+                "roofU": 0.23,
+                "floorU": 0.24
+              },
+              "active": {
+                "ehpCOP": 3.6,
+                "ventilationEff": 70,
+                "lightingLPD": 5,
+                "boilerEff": 88
+              },
+              "renewable": {
+                "pvArea": 160,
+                "pvEff": 18,
+                "fuelCellKW": 0
+              }
+            },
+            "result": {
+              "zebGrade": 1,
+              "selfSuff": 99.9,
+              "prod": 138.23999999999998,
+              "demand": 58.23242202081436,
+              "costTotal": 663083.3333333333,
+              "costBreakdown": {
+                "passive": 364583.3333333333,
+                "active": 178500,
+                "renewable": 120000
+              }
+            },
+            "updatedAt": "2026-04-08 10:58",
+            "analyzed": true
+          },
+          {
+            "id": "B",
+            "name": "대안 1",
+            "isStandard": false,
+            "status": "draft",
+            "note": "",
+            "spec": {
+              "passive": {
+                "wallU": 0.24,
+                "windowU": 0.24,
+                "roofU": 0.24,
+                "floorU": 0.24
+              },
+              "active": {
+                "ehpCOP": 3.6,
+                "ventilationEff": 70,
+                "lightingLPD": 5,
+                "boilerEff": 88
+              },
+              "renewable": {
+                "pvArea": 160,
+                "pvEff": 18,
+                "fuelCellKW": 0
+              }
+            },
+            "result": {
+              "zebGrade": 1,
+              "selfSuff": 99.9,
+              "prod": 138.23999999999998,
+              "demand": 58.23242202081436,
+              "costTotal": 663083.3333333333,
+              "costBreakdown": {
+                "passive": 364583.3333333333,
+                "active": 178500,
+                "renewable": 120000
+              }
+            },
+            "updatedAt": "2026-04-12 10:35",
+            "analyzed": false
+          },
+          {
+            "id": "C",
+            "name": "대안 2",
+            "isStandard": false,
+            "status": "draft",
+            "note": "",
+            "spec": {
+              "passive": {
+                "wallU": 0.24,
+                "windowU": 0.24,
+                "roofU": 0.24,
+                "floorU": 0.24
+              },
+              "active": {
+                "ehpCOP": 3.6,
+                "ventilationEff": 70,
+                "lightingLPD": 5,
+                "boilerEff": 88
+              },
+              "renewable": {
+                "pvArea": 160,
+                "pvEff": 18,
+                "fuelCellKW": 0
+              }
+            },
+            "result": {
+              "zebGrade": 1,
+              "selfSuff": 99.9,
+              "prod": 138.23999999999998,
+              "demand": 58.23242202081436,
+              "costTotal": 663083.3333333333,
+              "costBreakdown": {
+                "passive": 364583.3333333333,
+                "active": 178500,
+                "renewable": 120000
+              }
+            },
+            "updatedAt": "2026-04-12 10:35",
+            "analyzed": false
+          }
+        ],
+        "savedLibrary": [],
+        "selectedSavedRecordId": ""
+      }
     },
     {
       "id": "p-003",
@@ -578,7 +1412,7 @@
       "floors": 20,
       "targetGrade": 2,
       "status": "신규",
-      "updatedAt": "2026-03-03 09:12",
+      "updatedAt": "2026-04-24 15:14",
       "map": {
         "zeb": "none",
         "epi": "none",
@@ -586,7 +1420,58 @@
         "consult": "none"
       },
       "note": "초기 검토 대기",
-      "opsRecords": []
+      "opsRecords": [],
+      "zebWorkspace": {
+        "compareMode": true,
+        "baseline": "A",
+        "selected": "A",
+        "managerNote": "",
+        "scenarios": [
+          {
+            "id": "A",
+            "name": "표준 모델",
+            "isStandard": true,
+            "status": "saved",
+            "note": "",
+            "savedAt": "2026-04-08 11:29",
+            "spec": {
+              "passive": {
+                "wallU": 0.24,
+                "windowU": 0.24,
+                "roofU": 0.24,
+                "floorU": 0.24
+              },
+              "active": {
+                "ehpCOP": 3.6,
+                "ventilationEff": 70,
+                "lightingLPD": 5,
+                "boilerEff": 88
+              },
+              "renewable": {
+                "pvArea": 160,
+                "pvEff": 18,
+                "fuelCellKW": 0
+              }
+            },
+            "result": {
+              "zebGrade": 1,
+              "selfSuff": 99.9,
+              "prod": 138.23999999999998,
+              "demand": 58.23242202081436,
+              "costTotal": 663083.3333333333,
+              "costBreakdown": {
+                "passive": 364583.3333333333,
+                "active": 178500,
+                "renewable": 120000
+              }
+            },
+            "updatedAt": "2026-04-08 11:29",
+            "analyzed": true
+          }
+        ],
+        "savedLibrary": [],
+        "selectedSavedRecordId": ""
+      }
     }
   ]
 }
