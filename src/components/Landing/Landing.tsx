@@ -547,14 +547,8 @@ export default function Landing() {
   ];
 
   const handleDiagnosisButtonClick = useCallback(() => {
-    if (!user) {
-      setPendingOpenDiagnosis(true);
-      setAuthModalMode('login');
-      setAuthModalOpen(true);
-      return;
-    }
     setShowQuickModal(true);
-  }, [user]);
+  }, []);
 
   const handleAuthSuccess = useCallback(() => {
     setAuthModalOpen(false);
@@ -821,7 +815,7 @@ export default function Landing() {
                 onClick={handleDiagnosisButtonClick}
                 className="rounded-full bg-[#0F2044] px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-[#1a3066]"
               >
-                {user ? '간편 진단' : '로그인 후 진단'}
+                간편 진단
               </motion.button>
             </div>
 

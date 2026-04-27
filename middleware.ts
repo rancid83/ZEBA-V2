@@ -21,19 +21,6 @@ function isAuthPage(pathname: string): boolean {
 }
 
 export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-  const token = request.cookies.get(SESSION_COOKIE)?.value;
-
-  if (isProtected(pathname) && !token) {
-    const landingUrl = new URL('/', request.url);
-    landingUrl.searchParams.set('redirect', pathname);
-    return NextResponse.redirect(landingUrl);
-  }
-
-  if (isAuthPage(pathname) && token) {
-    return NextResponse.redirect(new URL('/project-hub', request.url));
-  }
-
   return NextResponse.next();
 }
 

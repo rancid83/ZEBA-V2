@@ -6,13 +6,6 @@ export async function GET(request: Request) {
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
 
-  if (!token) {
-    return NextResponse.json(
-      { status: false, error: '로그인이 필요합니다.' },
-      { status: 401 },
-    );
-  }
-
   const { searchParams } = new URL(request.url);
   const step = searchParams.get('step') || 'step2';
 
@@ -36,7 +29,7 @@ export async function GET(request: Request) {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
     };
-    if (token !== 'authenticated') {
+    if (token && token !== 'authenticated') {
       headers.Authorization = `Bearer ${token}`;
       headers['x-access-token'] = token;
     }
