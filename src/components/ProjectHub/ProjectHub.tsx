@@ -8,13 +8,17 @@ import ZEBAMultiScenario from '@/components/ProjectHub/ZEBAMultiScenario';
 import EPIStandardModel from '@/components/ProjectHub/EPIStandardModel';
 import RenewableInstallRateReview from '@/components/ProjectHub/RenewableInstallRateReview';
 import ConsultingConnection from '@/components/ProjectHub/ConsultingConnection';
+import { useStore } from '@/store';
+import { useNotifications } from '@/hooks/useNotifications';
 import type { ModuleKey, ModuleState, OpsRecord, Project, ProjectStatus } from '@/types/projectHubData';
 import type { ZebMultiScenarioWorkspaceState } from '@/types/zebMultiScenario';
 import {
   appendOpsRecordApi,
   createProjectApi,
   deleteOpsRecordApi,
+  deleteProjectApi,
   fetchProjects,
+  updateProjectApi,
   updateOpsRecordApi,
   updateZebWorkspaceApi,
 } from '@/services/hubPersistence';
@@ -58,6 +62,18 @@ function fmt(n: number) {
   return new Intl.NumberFormat('ko-KR').format(n);
 }
 
+function relativeTime(isoStr: string): string {
+  const diff = Date.now() - new Date(isoStr).getTime();
+  const min = Math.floor(diff / 60_000);
+  if (min < 1) return '방금 전';
+  if (min < 60) return `${min}분 전`;
+  const hr = Math.floor(min / 60);
+  if (hr < 24) return `${hr}시간 전`;
+  const day = Math.floor(hr / 24);
+  if (day < 7) return `${day}일 전`;
+  return new Date(isoStr).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' });
+}
+
 function stateIcon(state: ModuleState) {
   if (state === 'pass')
     return <CheckCircle2 className="h-3 w-3 text-emerald-600 opacity-90" />;
@@ -76,6 +92,11 @@ function statusBadgeClass(status: ProjectStatus) {
   if (status === '신규') return 'bg-slate-100 text-slate-600 border border-slate-200';
   if (status === '완료') return 'bg-emerald-50 text-emerald-700 border border-emerald-200';
   return 'bg-slate-800 text-slate-100 border border-slate-700';
+}
+
+function statusLabel(status: ProjectStatus) {
+  if (status === '진행중') return '운영중';
+  return status;
 }
 
 function latestOpsRecord(project: Project): OpsRecord | null {
@@ -311,7 +332,7 @@ function HomeSidebar(props: {
                 <div className="mt-1 font-semibold">{kpi.newCount}</div>
               </div>
               <div className="rounded-2xl border p-3">
-                <div className="text-[11px] text-slate-500">진행중</div>
+                <div className="text-[11px] text-slate-500">운영중</div>
                 <div className="mt-1 font-semibold">{kpi.inProgressCount}</div>
               </div>
               <div className="rounded-2xl border p-3">
@@ -337,7 +358,7 @@ function HomeSidebar(props: {
           >
             <option value="전체">전체</option>
             <option value="신규">신규</option>
-            <option value="진행중">진행중</option>
+            <option value="진행중">운영중</option>
             <option value="완료">완료</option>
           </select>
         </InfoCard>
@@ -617,11 +638,13 @@ function ProjectSummaryPanel({
   selected,
   activeTab,
   setActiveTab,
+  onStatusChange,
 }: {
   breadcrumb: React.ReactNode;
   selected: Project;
   activeTab: WorkspaceTab;
   setActiveTab: (t: WorkspaceTab) => void;
+  onStatusChange: (status: ProjectStatus) => void;
 }) {
   const metrics = moduleMetrics(selected);
 
@@ -716,11 +739,23 @@ function ProjectSummaryPanel({
           <span
             className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-medium ${statusBadgeClass(selected.status)}`}
           >
-            {selected.status}
+            {statusLabel(selected.status)}
           </span>
         </div>
 
         <div className="mt-4">
+          <div className="mb-3 flex items-center gap-2">
+            <span className="text-xs font-medium text-slate-500">상태</span>
+            <select
+              value={selected.status}
+              onChange={(e) => onStatusChange(e.target.value as ProjectStatus)}
+              className="rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 outline-none"
+            >
+              <option value="신규">신규</option>
+              <option value="진행중">운영중</option>
+              <option value="완료">완료</option>
+            </select>
+          </div>
           <button
             type="button"
             onClick={() => setActiveTab('ops')}
@@ -940,6 +975,7 @@ function ProjectWorkspace(props: {
   onPickOpsRecord: (record: OpsRecord) => void;
   onDeleteOpsRecord: (recordId: string) => void;
   onPersistZebWorkspace: (workspace: ZebMultiScenarioWorkspaceState) => void | Promise<void>;
+  onStatusChange: (status: ProjectStatus) => void | Promise<void>;
 }) {
   const {
     breadcrumb,
@@ -956,6 +992,7 @@ function ProjectWorkspace(props: {
     onPickOpsRecord,
     onDeleteOpsRecord,
     onPersistZebWorkspace,
+    onStatusChange,
   } = props;
 
   const sortedRecords = [...(selected.opsRecords || [])].sort(
@@ -978,6 +1015,7 @@ function ProjectWorkspace(props: {
           selected={selected}
           activeTab={activeTab}
           setActiveTab={setActiveTab}
+          onStatusChange={onStatusChange}
         />
       </aside>
 
@@ -994,7 +1032,17 @@ function ProjectWorkspace(props: {
               onPersist={onPersistZebWorkspace}
             />
           ) : null}
-          {activeTab === 'epi' ? <EPIStandardModel /> : null}
+          {activeTab === 'epi' ? (
+            <EPIStandardModel
+              project={{
+                name: selected.name,
+                region: selected.region,
+                usage: selected.use,
+                gfa: selected.gfa,
+                floors: selected.floors,
+              }}
+            />
+          ) : null}
           {activeTab === 'ren' ? (
             <RenewableInstallRateReview
               project={{
@@ -1209,19 +1257,26 @@ function HeaderActionIcon({
   icon: Icon,
   label,
   onClick,
+  badge,
 }: {
   icon: React.ComponentType<{ className?: string }>;
   label: string;
   onClick?: () => void;
+  badge?: number;
 }) {
   return (
     <button
       type="button"
       title={label}
       onClick={onClick}
-      className="flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-500 transition hover:border-slate-300 hover:text-slate-900"
+      className="relative flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-500 transition hover:border-slate-300 hover:text-slate-900"
     >
       <Icon className="h-4 w-4" />
+      {badge != null && badge > 0 && (
+        <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[10px] font-bold text-white">
+          {badge > 99 ? '99+' : badge}
+        </span>
+      )}
     </button>
   );
 }
@@ -1234,6 +1289,23 @@ function HeaderPopups({
   onClose: () => void;
 }) {
   const router = useRouter();
+  const user = useStore((state) => state.user);
+  const setUser = useStore((state) => state.setUser);
+  const clearUser = useStore((state) => state.clearUser);
+  const { notifications, markRead, markAllRead } = useNotifications();
+  const [editingProfile, setEditingProfile] = useState(false);
+  const [profileName, setProfileName] = useState(user?.name || '');
+  const [profileEmail, setProfileEmail] = useState(user?.email || '');
+  const [profileCompany, setProfileCompany] = useState(user?.company_name || '');
+  const [profileError, setProfileError] = useState<string | null>(null);
+  const [profileSuccess, setProfileSuccess] = useState<string | null>(null);
+  const [profileSaving, setProfileSaving] = useState(false);
+
+  useEffect(() => {
+    setProfileName(user?.name || '');
+    setProfileEmail(user?.email || '');
+    setProfileCompany(user?.company_name || '');
+  }, [user]);
 
   if (!kind) return null;
 
@@ -1247,12 +1319,111 @@ function HeaderPopups({
               <User className="h-5 w-5" />
             </div>
             <div>
-              <div className="text-sm font-semibold">담당자 님</div>
-              <div className="text-xs text-slate-500">admin@company.com</div>
+              <div className="text-sm font-semibold">{user?.name || '사용자'} 님</div>
+              <div className="text-xs text-slate-500">{user?.email || '로그인 사용자'}</div>
             </div>
           </div>
           <div className="mt-3 border-t border-slate-100 pt-3">
-            <SimpleButton className="w-full text-left">프로필 수정</SimpleButton>
+            {!editingProfile && profileSuccess ? (
+              <div className="mb-2 text-xs text-emerald-600">{profileSuccess}</div>
+            ) : null}
+            {editingProfile ? (
+              <div className="space-y-3">
+                <div>
+                  <div className="mb-1 text-xs font-medium text-slate-500">이름</div>
+                  <input
+                    value={profileName}
+                    onChange={(e) => setProfileName(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none transition focus:border-teal-500"
+                    placeholder="이름"
+                  />
+                </div>
+                <div>
+                  <div className="mb-1 text-xs font-medium text-slate-500">이메일</div>
+                  <input
+                    value={profileEmail}
+                    onChange={(e) => setProfileEmail(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none transition focus:border-teal-500"
+                    placeholder="이메일"
+                  />
+                </div>
+                <div>
+                  <div className="mb-1 text-xs font-medium text-slate-500">회사명</div>
+                  <input
+                    value={profileCompany}
+                    onChange={(e) => setProfileCompany(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none transition focus:border-teal-500"
+                    placeholder="회사명"
+                  />
+                </div>
+                {profileError ? <div className="text-xs text-rose-600">{profileError}</div> : null}
+                {profileSuccess ? <div className="text-xs text-emerald-600">{profileSuccess}</div> : null}
+                <div className="flex gap-2">
+                  <SimpleButton
+                    className="flex-1"
+                    onClick={async () => {
+                      setProfileError(null);
+                      setProfileSuccess(null);
+                      setProfileSaving(true);
+                      try {
+                        const response = await fetch('/api/auth/me', {
+                          method: 'PATCH',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            name: profileName,
+                            email: profileEmail,
+                            company_name: profileCompany,
+                          }),
+                        });
+                        const payload = await response.json();
+                        if (!response.ok || !payload?.status) {
+                          setProfileError(payload?.error || '프로필 저장에 실패했습니다.');
+                          return;
+                        }
+                        const nextUser = payload?.data?.user;
+                        if (nextUser) {
+                          setUser(nextUser);
+                        }
+                        setProfileSuccess(payload?.data?.message || payload?.message || '프로필이 수정되었습니다.');
+                        setEditingProfile(false);
+                      } catch (error: any) {
+                        setProfileError(error?.message || '프로필 저장 중 오류가 발생했습니다.');
+                      } finally {
+                        setProfileSaving(false);
+                      }
+                    }}
+                    disabled={profileSaving}
+                  >
+                    {profileSaving ? '저장 중...' : '저장'}
+                  </SimpleButton>
+                  <SimpleButton
+                    className="flex-1"
+                    onClick={() => {
+                      setEditingProfile(false);
+                      setProfileError(null);
+                      setProfileSuccess(null);
+                      setProfileName(user?.name || '');
+                      setProfileEmail(user?.email || '');
+                      setProfileCompany(user?.company_name || '');
+                    }}
+                    disabled={profileSaving}
+                  >
+                    취소
+                  </SimpleButton>
+                </div>
+              </div>
+            ) : (
+              <SimpleButton
+                className="w-full text-left"
+                onClick={() => {
+                  setProfileError(null);
+                  setProfileSuccess(null);
+                  setEditingProfile(true);
+                }}
+              >
+                프로필 수정
+              </SimpleButton>
+            )}
             <SimpleButton
               className="mt-2 w-full text-left"
               onClick={async () => {
@@ -1261,6 +1432,7 @@ function HeaderPopups({
                 } catch {
                   // 로그아웃 API 실패 시에도 화면 이동은 유지
                 }
+                clearUser();
                 onClose();
                 router.push('/');
               }}
@@ -1295,21 +1467,46 @@ function HeaderPopups({
     bell: {
       title: '알림 내역',
       body: (
-        <div className="space-y-3">
-          <div className="rounded-xl bg-slate-50 p-3">
-            <div className="text-xs text-slate-500">10분 전</div>
-            <div className="mt-1 text-sm font-medium">성수 업무시설 프로젝트가 업데이트되었습니다.</div>
-          </div>
-          <div className="rounded-xl bg-slate-50 p-3">
-            <div className="text-xs text-slate-500">1시간 전</div>
-            <div className="mt-1 text-sm font-medium">
-              동탄 교육연구시설 ZEB 검토가 완료되었습니다.
+        <div className="space-y-2">
+          {notifications.length > 0 && (
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={() => void markAllRead()}
+                className="text-xs text-teal-600 hover:underline"
+              >
+                전체 읽음
+              </button>
             </div>
-          </div>
-          <div className="rounded-xl bg-slate-50 p-3">
-            <div className="text-xs text-slate-500">어제</div>
-            <div className="mt-1 text-sm font-medium">새로운 메시지가 도착했습니다.</div>
-          </div>
+          )}
+          {notifications.length === 0 ? (
+            <div className="py-6 text-center text-sm text-slate-400">알림이 없습니다.</div>
+          ) : (
+            notifications.map((n) => (
+              <div
+                key={n.id}
+                onClick={() => { if (!n.isRead) void markRead(n.id); }}
+                className={`cursor-pointer rounded-xl p-3 transition ${
+                  n.isRead ? 'bg-slate-50' : 'bg-teal-50 hover:bg-teal-100'
+                }`}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <div className={`text-sm font-medium leading-snug ${n.isRead ? 'text-slate-600' : 'text-slate-900'}`}>
+                      {n.title}
+                    </div>
+                    {n.body && (
+                      <div className="mt-0.5 truncate text-xs text-slate-500">{n.body}</div>
+                    )}
+                    <div className="mt-1 text-[11px] text-slate-400">{relativeTime(n.createdAt)}</div>
+                  </div>
+                  {!n.isRead && (
+                    <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-teal-500" />
+                  )}
+                </div>
+              </div>
+            ))
+          )}
         </div>
       ),
     },
@@ -1351,6 +1548,7 @@ function HeaderPopups({
 export default function ProjectHub() {
   const [view, setView] = useState<'home' | 'project'>('home');
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [checkedProjectIds, setCheckedProjectIds] = useState<string[]>([]);
   const [query, setQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<ProjectStatus | '전체'>('전체');
   const [projects, setProjects] = useState<Project[]>([]);
@@ -1362,6 +1560,7 @@ export default function ProjectHub() {
   const [opsDraft, setOpsDraft] = useState('');
   const [editingOpsId, setEditingOpsId] = useState<string | null>(null);
   const [activePopup, setActivePopup] = useState<'user' | 'settings' | 'bell' | 'help' | null>(null);
+  const { unreadCount } = useNotifications();
 
   const [formName, setFormName] = useState('');
   const [formRegion, setFormRegion] = useState('서울');
@@ -1398,6 +1597,10 @@ export default function ProjectHub() {
       setView('home');
     }
   }, [projects, selectedId, projectsLoading]);
+
+  useEffect(() => {
+    setCheckedProjectIds((prev) => prev.filter((id) => projects.some((p) => p.id === id)));
+  }, [projects]);
 
   useEffect(() => {
     setEditingOpsId(null);
@@ -1443,6 +1646,12 @@ export default function ProjectHub() {
     setSelectedId(id);
     setActiveTab('zeb');
     setView('project');
+  }, []);
+
+  const toggleProjectChecked = useCallback((id: string) => {
+    setCheckedProjectIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
+    );
   }, []);
 
   const cancelOpsEdit = useCallback(() => {
@@ -1520,6 +1729,21 @@ export default function ProjectHub() {
     }
   }, [selectedId]);
 
+  const updateSelectedProjectStatus = useCallback(async (status: ProjectStatus) => {
+    if (!selected) return;
+    try {
+      const project = await updateProjectApi({
+        ...selected,
+        status,
+        updatedAt: new Date().toISOString().slice(0, 16).replace('T', ' '),
+      });
+      setProjects((prev) => sortProjects(prev.map((p) => (p.id === project.id ? project : p))));
+      setProjectsError(null);
+    } catch {
+      setProjectsError('프로젝트 상태를 변경하지 못했습니다.');
+    }
+  }, [selected]);
+
   const submitProject = useCallback(async () => {
     try {
       const project = await createProjectApi({
@@ -1532,7 +1756,6 @@ export default function ProjectHub() {
         status: '신규',
         map: { zeb: 'none', epi: 'none', ren: 'none', consult: 'none' },
         note: '초기 검토 대기',
-        opsRecords: [],
       });
       setProjects((prev) => sortProjects([project, ...prev]));
       setProjectsError(null);
@@ -1544,6 +1767,22 @@ export default function ProjectHub() {
       setProjectsError('프로젝트를 생성하지 못했습니다.');
     }
   }, [formName, formRegion, formUse, formGfa, formFloors, formTarget]);
+
+  const deleteProject = useCallback(async (id: string, name: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!window.confirm(`"${name}" 프로젝트를 삭제하시겠습니까?\n삭제 후 복구할 수 없습니다.`)) return;
+    try {
+      await deleteProjectApi(id);
+      setProjects((prev) => prev.filter((p) => p.id !== id));
+      if (selectedId === id) {
+        setSelectedId(null);
+        setView('home');
+      }
+      setProjectsError(null);
+    } catch {
+      setProjectsError('프로젝트를 삭제하지 못했습니다.');
+    }
+  }, [selectedId]);
 
   return (
     <div className="min-h-screen bg-[#f4f6f8] text-slate-900">
@@ -1576,7 +1815,7 @@ export default function ProjectHub() {
           <div className="flex shrink-0 items-center gap-1 sm:gap-2">
             <HeaderActionIcon icon={User} label="마이페이지" onClick={() => setActivePopup(activePopup === 'user' ? null : 'user')} />
             <HeaderActionIcon icon={Settings} label="설정" onClick={() => setActivePopup(activePopup === 'settings' ? null : 'settings')} />
-            <HeaderActionIcon icon={Bell} label="알림" onClick={() => setActivePopup(activePopup === 'bell' ? null : 'bell')} />
+            <HeaderActionIcon icon={Bell} label="알림" badge={unreadCount} onClick={() => setActivePopup(activePopup === 'bell' ? null : 'bell')} />
             <HeaderActionIcon icon={HelpCircle} label="도움말" onClick={() => setActivePopup(activePopup === 'help' ? null : 'help')} />
           </div>
         </div>
@@ -1624,12 +1863,35 @@ export default function ProjectHub() {
                   <InfoCard key={p.id}>
                     <button type="button" onClick={() => openProject(p.id)} className="w-full text-left">
                       <div className="flex items-start justify-between gap-2">
-                        <div className="truncate text-base font-semibold">{p.name}</div>
-                        <span
-                          className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-medium ${statusBadgeClass(p.status)}`}
-                        >
-                          {p.status}
-                        </span>
+                        <div className="flex min-w-0 flex-1 items-start gap-2">
+                          <input
+                            type="checkbox"
+                            checked={checkedProjectIds.includes(p.id)}
+                            onChange={(e) => {
+                              e.stopPropagation();
+                              toggleProjectChecked(p.id);
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="mt-1 h-4 w-4 shrink-0 rounded border-slate-300 accent-teal-600"
+                            aria-label={`${p.name} 선택`}
+                          />
+                          <div className="truncate text-base font-semibold">{p.name}</div>
+                        </div>
+                        <div className="flex shrink-0 items-center gap-1.5">
+                          <span
+                            className={`rounded-full px-2.5 py-1 text-[11px] font-medium ${statusBadgeClass(p.status)}`}
+                          >
+                            {statusLabel(p.status)}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={(e) => deleteProject(p.id, p.name, e)}
+                            className="flex h-6 w-6 items-center justify-center rounded-lg text-slate-300 transition hover:bg-rose-50 hover:text-rose-500"
+                            title="프로젝트 삭제"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
                       </div>
                       <div className="mt-3 text-sm leading-6 text-slate-500">
                         {p.region} · {p.use} · {fmt(p.gfa)}㎡ · {p.floors}F
@@ -1692,6 +1954,7 @@ export default function ProjectHub() {
           onPickOpsRecord={pickOpsRecord}
           onDeleteOpsRecord={deleteOpsRecordHandler}
           onPersistZebWorkspace={persistZebWorkspace}
+          onStatusChange={updateSelectedProjectStatus}
         />
       ) : (
         <div className="min-h-[calc(100vh-64px)] bg-[#f4f6f8] p-6">

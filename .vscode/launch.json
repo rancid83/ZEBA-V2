@@ -1,24 +1,37 @@
-// ...existing code...
 {
-  "version": "2.0.0",
-  "tasks": [
+  "version": "0.2.0",
+  "configurations": [
     {
-      "label": "npm: dev",
-      "type": "npm",
-      "script": "dev",
-      "group": {
-        "kind": "build",
-        "isDefault": true
-      },
-      "problemMatcher": []
+      "name": "ZEBA-V2-1",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "npm run dev",
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "ZEBAGATEWAY_MAC",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "npm run dev",
+      "cwd": "${workspaceFolder}/../ZEBAGATEWAY_MAC"
+    },
+    {
+      "name": "Algorithm API",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "python3 run.py",
+      "cwd": "${workspaceFolder}/../GitHub/Code_---_v5.0"
     }
-],
-"configurations": [
-{
-    "command": "npm run dev",
-    "name": "Run npm start",
-    "request": "launch",
-    "type": "node-terminal"
-}
-]
+  ],
+  "compounds": [
+    {
+      "name": "Run ZEBALL 3 Projects",
+      "configurations": [
+        "ZEBA-V2-1",
+        "ZEBAGATEWAY_MAC",
+        "Algorithm API"
+      ],
+      "stopAll": true
+    }
+  ]
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -22,6 +22,9 @@ import { Modal } from 'antd';
 import LoginForm from '@/components/Auth/LoginForm';
 import SignupForm from '@/components/Auth/SignupForm';
 import PresentationSlides from '@/components/Slides/PresentationSlides';
+import DaumPostcodeEmbed from 'react-daum-postcode';
+import { analyzeStep1 } from '@/services/steps';
+import type { ZebGradeData, ZebStep1Response } from '@/types/zebStep1';
 import landingStyles from './LandingStyleA.module.scss';
 import LandingHeader from './LandingHeader';
 import LandingFooter from './LandingFooter';
@@ -77,26 +80,208 @@ type DiagnosisCard = {
   detailRows?: Array<{ label: string; value: string }>;
 };
 
+type QuickEpiSummary = {
+  benchmarkScore: number;
+  meetsThreshold: boolean;
+  sizeLabel: string;
+  hvacLabel: string;
+  modelLabel: string;
+  areaRuleText: string;
+};
+
+type QuickDiagnosisPayload = {
+  cards: Array<DiagnosisCard & { icon: LucideIcon }>;
+  guidance: string;
+  summary: string;
+};
+
 type FieldProps = {
   label: string;
   children: React.ReactNode;
+  className?: string;
 };
+
+const QUICK_USAGE_OPTIONS = [
+  '업무시설(공공용)',
+  '업무시설(사업용)',
+  '교육연구시설',
+] as const;
+
+const OFFICE_SYSTEM_OPTIONS = [
+  { value: 'individual', label: '개별식' },
+  { value: 'central', label: '중앙식' },
+] as const;
+
+const EPI_PASS_SCORE = 65;
+
+const EPI_STANDARD_BENCHMARKS = {
+  large: {
+    central: 65.4,
+    individual: 65.8,
+  },
+  small: {
+    central: 71.6,
+    individual: 71.0,
+  },
+} as const;
+
+function normalizeRegionInput(value: string): string {
+  const raw = value.trim();
+  if (!raw) return '서울';
+
+  const regionMap: Array<[string, string]> = [
+    ['서울특별시', '서울'],
+    ['서울시', '서울'],
+    ['서울', '서울'],
+    ['경기도', '경기'],
+    ['경기', '경기'],
+    ['인천광역시', '인천'],
+    ['인천시', '인천'],
+    ['인천', '인천'],
+    ['부산광역시', '부산'],
+    ['부산시', '부산'],
+    ['부산', '부산'],
+    ['대구광역시', '대구'],
+    ['대구시', '대구'],
+    ['대구', '대구'],
+    ['대전광역시', '대전'],
+    ['대전시', '대전'],
+    ['대전', '대전'],
+    ['광주광역시', '광주'],
+    ['광주시', '광주'],
+    ['광주', '광주'],
+    ['울산광역시', '울산'],
+    ['울산시', '울산'],
+    ['울산', '울산'],
+    ['세종특별자치시', '세종'],
+    ['세종시', '세종'],
+    ['세종', '세종'],
+    ['강원특별자치도', '강원'],
+    ['강원도', '강원'],
+    ['강원', '강원'],
+    ['충청북도', '충북'],
+    ['충북', '충북'],
+    ['충청남도', '충남'],
+    ['충남', '충남'],
+    ['전북특별자치도', '전북'],
+    ['전라북도', '전북'],
+    ['전북', '전북'],
+    ['전라남도', '전남'],
+    ['전남', '전남'],
+    ['경상북도', '경북'],
+    ['경북', '경북'],
+    ['경상남도', '경남'],
+    ['경남', '경남'],
+    ['제주특별자치도', '제주'],
+    ['제주도', '제주'],
+    ['제주', '제주'],
+  ];
+
+  const matched = regionMap.find(([pattern]) => raw.startsWith(pattern));
+  return matched?.[1] || raw.split(/\s+/)[0] || raw;
+}
+
+function mapGradeCard(
+  item: ZebGradeData | undefined,
+  icon: LucideIcon,
+  emphasis: DiagnosisCard['emphasis'],
+  display: Pick<
+    DiagnosisCard,
+    'label' | 'subtitle' | 'metricLabel' | 'badgeLabel' | 'gradeLabel' | 'metaLabel' | 'metaValue'
+  >,
+): DiagnosisCard & { icon: LucideIcon } {
+  return {
+    icon,
+    label: display.label,
+    subtitle: display.subtitle,
+    ratio: item?.grade ?? 0,
+    grade: item?.zebGrade ? `${item.zebGrade}등급` : '-',
+    emphasis,
+    metricLabel: display.metricLabel,
+    metricSuffix: '%',
+    badgeLabel: display.badgeLabel,
+    gradeLabel: display.gradeLabel,
+    metaLabel: display.metaLabel,
+    metaValue: display.metaValue,
+    detailRows: [
+      { label: '1차 에너지 생산량', value: `${item?.creator ?? 0} kWh/㎡` },
+      { label: '1차 에너지 소요량', value: `${item?.consume ?? 0} kWh/㎡` },
+    ],
+  };
+}
+
+function buildQuickDiagnosisPayload(
+  response: ZebStep1Response,
+  targetGradeNumber: number,
+): QuickDiagnosisPayload {
+  const gradeData = response.data.gradeData ?? [];
+  const targetCard = gradeData[2];
+  const targetPassed =
+    typeof targetCard?.zebGrade === 'number' && targetCard.zebGrade > 0
+      ? targetCard.zebGrade <= targetGradeNumber
+      : false;
+
+  return {
+    cards: [
+      mapGradeCard(gradeData[0], SunMedium, 'low', {
+        label: '신재생 의무설치비율',
+        subtitle: 'Baseline',
+        metricLabel: '의무 설치비율',
+        badgeLabel: '신재생 기준',
+        gradeLabel: '판단 상태',
+        metaLabel: '신재생 설비 기준',
+        metaValue: '연면적 기준 적용',
+      }),
+      mapGradeCard(gradeData[1], Shield, 'mid', {
+        label: 'ZEB 의무 등급',
+        subtitle: 'Required',
+        metricLabel: '에너지 자립률',
+        badgeLabel: 'ZEB 등급',
+        gradeLabel: '등급 기준',
+        metaLabel: 'ZEB 등급 기준',
+        metaValue: '공공 의무 기준',
+      }),
+      mapGradeCard(gradeData[2], Target, 'high', {
+        label: 'ZEB 목표 등급',
+        subtitle: 'User Target',
+        metricLabel: '에너지 자립률',
+        badgeLabel: 'ZEB 등급',
+        gradeLabel: '목표 등급',
+        metaLabel: 'ZEB 등급 기준',
+        metaValue: `사용자 목표 ${targetGradeNumber}등급 입력`,
+      }),
+    ],
+    guidance: targetPassed
+      ? `백엔드 분석 기준으로 목표 ZEB ${targetGradeNumber}등급 달성이 가능한 수준입니다.`
+      : `백엔드 분석 기준으로 목표 ZEB ${targetGradeNumber}등급 달성을 위해 추가 검토가 필요합니다.`,
+    summary:
+      '간편진단 결과는 기존 백엔드 분석 API 응답을 기준으로 계산되었습니다. 법규 기준, 사전 진단, 목표 설정 결과를 동시에 표시합니다.',
+  };
+}
 
 export default function Landing() {
   const router = useRouter();
   const [showQuickModal, setShowQuickModal] = useState(false);
+  const [showQuickAddressSearch, setShowQuickAddressSearch] = useState(false);
   const [showResult, setShowResult] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [quickDiagnosis, setQuickDiagnosis] = useState<QuickDiagnosisPayload | null>(null);
+  const [quickDiagnosisError, setQuickDiagnosisError] = useState<string | null>(null);
   const [showTransitionModal, setShowTransitionModal] = useState(false);
   const [area, setArea] = useState('서울');
-  const [usage, setUsage] = useState('업무시설');
+  const [usage, setUsage] = useState<(typeof QUICK_USAGE_OPTIONS)[number]>('업무시설(공공용)');
+  const [officeSystem, setOfficeSystem] =
+    useState<(typeof OFFICE_SYSTEM_OPTIONS)[number]['value']>('individual');
   const [grossFloorArea, setGrossFloorArea] = useState('12000');
   const [floors, setFloors] = useState('10');
   const [targetGrade, setTargetGrade] = useState('4등급');
+  const [selectedServices, setSelectedServices] = useState<Set<'신재생' | 'ZEB' | 'EPI'>>(new Set(['ZEB']));
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'login' | 'signup'>('login');
   const [slidesOpen, setSlidesOpen] = useState(false);
   const [slidesSessionId, setSlidesSessionId] = useState(0);
   const [slidesSection, setSlidesSection] = useState<LandingNavSlideSection>('service');
+  const analysisTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const openSlides = useCallback((section: LandingNavSlideSection) => {
     setSlidesSection(section);
@@ -113,6 +298,14 @@ export default function Landing() {
     };
   }, [slidesOpen]);
 
+  useEffect(() => {
+    return () => {
+      if (analysisTimeoutRef.current) {
+        clearTimeout(analysisTimeoutRef.current);
+      }
+    };
+  }, []);
+
   const safeArea =
     Number.isFinite(Number(grossFloorArea)) && Number(grossFloorArea) > 0
       ? Number(grossFloorArea)
@@ -120,7 +313,82 @@ export default function Landing() {
   const safeFloors =
     Number.isFinite(Number(floors)) && Number(floors) > 0 ? Number(floors) : 10;
 
-  const draftProjectName = `${area}_${usage}_${safeArea}㎡`;
+  const isOfficeUsage = usage.startsWith('업무시설');
+
+  const toggleService = useCallback((svc: '신재생' | 'ZEB' | 'EPI') => {
+    setSelectedServices((prev) => {
+      const next = new Set(prev);
+      if (next.has(svc)) next.delete(svc);
+      else next.add(svc);
+      return next;
+    });
+  }, []);
+
+  const showRegionField = selectedServices.has('신재생') || selectedServices.has('ZEB');
+  const showUsageField = selectedServices.has('신재생') || selectedServices.has('ZEB');
+  const showFloorsField = selectedServices.has('ZEB');
+  const showTargetGradeField = selectedServices.has('ZEB');
+  const showEquipmentField = selectedServices.has('ZEB') || selectedServices.has('EPI');
+
+  const normalizedRegion = useMemo(() => normalizeRegionInput(area), [area]);
+  const officeSystemLabel =
+    OFFICE_SYSTEM_OPTIONS.find((item) => item.value === officeSystem)?.label || '개별식';
+  const draftProjectName = `${area}_${usage}${isOfficeUsage ? `_${officeSystemLabel}` : ''}_${safeArea}㎡`;
+
+  const handleQuickAddressComplete = useCallback((data: any) => {
+    const selectedAddress = data?.roadAddress || data?.jibunAddress || data?.address || '';
+    if (!selectedAddress) return;
+
+    setArea(selectedAddress);
+    setShowQuickAddressSearch(false);
+  }, []);
+
+  const startQuickDiagnosis = useCallback(async () => {
+    if (analysisTimeoutRef.current) {
+      clearTimeout(analysisTimeoutRef.current);
+    }
+
+    setShowQuickModal(false);
+    setShowResult(false);
+    setIsAnalyzing(true);
+    setQuickDiagnosisError(null);
+
+    const targetGradeNumber = Number(targetGrade.replace(/\D/g, '')) || 4;
+    const startedAt = Date.now();
+
+    const ensureMinimumLoading = async () => {
+      const elapsed = Date.now() - startedAt;
+      const remain = Math.max(0, 1400 - elapsed);
+      if (remain > 0) {
+        await new Promise((resolve) => {
+          analysisTimeoutRef.current = setTimeout(() => {
+            analysisTimeoutRef.current = null;
+            resolve(null);
+          }, remain);
+        });
+      }
+    };
+
+    try {
+      const response = await analyzeStep1.get({
+        step: 'step2',
+        region: normalizedRegion,
+        totalArea: safeArea,
+        floorCount: safeFloors,
+        targetGrade: targetGradeNumber,
+      });
+
+      await ensureMinimumLoading();
+      setQuickDiagnosis(buildQuickDiagnosisPayload(response, targetGradeNumber));
+      setIsAnalyzing(false);
+      setShowResult(true);
+    } catch (error) {
+      await ensureMinimumLoading();
+      setQuickDiagnosis(null);
+      setIsAnalyzing(false);
+      setQuickDiagnosisError('분석 요청에 실패했습니다. 입력값 또는 백엔드 연결 상태를 확인해주세요.');
+    }
+  }, [normalizedRegion, safeArea, safeFloors, targetGrade]);
 
   const summary = useMemo(() => {
     const selfSufficiency = Math.max(
@@ -155,58 +423,27 @@ export default function Landing() {
     };
   }, [safeArea, safeFloors]);
 
-  const diagnosisCards: (DiagnosisCard & { icon: LucideIcon })[] = [
-    {
-      label: '신재생 의무설치비율',
-      icon: SunMedium,
-      subtitle: 'Baseline',
-      ratio: summary.renewableRatio,
-      grade: '기준 충족',
-      emphasis: 'low',
-      metricLabel: '의무 설치비율',
-      metricSuffix: '%',
-      badgeLabel: '신재생 기준',
-      gradeLabel: '판단 상태',
-      metaLabel: '신재생 설비 기준',
-      metaValue: '연면적 기준 적용',
-    },
-    {
-      label: 'ZEB 의무 등급',
-      icon: Shield,
-      subtitle: 'Required',
-      ratio: 20.8,
-      grade: '5등급',
-      emphasis: 'mid',
-      metricLabel: '에너지 자립률',
-      metricSuffix: '%',
-      badgeLabel: 'ZEB 등급',
-      gradeLabel: '등급 기준',
-      metaLabel: 'ZEB 등급 기준',
-      metaValue: '공공 의무 기준',
-      detailRows: [
-        { label: '1차 에너지 생산량', value: '33.8 kWh/㎡·yr' },
-        { label: '1차 에너지 소요량', value: '129.0 kWh/㎡·yr' },
-      ],
-    },
-    {
-      label: 'ZEB 목표 등급',
-      icon: Target,
-      subtitle: 'User Target',
-      ratio: summary.selfSufficiency,
-      grade: summary.predictedGrade,
-      emphasis: 'high',
-      metricLabel: '에너지 자립률',
-      metricSuffix: '%',
-      badgeLabel: 'ZEB 등급',
-      gradeLabel: '목표 등급',
-      metaLabel: 'ZEB 등급 기준',
-      metaValue: '사용자 목표 입력',
-      detailRows: [
-        { label: '1차 에너지 생산량', value: `${summary.production} kWh/㎡·yr` },
-        { label: '1차 에너지 소요량', value: `${summary.demand} kWh/㎡·yr` },
-      ],
-    },
-  ];
+  const epiSummary = useMemo<QuickEpiSummary>(() => {
+    const sizeKey = safeArea >= 3000 ? 'large' : 'small';
+    const hvacKey = isOfficeUsage ? officeSystem : 'central';
+    const benchmarkScore = EPI_STANDARD_BENCHMARKS[sizeKey][hvacKey];
+
+    return {
+      benchmarkScore,
+      meetsThreshold: benchmarkScore >= EPI_PASS_SCORE,
+      sizeLabel: sizeKey === 'large' ? '대형 (3,000㎡ 이상)' : '소형 (3,000㎡ 미만)',
+      hvacLabel: hvacKey === 'central' ? '중앙식' : '개별식',
+      modelLabel: `비주거 ${sizeKey === 'large' ? '대형' : '소형'} · ${
+        hvacKey === 'central' ? '중앙식' : '개별식'
+      }`,
+      areaRuleText:
+        sizeKey === 'large'
+          ? '현재 연면적은 대형 구간입니다. 3,000㎡ 이상에서는 같은 EPI 표준모델 기준점수를 사용합니다.'
+          : `현재 연면적은 소형 구간입니다. 3,000㎡ 이상이 되면 대형 기준으로 바뀝니다. (${3000 - safeArea}㎡ 남음)`,
+    };
+  }, [isOfficeUsage, officeSystem, safeArea]);
+
+  const diagnosisCards = quickDiagnosis?.cards ?? [];
 
   const identityCards = [
     { icon: Shield, title: '설계 판단', body: '초기 판단값을 먼저 고정', color: 'indigo' as const },
@@ -499,7 +736,7 @@ export default function Landing() {
             </div>
 
             <div className="mt-5 rounded-[28px] border border-slate-200 bg-slate-50 p-4 md:p-5">
-              {showResult ? (
+              {showResult && quickDiagnosis ? (
                 <motion.div
                   variants={staggerContainer}
                   initial="hidden"
@@ -577,6 +814,29 @@ export default function Landing() {
                     );
                   })}
                 </motion.div>
+              ) : isAnalyzing ? (
+                <div className="flex min-h-[320px] items-center justify-center rounded-[22px] border border-slate-200 bg-white text-center">
+                  <div>
+                    <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full border border-teal-100 bg-teal-50">
+                      <div className="h-7 w-7 animate-spin rounded-full border-2 border-teal-600 border-t-transparent" />
+                    </div>
+                    <div className="text-sm font-semibold text-slate-700">
+                      표준모델 분석 중입니다
+                    </div>
+                    <div className="mt-2 text-sm text-slate-400">
+                      입력한 연면적과 조건을 기준으로 3개 결과 카드를 준비하고 있습니다
+                    </div>
+                  </div>
+                </div>
+              ) : quickDiagnosisError ? (
+                <div className="flex min-h-[320px] items-center justify-center rounded-[22px] border border-rose-200 bg-rose-50 text-center">
+                  <div>
+                    <div className="text-sm font-semibold text-rose-700">
+                      간편 진단을 완료하지 못했습니다
+                    </div>
+                    <div className="mt-2 text-sm text-rose-600">{quickDiagnosisError}</div>
+                  </div>
+                </div>
               ) : (
                 <div className="flex min-h-[320px] items-center justify-center rounded-[22px] border border-dashed border-slate-300 bg-white text-center">
                   <div>
@@ -596,13 +856,16 @@ export default function Landing() {
               )}
             </div>
 
-            {showResult ? (
+            {showResult && quickDiagnosis ? (
               <div className="mt-6 rounded-[28px] border border-slate-200 bg-white p-6">
                 <div className="text-[14px] font-medium leading-7 text-slate-700">
-                  {summary.guidance}
+                  {quickDiagnosis.guidance}
+                </div>
+                <div className="mt-2 text-sm leading-6 text-slate-500">
+                  {quickDiagnosis.summary}
                 </div>
                 <div className="mt-3 text-sm leading-6 text-slate-500">
-                  본 결과는 표준모델 기반 간편 진단입니다. 상세 시나리오 비교 및 저장은 프로젝트 생성 후 가능합니다.
+                  본 결과는 기존 백엔드 분석 API 응답 기반 간편 진단입니다. 상세 시나리오 비교 및 저장은 프로젝트 생성 후 가능합니다.
                 </div>
                 <div className="mt-6 flex flex-nowrap items-center gap-3 overflow-x-auto">
                   <motion.button
@@ -650,7 +913,11 @@ export default function Landing() {
         styles={{ body: { padding: 0 } }}
       >
         {authModalMode === 'login' ? (
-          <LoginForm embedded onSwitchToSignup={() => setAuthModalMode('signup')} />
+          <LoginForm
+            embedded
+            onSwitchToSignup={() => setAuthModalMode('signup')}
+            onSuccess={() => setAuthModalOpen(false)}
+          />
         ) : (
           <SignupForm embedded onSwitchToLogin={() => setAuthModalMode('login')} />
         )}
@@ -733,7 +1000,7 @@ export default function Landing() {
                     간편 진단
                   </div>
                   <div className="mt-2 text-sm leading-6 text-slate-500">
-                    프로젝트 생성 없이, 랜딩 화면에서 바로 핵심 판단값 3개를 확인합니다.
+                    프로젝트 생성 없이, 랜딩 화면에서 핵심 판단값 3개를 바로 확인합니다.
                   </div>
                 </div>
                 <IconButton onClick={() => setShowQuickModal(false)}>
@@ -741,65 +1008,176 @@ export default function Landing() {
                 </IconButton>
               </div>
 
-              <motion.div
-                variants={staggerContainer}
-                initial="hidden"
-                animate="show"
-                className="mt-6 grid gap-4 md:grid-cols-2"
-              >
-                <Field label="지역">
-                  <select
-                    value={area}
-                    onChange={(e) => setArea(e.target.value)}
-                    className={inputClassName}
-                  >
-                    <option>서울</option>
-                    <option>경기</option>
-                    <option>인천</option>
-                    <option>부산</option>
-                  </select>
-                </Field>
-                <Field label="용도">
-                  <select
-                    value={usage}
-                    onChange={(e) => setUsage(e.target.value)}
-                    className={inputClassName}
-                  >
-                    <option>업무시설</option>
-                    <option>교육연구시설</option>
-                    <option>공동주택</option>
-                    <option>판매시설</option>
-                  </select>
-                </Field>
-                <Field label="연면적(㎡)">
-                  <input
-                    value={grossFloorArea}
-                    onChange={(e) => setGrossFloorArea(e.target.value)}
-                    className={inputClassName}
-                  />
-                </Field>
-                <Field label="층수">
-                  <input
-                    value={floors}
-                    onChange={(e) => setFloors(e.target.value)}
-                    className={inputClassName}
-                  />
-                </Field>
-              </motion.div>
-
-              <div className="mt-4">
-                <Field label="목표 ZEB 등급">
-                  <select
-                    value={targetGrade}
-                    onChange={(e) => setTargetGrade(e.target.value)}
-                    className={inputClassName}
-                  >
-                    <option>5등급</option>
-                    <option>4등급</option>
-                    <option>3등급</option>
-                  </select>
-                </Field>
+              {/* STEP 1: 서비스 선택 */}
+              <div className="mt-6">
+                <div className="mb-3 text-xs font-semibold tracking-[0.18em] text-slate-400">
+                  STEP 1 · 서비스 선택 <span className="font-normal text-slate-400">(다중 선택)</span>
+                </div>
+                <div className="flex gap-3">
+                  {(['신재생', 'ZEB', 'EPI'] as const).map((svc) => (
+                    <button
+                      key={svc}
+                      type="button"
+                      onClick={() => toggleService(svc)}
+                      className={`flex-1 rounded-2xl border py-3 text-sm font-semibold transition-colors ${
+                        selectedServices.has(svc)
+                          ? 'border-teal-400 bg-teal-50 text-teal-700'
+                          : 'border-slate-200 bg-white text-slate-400 hover:border-slate-300 hover:text-slate-600'
+                      }`}
+                    >
+                      {svc}
+                    </button>
+                  ))}
+                </div>
               </div>
+
+              {/* STEP 2: 서비스별 입력 필드 */}
+              {selectedServices.size > 0 ? (
+                <>
+                  <div className="mt-5 mb-3 text-xs font-semibold tracking-[0.18em] text-slate-400">
+                    STEP 2 · 입력 정보
+                  </div>
+                  <motion.div
+                    variants={staggerContainer}
+                    initial="hidden"
+                    animate="show"
+                    className="grid gap-4 md:grid-cols-2"
+                  >
+                    {showRegionField ? (
+                      <Field label="지역 / 주소" className="md:col-span-2">
+                        <div className="space-y-3">
+                          <div className="flex gap-2">
+                            <input
+                              value={area}
+                              onChange={(e) => setArea(e.target.value)}
+                              className={`${inputClassName} flex-1`}
+                              placeholder="주소 검색 또는 직접 입력"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowQuickAddressSearch((prev) => !prev)}
+                              className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 transition hover:border-teal-300 hover:text-teal-700"
+                            >
+                              주소 검색
+                            </button>
+                          </div>
+                          {showQuickAddressSearch ? (
+                            <div className="overflow-hidden rounded-[20px] border border-slate-200 bg-white">
+                              <DaumPostcodeEmbed
+                                onComplete={handleQuickAddressComplete}
+                                onClose={() => setShowQuickAddressSearch(false)}
+                                style={{ height: '360px' }}
+                              />
+                            </div>
+                          ) : null}
+                        </div>
+                      </Field>
+                    ) : null}
+
+                    {showUsageField ? (
+                      <Field label="용도">
+                        <select
+                          value={usage}
+                          onChange={(e) => setUsage(e.target.value as (typeof QUICK_USAGE_OPTIONS)[number])}
+                          className={inputClassName}
+                        >
+                          {QUICK_USAGE_OPTIONS.map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                        </select>
+                      </Field>
+                    ) : null}
+
+                    <Field label="연면적(㎡)" className={!showUsageField ? 'md:col-span-2' : ''}>
+                      <input
+                        value={grossFloorArea}
+                        onChange={(e) => setGrossFloorArea(e.target.value)}
+                        className={inputClassName}
+                      />
+                    </Field>
+
+                    {showFloorsField ? (
+                      <Field label="층수">
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setFloors(String(Math.max(1, Number(floors) - 1)))}
+                            className="flex h-[50px] w-[50px] shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-xl font-medium text-slate-600 transition hover:border-teal-300 hover:text-teal-700"
+                          >
+                            −
+                          </button>
+                          <input
+                            value={floors}
+                            onChange={(e) => setFloors(e.target.value)}
+                            className={`${inputClassName} text-center`}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setFloors(String(Number(floors) + 1))}
+                            className="flex h-[50px] w-[50px] shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-xl font-medium text-slate-600 transition hover:border-teal-300 hover:text-teal-700"
+                          >
+                            +
+                          </button>
+                        </div>
+                      </Field>
+                    ) : null}
+
+                    {showEquipmentField ? (
+                      <Field label="설비 방식">
+                        <div className="relative flex rounded-2xl border border-slate-200 bg-slate-100 p-1">
+                          <div
+                            className="pointer-events-none absolute inset-y-1 rounded-xl bg-[#0F2044] transition-all duration-200"
+                            style={{
+                              width: 'calc(50% - 4px)',
+                              left: officeSystem === 'individual' ? '4px' : 'calc(50%)',
+                            }}
+                          />
+                          {OFFICE_SYSTEM_OPTIONS.map((option) => (
+                            <button
+                              key={option.value}
+                              type="button"
+                              onClick={() =>
+                                setOfficeSystem(
+                                  option.value as (typeof OFFICE_SYSTEM_OPTIONS)[number]['value'],
+                                )
+                              }
+                              className={`relative z-10 flex-1 rounded-xl py-2.5 text-sm font-medium transition-colors duration-200 ${
+                                officeSystem === option.value ? 'text-white' : 'text-slate-500'
+                              }`}
+                            >
+                              {option.label}
+                            </button>
+                          ))}
+                        </div>
+                      </Field>
+                    ) : null}
+                  </motion.div>
+
+                  {showTargetGradeField ? (
+                    <div className="mt-4">
+                      <Field label="ZEB 목표 등급">
+                        <select
+                          value={targetGrade}
+                          onChange={(e) => setTargetGrade(e.target.value)}
+                          className={inputClassName}
+                        >
+                          <option>5등급</option>
+                          <option>4등급</option>
+                          <option>3등급</option>
+                          <option>2등급</option>
+                          <option>1등급</option>
+                        </select>
+                      </Field>
+                    </div>
+                  ) : null}
+                </>
+              ) : (
+                <div className="mt-5 flex min-h-[100px] items-center justify-center rounded-[20px] border border-dashed border-slate-300 bg-white text-sm text-slate-400">
+                  서비스를 선택하면 입력 항목이 표시됩니다
+                </div>
+              )}
 
               <motion.div
                 initial={{ opacity: 0, y: 8 }}
@@ -822,11 +1200,9 @@ export default function Landing() {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  onClick={() => {
-                    setShowQuickModal(false);
-                    setShowResult(true);
-                  }}
-                  className="rounded-full bg-[#0F2044] px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#1a3066]"
+                  onClick={startQuickDiagnosis}
+                  disabled={selectedServices.size === 0}
+                  className="rounded-full bg-[#0F2044] px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#1a3066] disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   예측 시작
                 </motion.button>
@@ -981,9 +1357,9 @@ function IconButton({
   );
 }
 
-function Field({ label, children }: FieldProps) {
+function Field({ label, children, className }: FieldProps) {
   return (
-    <motion.label variants={slideUpFast} className="block">
+    <motion.label variants={slideUpFast} className={['block', className].filter(Boolean).join(' ')}>
       <div className="mb-2 text-sm font-semibold text-slate-700">{label}</div>
       {children}
     </motion.label>

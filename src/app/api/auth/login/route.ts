@@ -1,5 +1,13 @@
 import { NextResponse } from 'next/server';
-import { callGateway, extractToken, getAuthPath, setSessionCookie, toGatewayPayload } from '../shared';
+import {
+  callGateway,
+  extractToken,
+  extractUser,
+  getAuthPath,
+  setSessionCookie,
+  setSessionUserCookie,
+  toGatewayPayload,
+} from '../shared';
 
 type LoginBody = {
   email?: string;
@@ -43,9 +51,9 @@ export async function POST(request: Request) {
     );
 
     const token = extractToken(result.data);
-    if (token) {
-      setSessionCookie(response, token);
-    }
+    const user = extractUser(result.data);
+    setSessionCookie(response, token || 'authenticated');
+    setSessionUserCookie(response, user);
 
     return response;
   } catch (error: any) {

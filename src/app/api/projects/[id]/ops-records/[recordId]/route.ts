@@ -14,6 +14,10 @@ function nowStamp() {
   return `${yy}-${mm}-${dd} ${hh}:${mi}`;
 }
 
+function nextOperationalStatus(status: Project['status']): Project['status'] {
+  return status === '신규' ? '진행중' : status;
+}
+
 export async function PATCH(request: Request, context: Ctx) {
   try {
     const { id: projectId, recordId } = await context.params;
@@ -44,6 +48,7 @@ export async function PATCH(request: Request, context: Ctx) {
 
     const project: Project = {
       ...prev,
+      status: nextOperationalStatus(prev.status),
       updatedAt,
       opsRecords: nextRecords,
     };
@@ -74,6 +79,7 @@ export async function DELETE(_request: Request, context: Ctx) {
     const updatedAt = nowStamp();
     const project: Project = {
       ...prev,
+      status: nextOperationalStatus(prev.status),
       updatedAt,
       opsRecords: nextRecords,
     };

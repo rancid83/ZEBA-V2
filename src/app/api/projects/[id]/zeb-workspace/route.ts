@@ -15,6 +15,10 @@ function nowStamp() {
   return `${yy}-${mm}-${dd} ${hh}:${mi}`;
 }
 
+function nextOperationalStatus(status: Project['status']): Project['status'] {
+  return status === '신규' ? '진행중' : status;
+}
+
 function isValidWorkspace(body: unknown): body is ZebMultiScenarioWorkspaceState {
   if (!body || typeof body !== 'object') return false;
   const o = body as Record<string, unknown>;
@@ -45,6 +49,7 @@ export async function PATCH(request: Request, context: Ctx) {
     const updatedAt = nowStamp();
     const project: Project = {
       ...prev,
+      status: nextOperationalStatus(prev.status),
       updatedAt,
       zebWorkspace: body,
     };

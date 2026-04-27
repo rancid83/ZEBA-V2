@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { devtools } from 'zustand/middleware';
+import { devtools, persist, createJSONStorage } from 'zustand/middleware';
 import { createLoadingSlice, LoadingSlice } from './slices/loadingSlice';
 import { createGradeSlice, GradeSlice } from './slices/gradeSlice';
 import {
@@ -32,6 +32,7 @@ import { createFormDataSlice, FormDataSlice } from './slices/formDataSlice';
 import { createRequestSlice, RequestSlice } from './slices/requestSlice';
 import { createEnergyTabSlice, EnergyTabSlice } from './slices/energyTabSlice';
 import { AuthSlice, createAuthSlice } from './slices/authSlice';
+import { NotificationSlice, createNotificationSlice } from './slices/notificationSlice';
 
 // 모든 슬라이스를 합친 스토어 타입
 type StoreState = LoadingSlice &
@@ -47,27 +48,36 @@ type StoreState = LoadingSlice &
   FormDataSlice &
   RequestSlice &
   EnergyTabSlice &
-  AuthSlice;
+  AuthSlice &
+  NotificationSlice;
 
 // 통합 스토어 생성
 export const useStore = create<StoreState>()(
   devtools(
-    (set, get) => ({
-      ...createLoadingSlice(set),
-      ...createGradeSlice(set),
-      ...createGradeBuildingSlice(set),
-      ...createGradeDataPercentSlice(set),
-      ...createPageSlice(set),
-      ...createStandardModelPerformanceSlice(set, get),
-      ...createActiveDataSlice(set),
-      ...createPassiveDataSlice(set),
-      ...createRenewableDataSlice(set),
-      ...createBarChartSlice(set),
-      ...createFormDataSlice(set),
-      ...createRequestSlice(set),
-      ...createEnergyTabSlice(set),
-      ...createAuthSlice(set),
-    }),
+    persist(
+      (set, get) => ({
+        ...createLoadingSlice(set),
+        ...createGradeSlice(set),
+        ...createGradeBuildingSlice(set),
+        ...createGradeDataPercentSlice(set),
+        ...createPageSlice(set),
+        ...createStandardModelPerformanceSlice(set, get),
+        ...createActiveDataSlice(set),
+        ...createPassiveDataSlice(set),
+        ...createRenewableDataSlice(set),
+        ...createBarChartSlice(set),
+        ...createFormDataSlice(set),
+        ...createRequestSlice(set),
+        ...createEnergyTabSlice(set),
+        ...createAuthSlice(set),
+        ...createNotificationSlice(set),
+      }),
+      {
+        name: 'zeba-auth',
+        storage: createJSONStorage(() => localStorage),
+        partialize: (state) => ({ user: state.user }),
+      },
+    ),
     {
       name: 'zeba-store',
     },

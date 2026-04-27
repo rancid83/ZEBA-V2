@@ -3,7 +3,7 @@
 import { Form, Input, Button } from 'antd';
 import { UserOutlined, LockOutlined, MailOutlined } from '@ant-design/icons';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { useState } from 'react';
 import styles from './Auth.module.scss';
 import { useStore } from '@/store';
@@ -15,6 +15,8 @@ type SignupFormProps = {
 
 const SignupForm = ({ embedded, onSwitchToLogin }: SignupFormProps) => {
   const router = useRouter();
+  const params = useParams();
+  const lang = typeof params?.lang === 'string' ? params.lang : 'ko';
   const setUser = useStore((state) => state.setUser);
   const [loading, setLoading] = useState(false);
   const [serverError, setServerError] = useState('');
@@ -48,8 +50,12 @@ const SignupForm = ({ embedded, onSwitchToLogin }: SignupFormProps) => {
       }
 
       setUser({
-        email: values.email,
-        name: values.name,
+        id: payload?.data?.id || payload?.data?.user?.id,
+        email: payload?.data?.email || payload?.data?.user?.email || values.email,
+        name: payload?.data?.name || payload?.data?.user?.name || values.name,
+        company_name: payload?.data?.company_name || payload?.data?.user?.company_name,
+        write_permission_yn:
+          payload?.data?.write_permission_yn || payload?.data?.user?.write_permission_yn,
       });
       router.push('/project-hub');
     } catch (error: any) {
@@ -161,7 +167,7 @@ const SignupForm = ({ embedded, onSwitchToLogin }: SignupFormProps) => {
             로그인
           </button>
         ) : (
-          <Link href="/login">로그인</Link>
+          <Link href={`/${lang}/login`}>로그인</Link>
         )}
       </p>
     </div>

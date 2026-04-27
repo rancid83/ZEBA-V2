@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { Project } from '@/types/projectHubData';
 import { readProjectsFile, writeProjectsFile } from '@/server/hubJsonStore';
+import { triggerNotification } from '@/app/api/notifications/shared';
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -45,7 +46,14 @@ export async function DELETE(_request: Request, context: Ctx) {
     if (next.length === projects.length) {
       return NextResponse.json({ error: '없는 프로젝트입니다.' }, { status: 404 });
     }
+    const deleted = projects.find((p) => p.id === id);
     await writeProjectsFile(next);
+    if (deleted) {
+      void triggerNotification('project_deleted', {
+        project_id: deleted.id,
+        project_name: deleted.name,
+      });
+    }
     return NextResponse.json({ ok: true });
   } catch (e) {
     console.error(e);

@@ -15,6 +15,7 @@ import {
 import { Button, Input, Modal, Select } from 'antd';
 import LoginForm from '@/components/Auth/LoginForm';
 import SignupForm from '@/components/Auth/SignupForm';
+import { useAuthStatus } from '@/hooks/useAuthStatus';
 import {
   platformCards,
   flow,
@@ -90,6 +91,7 @@ export default function LandingStyleB() {
   const [expandedSpec, setExpandedSpec] = useState<string | null>(null);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'login' | 'signup'>('login');
+  const { authenticated, logout } = useAuthStatus();
 
   const summary = useMemo(
     () => computeSummary(grossFloorArea, floors),
@@ -111,26 +113,39 @@ export default function LandingStyleB() {
             <div className={styles.headerLogoTagline}>세움터 이전 단계의 설계 판단 플랫폼</div>
           </div>
           <div className={styles.headerActions}>
-            <button
-              type="button"
-              className={styles.headerLinkText}
-              onClick={() => {
-                setAuthModalMode('login');
-                setAuthModalOpen(true);
-              }}
-            >
-              로그인
-            </button>
-            <button
-              type="button"
-              className={styles.headerLinkText}
-              onClick={() => {
-                setAuthModalMode('signup');
-                setAuthModalOpen(true);
-              }}
-            >
-              회원가입
-            </button>
+            {authenticated ? (
+              <>
+                <button type="button" className={styles.headerLinkText} onClick={onMoveMain}>
+                  마이페이지
+                </button>
+                <button type="button" className={styles.headerLinkText} onClick={() => void logout()}>
+                  로그아웃
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  className={styles.headerLinkText}
+                  onClick={() => {
+                    setAuthModalMode('login');
+                    setAuthModalOpen(true);
+                  }}
+                >
+                  로그인
+                </button>
+                <button
+                  type="button"
+                  className={styles.headerLinkText}
+                  onClick={() => {
+                    setAuthModalMode('signup');
+                    setAuthModalOpen(true);
+                  }}
+                >
+                  회원가입
+                </button>
+              </>
+            )}
             <Link href="/project-hub" className={styles.headerBtnSecondary}>
               프로젝트 현황
             </Link>
@@ -508,6 +523,7 @@ export default function LandingStyleB() {
             <LoginForm
               embedded
               onSwitchToSignup={() => setAuthModalMode('signup')}
+              onSuccess={() => setAuthModalOpen(false)}
             />
           ) : (
             <SignupForm
