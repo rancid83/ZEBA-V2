@@ -6,9 +6,9 @@
  */
 
 import React, { useState } from 'react';
-import { GRADED_RATIOS, SECTION_LABELS } from '../data/epiData';
-import { useEpiCalculator } from '../hooks/useEpiCalculator';
-import type { SectionKey } from '../types/epi.types';
+import { GRADED_RATIOS } from './epiData';
+import { useEpiCalculator } from './useEpiCalculator';
+import type { ItemResult, SectionKey, SectionResult } from './epi.types';
 
 // ─────────────────────────────────────────────
 // 서브 컴포넌트: 건물 정보 입력
@@ -119,7 +119,7 @@ export function SectionChecklist({
             </tr>
           </thead>
           <tbody>
-            {sectionResult.items.map((item) => {
+            {sectionResult.items.map((item: ItemResult) => {
               const input = sectionInputs?.[item.no];
               const value = input?.value ?? null;
 
@@ -263,7 +263,7 @@ export function ResultSummary({
 
       {/* 부문별 점수 바 차트 */}
       <div className="section-bars">
-        {result.sections.map((s) => (
+        {result.sections.map((s: SectionResult) => (
           <div key={s.section} className="section-bar-row">
             <span className="section-label">{s.sectionLabel}</span>
             <div className="bar-track">
@@ -322,7 +322,7 @@ export function EpiCalculator() {
             onChange={setBuildingInfo}
           />
 
-          {result.sections.map((sectionResult) => (
+          {result.sections.map((sectionResult: SectionResult) => (
             <SectionChecklist
               key={sectionResult.section}
               sectionResult={sectionResult}

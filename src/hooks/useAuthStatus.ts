@@ -18,7 +18,9 @@ export function useAuthStatus() {
       const payload = await response.json();
       if (payload?.authenticated && payload?.user) {
         setUser(payload.user);
-      } else if (!payload?.authenticated) {
+      } else if (!payload?.authenticated && !payload?.user) {
+        // 쿠키가 완전히 없거나 만료된 경우에만 클라이언트 상태를 초기화한다.
+        // payload.user가 있으면 세션 쿠키는 살아있는 것이므로 유지한다.
         clearUser();
       }
     } catch {

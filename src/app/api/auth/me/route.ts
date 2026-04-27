@@ -81,7 +81,13 @@ export async function PATCH(request: Request) {
     );
   }
 
-  const localUser = { email, name, company_name };
+  const localUser = {
+    id: sessionUser?.id,
+    email,
+    name,
+    company_name,
+    write_permission_yn: sessionUser?.write_permission_yn,
+  };
 
   // 쿠키가 없거나 placeholder인 경우 게이트웨이 없이 클라이언트 상태만 업데이트
   if (!token || token === 'authenticated') {

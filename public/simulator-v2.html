@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>건물 에너지 진단 시뮬레이터</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Noto+Sans+KR:wght@300;400;500;600&display=swap');
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg:#0b0d12;
+  --surface:#111318;
+  --surface2:#181c24;
+  --surface3:#1e222d;
+  --border:#252b38;
+  --border2:#2e3547;
+  --teal:#2dd4bf;
+  --teal-dim:rgba(45,212,191,0.10);
+  --teal-mid:rgba(45,212,191,0.22);
+  --blue:#60a5fa;
+  --blue-dim:rgba(96,165,250,0.10);
+  --amber:#fbbf24;
+  --amber-dim:rgba(251,191,36,0.10);
+  --coral:#fb7185;
+  --coral-dim:rgba(251,113,133,0.10);
+  --green:#4ade80;
+  --red:#f87171;
+  --text:#e2e8f0;
+  --text2:#94a3b8;
+  --text3:#64748b;
+  --mono:'DM Mono',monospace;
+  --sans:'Noto Sans KR',sans-serif;
+}
+
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.6;min-height:100vh;overflow-x:hidden}
+
+/* ── LAYOUT ── */
+.app{display:grid;grid-template-rows:56px 1fr;min-height:100vh}
+.topbar{
+  background:var(--surface);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:14px;padding:0 28px;
+  position:sticky;top:0;z-index:200;
+}
+.topbar-logo{font-family:var(--mono);font-size:13px;color:var(--teal);letter-spacing:.12em}
+.topbar-slash{color:var(--border2)}
+.topbar-title{font-size:13px;font-weight:500;color:var(--text2)}
+.topbar-right{margin-left:auto;display:flex;gap:8px;align-items:center}
+.topbar-badge{
+  font-family:var(--mono);font-size:9px;padding:3px 8px;border-radius:3px;letter-spacing:.1em;
+  background:var(--teal-dim);border:1px solid var(--teal);color:var(--teal);
+}
+
+.body{display:grid;grid-template-columns:320px 1fr;min-height:calc(100vh - 56px)}
+
+/* ── LEFT PANEL ── */
+.left{
+  background:var(--surface);border-right:1px solid var(--border);
+  padding:0;overflow-y:auto;
+  position:sticky;top:56px;height:calc(100vh - 56px);
+}
+
+.panel-section{padding:20px 22px;border-bottom:1px solid var(--border)}
+.panel-label{
+  font-family:var(--mono);font-size:10px;color:var(--text3);
+  letter-spacing:.12em;margin-bottom:14px;display:flex;align-items:center;gap:6px;
+}
+.panel-label::before{content:'';width:3px;height:10px;background:var(--teal);border-radius:2px;display:inline-block}
+
+/* service chips */
+.svc-row{display:flex;gap:8px}
+.svc-chip{
+  flex:1;padding:9px 6px;border-radius:7px;
+  border:1px solid var(--border2);background:var(--surface2);
+  color:var(--text3);font-size:12px;font-weight:500;font-family:var(--sans);
+  cursor:pointer;transition:all .18s;text-align:center;
+}
+.svc-chip:hover{border-color:var(--teal);color:var(--teal)}
+.svc-chip.on{background:var(--teal-dim);border-color:var(--teal);color:var(--teal);font-weight:600}
+
+/* field groups */
+.fgroup{margin-bottom:14px}
+.fgroup.dim{opacity:.3;pointer-events:none}
+.flabel{
+  font-size:11px;font-weight:500;color:var(--text2);
+  margin-bottom:6px;display:flex;align-items:center;gap:6px;
+}
+.ftag{font-size:9px;padding:2px 6px;border-radius:3px;font-family:var(--mono);letter-spacing:.04em}
+.ftag-r{background:var(--teal-dim);color:var(--teal)}
+.ftag-o{background:var(--surface3);color:var(--text3)}
+
+.finput{
+  width:100%;background:var(--surface2);border:1px solid var(--border2);
+  color:var(--text);padding:9px 12px;border-radius:7px;font-size:13px;
+  font-family:var(--sans);outline:none;transition:border-color .18s;
+  appearance:none;
+}
+.finput:focus{border-color:var(--teal)}
+select.finput{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%2364748b' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
+
+.stepper{display:flex;align-items:center;background:var(--surface2);border:1px solid var(--border2);border-radius:7px;overflow:hidden}
+.stepper-btn{width:38px;height:38px;background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;transition:all .15s;display:flex;align-items:center;justify-content:center;font-family:var(--sans)}
+.stepper-btn:hover{background:var(--surface3);color:var(--teal)}
+.stepper-val{flex:1;text-align:center;font-size:14px;font-weight:500;font-family:var(--mono);color:var(--text);background:none;border:none;outline:none}
+
+.toggle-row{display:grid;grid-template-columns:1fr 1fr;background:var(--surface2);border:1px solid var(--border2);border-radius:7px;overflow:hidden}
+.toggle-opt{padding:9px;border:none;background:none;color:var(--text3);font-size:12px;font-weight:500;cursor:pointer;font-family:var(--sans);transition:all .18s}
+.toggle-opt.on{background:var(--teal);color:#0a0e14;font-weight:700}
+
+.run-btn{
+  width:100%;background:var(--teal);color:#0a0e14;border:none;
+  padding:13px;border-radius:8px;font-size:13px;font-weight:700;
+  cursor:pointer;font-family:var(--sans);letter-spacing:.04em;
+  transition:all .18s;margin-top:4px;
+}
+.run-btn:hover{background:#14b8a6;transform:translateY(-1px)}
+.run-btn:active{transform:none}
+
+/* state indicator dot */
+.dot-on{width:6px;height:6px;border-radius:50%;background:var(--teal);display:inline-block}
+.dot-off{width:6px;height:6px;border-radius:50%;background:var(--border2);display:inline-block}
+
+/* ── RIGHT PANEL ── */
+.right{padding:28px 32px;overflow-y:auto}
+
+.empty{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:400px;gap:16px;color:var(--text3);
+}
+.empty-icon{
+  width:56px;height:56px;border-radius:14px;background:var(--surface2);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;font-size:22px;
+}
+.empty p{font-size:13px;text-align:center;line-height:1.8}
+
+/* result sections */
+.res-section{margin-bottom:40px}
+.res-header{
+  display:flex;align-items:center;gap:10px;margin-bottom:20px;
+  padding-bottom:12px;border-bottom:1px solid var(--border);
+}
+.res-icon{
+  width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;
+}
+.res-title{font-size:15px;font-weight:600}
+.res-sub{font-size:11px;color:var(--text3);margin-left:auto;font-family:var(--mono)}
+
+/* cards */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;margin-bottom:16px}
+.card{
+  background:var(--surface);border:1px solid var(--border);border-radius:10px;
+  padding:14px 16px;transition:border-color .18s;
+}
+.card:hover{border-color:var(--border2)}
+.card.hl{border-color:var(--teal);background:rgba(45,212,191,0.04)}
+.card.hl-blue{border-color:var(--blue);background:var(--blue-dim)}
+.card.hl-amber{border-color:var(--amber);background:var(--amber-dim)}
+.card-lbl{font-size:11px;color:var(--text3);margin-bottom:6px;font-weight:500}
+.card-val{font-size:20px;font-weight:700;font-family:var(--mono);line-height:1.2}
+.card-unit{font-size:11px;color:var(--text3);margin-top:4px}
+.c-teal{color:var(--teal)}.c-blue{color:var(--blue)}.c-amber{color:var(--amber)}
+.c-green{color:var(--green)}.c-red{color:var(--red)}.c-text{color:var(--text)}
+
+/* formula box */
+.formula{
+  background:var(--surface2);border:1px solid var(--border);border-radius:8px;
+  padding:14px 16px;margin-bottom:14px;font-family:var(--mono);font-size:12px;
+  color:var(--text2);line-height:1.9;
+}
+.formula .hl{color:var(--teal);font-weight:500}
+.formula .num{color:var(--amber)}
+.formula .cm{color:var(--text3)}
+
+/* progress */
+.prog-wrap{background:var(--surface2);border-radius:100px;height:5px;margin-top:6px;overflow:hidden}
+.prog-bar{height:100%;border-radius:100px;transition:width .6s ease}
+.prog-teal{background:var(--teal)}
+.prog-amber{background:var(--amber)}
+.prog-red{background:var(--red)}
+
+/* divider */
+.divider{height:1px;background:var(--border);margin:32px 0}
+
+/* step3 params */
+.step3-wrap{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:20px}
+.step3-group-title{
+  font-size:11px;font-weight:600;color:var(--text2);margin-bottom:10px;
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+}
+.badge{font-size:9px;padding:2px 7px;border-radius:20px;font-family:var(--mono);font-weight:600;letter-spacing:.04em;white-space:nowrap}
+.badge-pass{background:var(--surface3);color:var(--text3)}
+.badge-calc{background:var(--teal-dim);border:1px solid rgba(45,212,191,.3);color:var(--teal)}
+.badge-fixed{background:var(--blue-dim);border:1px solid rgba(96,165,250,.3);color:var(--blue)}
+.badge-warn{background:var(--amber-dim);border:1px solid rgba(251,191,36,.3);color:var(--amber)}
+.badge-user{background:var(--surface3);color:var(--text3);font-style:italic}
+
+.pfields{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-bottom:8px}
+.pfield{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 11px}
+.pfield-lbl{font-size:9px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px}
+.pfield-val{font-size:13px;font-weight:600;font-family:var(--mono);margin-bottom:2px}
+.pv-pass{color:var(--text2)}
+.pv-calc{color:var(--teal);border-left:2px solid var(--teal);padding-left:5px}
+.pv-fixed{color:var(--blue);border-left:2px solid var(--blue);padding-left:5px}
+.pv-warn{color:var(--amber);border-left:2px solid var(--amber);padding-left:5px}
+.pv-user{color:var(--text3);border-left:2px solid var(--border2);padding-left:5px;font-style:italic}
+.pfield-src{font-size:9px;color:var(--text3);font-family:var(--mono)}
+
+.step3-formula{
+  font-size:11px;color:var(--text3);font-family:var(--mono);
+  background:var(--bg);border:1px solid var(--border);border-radius:6px;
+  padding:8px 12px;line-height:1.9;margin-bottom:4px;
+}
+.step3-warn{
+  font-size:11px;color:var(--amber);background:var(--amber-dim);
+  border:1px solid rgba(251,191,36,.25);border-radius:6px;padding:7px 12px;margin-top:8px;
+}
+
+/* sync flow */
+.sync-flow{
+  display:flex;align-items:center;gap:10px;background:var(--surface2);
+  border:1px dashed var(--border2);border-radius:8px;
+  padding:12px 16px;margin-bottom:16px;font-size:11px;color:var(--text2);flex-wrap:wrap;
+}
+.sync-arrow{color:var(--teal);font-size:16px}
+
+/* EPI table */
+.epi-type-badge{
+  display:inline-flex;align-items:center;gap:8px;
+  background:var(--teal-dim);border:1px solid var(--teal);color:var(--teal);
+  padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600;margin-bottom:14px;
+}
+.warn-box{
+  background:var(--amber-dim);border:1px solid rgba(251,191,36,.3);border-radius:7px;
+  padding:9px 13px;font-size:11px;color:var(--amber);margin-bottom:14px;
+}
+.epi-section-lbl{font-size:11px;color:var(--text3);margin-bottom:7px;font-weight:600;letter-spacing:.05em;text-transform:uppercase}
+.dtable{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:18px}
+.dtable th{background:var(--surface2);color:var(--text3);font-weight:600;padding:7px 10px;text-align:left;border-bottom:1px solid var(--border);font-size:10px;text-transform:uppercase;letter-spacing:.04em}
+.dtable td{padding:8px 10px;border-bottom:1px solid var(--border);color:var(--text2);font-family:var(--mono);font-size:12px}
+.dtable tr:last-child td{border-bottom:none}
+.dtable tr:hover td{background:var(--surface2)}
+.td-name{font-family:var(--sans)!important;color:var(--text)!important}
+.td-teal{color:var(--teal)!important;font-weight:600}
+.td-total{color:var(--teal)!important;font-weight:700!important;background:rgba(45,212,191,.05)!important}
+
+/* result state indicator */
+.status-row{display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:8px;font-size:13px;margin-bottom:8px}
+.status-ok{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.25);color:var(--green)}
+.status-fail{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.25);color:var(--red)}
+
+/* section tabs indicator */
+.active-services{display:flex;gap:6px;margin-left:auto}
+.svc-dot{width:6px;height:6px;border-radius:50%}
+
+/* scrollbar */
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- TOP BAR -->
+<header class="topbar">
+  <span class="topbar-logo">ENERGY</span>
+  <span class="topbar-slash">/</span>
+  <span class="topbar-title">건물 에너지 간편 진단</span>
+  <div class="topbar-right">
+    <span class="topbar-badge">SIMULATOR v2</span>
+  </div>
+</header>
+
+<div class="body">
+
+<!-- ══ LEFT PANEL ══ -->
+<div class="left">
+
+  <!-- STEP 1 -->
+  <div class="panel-section">
+    <div class="panel-label">STEP 1 · 서비스 선택</div>
+    <div class="svc-row">
+      <button class="svc-chip on" id="svc-re" onclick="toggleSvc('re')">신재생</button>
+      <button class="svc-chip on" id="svc-zeb" onclick="toggleSvc('zeb')">ZEB</button>
+      <button class="svc-chip on" id="svc-epi" onclick="toggleSvc('epi')">EPI</button>
+    </div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="panel-section" style="padding-bottom:28px">
+    <div class="panel-label">STEP 2 · 입력 정보</div>
+
+    <!-- 지역 -->
+    <div class="fgroup" id="fg-region">
+      <div class="flabel">지역 <span class="ftag ftag-r">신재생·ZEB</span></div>
+      <select class="finput" id="inp-region">
+        <option value="서울">서울 (1.00)</option>
+        <option value="인천">인천 (0.97)</option>
+        <option value="경기">경기 (0.99)</option>
+        <option value="강원영서">강원 영서 (1.00)</option>
+        <option value="강원영동">강원 영동 (0.97)</option>
+        <option value="대전">대전 (1.00)</option>
+        <option value="충북">충북 (1.00)</option>
+        <option value="충남세종">충남·세종 (0.99)</option>
+        <option value="전북">전북 (1.04)</option>
+        <option value="광주">광주 (1.01)</option>
+        <option value="대구">대구 (1.04)</option>
+        <option value="부산">부산 (0.93)</option>
+        <option value="경남">경남 (1.00)</option>
+        <option value="울산">울산 (0.93)</option>
+        <option value="경북">경북 (0.98)</option>
+        <option value="전남">전남 (0.99)</option>
+        <option value="제주">제주 (0.97)</option>
+      </select>
+    </div>
+
+    <!-- 용도 -->
+    <div class="fgroup" id="fg-use">
+      <div class="flabel">건물 용도 <span class="ftag ftag-r">신재생·ZEB</span></div>
+      <select class="finput" id="inp-use">
+        <option value="공공용">업무시설 (공공용)</option>
+        <option value="상업용">업무시설 (상업용)</option>
+        <option value="교육">교육연구시설</option>
+      </select>
+    </div>
+
+    <!-- 연면적 -->
+    <div class="fgroup">
+      <div class="flabel">연면적 <span class="ftag ftag-r">공통</span></div>
+      <input class="finput" type="number" id="inp-area" value="12000" min="500" step="100"/>
+    </div>
+
+    <!-- 층수 -->
+    <div class="fgroup" id="fg-floor">
+      <div class="flabel">층수 <span class="ftag ftag-r">신재생·ZEB</span></div>
+      <div class="stepper">
+        <button class="stepper-btn" onclick="adj('floor',-1)">−</button>
+        <input class="stepper-val" type="number" id="inp-floor" value="10" min="1"/>
+        <button class="stepper-btn" onclick="adj('floor',1)">+</button>
+      </div>
+    </div>
+
+    <!-- ZEB 등급 -->
+    <div class="fgroup" id="fg-grade">
+      <div class="flabel">ZEB 목표 등급 <span class="ftag ftag-r">ZEB</span></div>
+      <select class="finput" id="inp-grade">
+        <option value="1">1등급 (100% 이상)</option>
+        <option value="2">2등급 (80% 이상)</option>
+        <option value="3">3등급 (60% 이상)</option>
+        <option value="4" selected>4등급 (40% 이상)</option>
+        <option value="5">5등급 (20% 이상)</option>
+      </select>
+    </div>
+
+    <!-- 설비 방식 -->
+    <div class="fgroup" id="fg-hvac">
+      <div class="flabel">설비 방식 <span class="ftag ftag-r">ZEB·EPI</span></div>
+      <div class="toggle-row">
+        <button class="toggle-opt on" id="hvac-ind" onclick="setHvac('개별식')">개별식</button>
+        <button class="toggle-opt" id="hvac-cen" onclick="setHvac('중앙식')">중앙식</button>
+      </div>
+    </div>
+
+    <button class="run-btn" onclick="run()">⚡ 진단 시작</button>
+  </div>
+</div>
+
+<!-- ══ RIGHT PANEL ══ -->
+<div class="right" id="result-panel">
+  <div class="empty" id="empty-state">
+    <div class="empty-icon">⚡</div>
+    <p>서비스를 선택하고 입력 정보를 입력한 뒤<br><strong style="color:var(--text2)">진단 시작</strong>을 눌러주세요</p>
+  </div>
+  <div id="results" style="display:none"></div>
+</div>
+
+</div>
+</div>
+
+<script>
+// ─── STATE ───────────────────────────────────
+const S = {
+  svcs: { re: true, zeb: true, epi: true },
+  hvac: '개별식',
+};
+
+const REGION_COEF = {
+  서울:1, 인천:0.97, 경기:0.99, 강원영서:1, 강원영동:0.97,
+  대전:1, 충북:1, 충남세종:0.99, 전북:1.04, 광주:1.01,
+  대구:1.04, 부산:0.93, 경남:1, 울산:0.93, 경북:0.98,
+  전남:0.99, 제주:0.97,
+};
+const USE_LABEL = { 공공용:'업무시설(공공용)', 상업용:'업무시설(상업용)', 교육:'교육연구시설' };
+
+// 단위에너지사용량 kWh/㎡·yr
+const UNIT_E = { 공공용:371.66, 상업용:374.47, 교육:231.33 };
+
+// 에너지요구량 회귀계수 (a×연면적 + b)
+const EQ_COEF = {
+  공공용:{ a:64.381, b:51965, hr:0.17, cr:0.19 },
+  상업용:{ a:68.763, b:27456, hr:0.10, cr:0.05 },
+  교육:  { a:68.568, b:149822,hr:0.11, cr:0.09 },
+};
+
+// 지열 용량 회귀계수 (heat: c×hReq+d, cool: e×cReq+f)
+const GEO_COEF = {
+  공공용:{ hc:0.0041, hd:173.82, cc:0.0039, cd:132.08 },
+  상업용:{ hc:0.0042, hd:169.23, cc:0.0066, cd:204.83 },
+  교육:  { hc:0.0036, hd:321.09, cc:0.0048, cd:290.84 },
+};
+
+const ZEB_THR = { 1:100, 2:80, 3:60, 4:40, 5:20 };
+
+// EPI 데이터
+const EPI_ARCH = [
+  { n:'외벽의 평균 열관류율', s:[21,34], t:'등급' },
+  { n:'지붕의 평균 열관류율', s:[7,8],   t:'등급' },
+  { n:'바닥의 평균 열관류율', s:[5,6],   t:'등급' },
+  { n:'외피 열교부위 단열 성능', s:[4,6], t:'등급' },
+  { n:'기밀성 등급',           s:[5,6],  t:'등급' },
+  { n:'기밀성능 강화 조치',    s:[1,2],  t:'적용여부' },
+  { n:'태양열 취득률',         s:[7,5],  t:'등급' },
+];
+const EPI_MECH_CEN = [
+  { n:'난방 설비',       s:[7,6], t:'등급' },
+  { n:'냉방 설비',       s:[6,2], t:'등급' },
+  { n:'공조기 송풍기 효율', s:[3,1], t:'등급' },
+  { n:'펌프 효율',       s:[2,2], t:'등급' },
+  { n:'이코노마이저 적용', s:[3,1], t:'적용여부' },
+  { n:'열교환기 효율',   s:[3,3], t:'등급' },
+  { n:'덕트 및 배관 단열', s:[2,1], t:'적용여부' },
+  { n:'열원설비 운전 제어', s:[2,1], t:'적용여부' },
+  { n:'공조기 팬 운전 제어', s:[2,1], t:'적용여부' },
+  { n:'전기 외 에너지 냉방', s:[2,1], t:'등급' },
+  { n:'급탕용 보일러 효율', s:[2,2], t:'등급' },
+  { n:'냉방 순환 펌프 효율', s:[2,1], t:'적용여부' },
+  { n:'급수 펌프 운전 제어', s:[1,1], t:'적용여부' },
+  { n:'지하주차장 환기',   s:[1,1], t:'적용여부' },
+  { n:'T.A.B 또는 커미셔닝', s:[1,1], t:'등급' },
+  { n:'지역 난방',       s:[10,8], t:'적용여부' },
+];
+const EPI_MECH_IND = [
+  { n:'난방 설비',       s:[7,6], t:'등급' },
+  { n:'냉방 설비',       s:[6,2], t:'등급' },
+  { n:'열교환기 효율',   s:[3,3], t:'등급' },
+  { n:'덕트 및 배관 단열', s:[2,1], t:'적용여부' },
+  { n:'열원설비 운전 제어', s:[2,1], t:'적용여부' },
+  { n:'전기 외 에너지 냉방', s:[2,1], t:'등급' },
+  { n:'급탕용 보일러 효율', s:[2,2], t:'등급' },
+  { n:'급수 펌프 운전 제어', s:[1,1], t:'적용여부' },
+  { n:'지하주차장 환기',   s:[1,1], t:'적용여부' },
+  { n:'T.A.B 또는 커미셔닝', s:[1,1], t:'등급' },
+  { n:'개별식 보상 점수', s:[4,2], t:'적용여부', bonus:true },
+];
+const EPI_ELEC = [
+  { n:'조명 밀도',       s:[9,8], t:'등급' },
+  { n:'전압 강하',       s:[1,1], t:'등급' },
+  { n:'전력 제어 설비 적용', s:[2,1], t:'적용여부' },
+  { n:'조명 자동 제어',  s:[1,1], t:'적용여부' },
+  { n:'조명',            s:[1,1], t:'적용여부' },
+  { n:'일괄 소등 스위치', s:[1,1], t:'적용여부' },
+  { n:'전력량계 설치',   s:[1,2], t:'적용여부' },
+  { n:'BEMS 적용',       s:[3,3], t:'등급' },
+  { n:'역률자동조절 장치', s:[1,1], t:'적용여부' },
+  { n:'대기전력차단장치', s:[2,2], t:'등급' },
+  { n:'승강기 회생제동 장치', s:[2,1], t:'적용여부' },
+];
+// 표준모델 배점계수: 중앙식 0.8, 개별식 1.0
+const EPI_COEF = { '중앙식':0.8, '개별식':1.0 };
+
+// ─── UI HELPERS ──────────────────────────────
+function toggleSvc(k) {
+  S.svcs[k] = !S.svcs[k];
+  document.getElementById('svc-'+k).classList.toggle('on', S.svcs[k]);
+  updateFieldVis();
+}
+function setHvac(v) {
+  S.hvac = v;
+  document.getElementById('hvac-ind').classList.toggle('on', v==='개별식');
+  document.getElementById('hvac-cen').classList.toggle('on', v==='중앙식');
+}
+function adj(id, d) {
+  const el = document.getElementById('inp-'+id);
+  el.value = Math.max(1, (parseInt(el.value)||1)+d);
+}
+function updateFieldVis() {
+  const {re,zeb,epi} = S.svcs;
+  const needRZ = re||zeb, needFloor = re||zeb, needGrade = zeb, needHvac = zeb||epi;
+  document.getElementById('fg-region').classList.toggle('dim', !needRZ);
+  document.getElementById('fg-use').classList.toggle('dim', !needRZ);
+  document.getElementById('fg-floor').classList.toggle('dim', !needFloor);
+  document.getElementById('fg-grade').classList.toggle('dim', !needGrade);
+  document.getElementById('fg-hvac').classList.toggle('dim', !needHvac);
+}
+
+function fmt(n, d=0) { return n.toLocaleString('ko-KR',{maximumFractionDigits:d,minimumFractionDigits:d}); }
+function pct(n, d=2) { return n.toFixed(d)+'%'; }
+
+// ─── CORE CALC ───────────────────────────────
+function calcRenewable(area, floors, use, region) {
+  const 건축면적 = area / floors;
+  const 지붕면적 = 건축면적 * 0.7;
+  const 지붕kW   = 지붕면적 * 0.20;
+  const 지붕생산 = 지붕kW * 1358 * 0.95;
+
+  const X = Math.sqrt(건축면적);
+  const Y = 3.3 * floors;
+  const 입면면적 = X * Y * 0.7;
+  const 입면kW   = 입면면적 * 0.20;
+  const 입면생산 = 입면kW * 923 * 6.12;
+
+  const PV총생산 = 지붕생산 + 입면생산;
+
+  const unitE = UNIT_E[use] ?? 374.47;
+  const regionC = REGION_COEF[region] ?? 1;
+  const 예상사용량 = area * unitE * regionC;
+  const 공급비율 = (PV총생산 / 예상사용량) * 100;
+
+  // ZEB Step3 PV 환산 (역산)
+  const 지붕kW_zeb = 지붕생산 / (1358 * 0.95);
+  const 입면kW_zeb = 입면생산 / (923 * 6.12);
+
+  return { 건축면적, 지붕면적, 지붕kW, 지붕생산, 입면면적, 입면kW, 입면생산,
+           PV총생산, unitE, regionC, 예상사용량, 공급비율, 지붕kW_zeb, 입면kW_zeb };
+}
+
+function calcGeo(area, use) {
+  const coef = EQ_COEF[use];
+  const geo  = GEO_COEF[use];
+  const 전체요구량 = coef.a * area + coef.b;
+  const 난방요구량 = 전체요구량 * coef.hr;
+  const 냉방요구량 = 전체요구량 * coef.cr;
+  const 난방용량  = geo.hc * 난방요구량 + geo.hd;
+  const 냉방용량  = geo.cc * 냉방요구량 + geo.cd;
+  return { 전체요구량, 난방요구량, 냉방요구량, 난방용량, 냉방용량, 난방COP:4.2, 냉방COP:5.0 };
+}
+
+function calcZEB(rv, geo, area, grade, use) {
+  const zebThr = ZEB_THR[grade] / 100;
+  const 필요생산량 = rv.예상사용량 * zebThr;
+  const PV달성률  = (rv.PV총생산 / 필요생산량) * 100;
+  const PV충족   = rv.PV총생산 >= 필요생산량;
+  const 부족량   = Math.max(0, 필요생산량 - rv.PV총생산);
+  return { 필요생산량, PV달성률, PV충족, 부족량 };
+}
+
+function calcEPI(area, hvac) {
+  const 규모    = area >= 3000 ? '대형' : '소형';
+  const idx    = 규모 === '대형' ? 0 : 1;
+  const coef   = EPI_COEF[hvac];
+  const 기계   = hvac === '중앙식' ? EPI_MECH_CEN : EPI_MECH_IND;
+  const sum    = arr => arr.reduce((a,v)=>a + v.s[idx]*coef, 0);
+  return { 규모, idx, coef, 기계,
+    건축합계: sum(EPI_ARCH), 기계합계: sum(기계), 전기합계: sum(EPI_ELEC),
+    EPI총점: sum(EPI_ARCH)+sum(기계)+sum(EPI_ELEC) };
+}
+
+// ─── RENDER HELPERS ──────────────────────────
+function epiTable(title, items, idx, coef) {
+  const total = items.reduce((a,v)=>a+v.s[idx]*coef,0);
+  const rows = items.map(it=>{
+    const base = it.s[idx], sc = (base*coef).toFixed(1);
+    return `<tr>
+      <td class="td-name">${it.n}${it.bonus?' ★':''}</td>
+      <td>${base}</td>
+      <td>${it.t}</td>
+      <td class="td-teal">${sc}</td>
+    </tr>`;
+  }).join('');
+  return `
+    <div class="epi-section-lbl">${title}</div>
+    <table class="dtable">
+      <thead><tr><th>항목</th><th>기본배점</th><th>산출방식</th><th>적용점수(×${coef})</th></tr></thead>
+      <tbody>${rows}
+        <tr><td class="td-name td-total" colspan="3">소계</td><td class="td-total">${total.toFixed(1)}</td></tr>
+      </tbody>
+    </table>`;
+}
+
+function pf(label, val, cls, src) {
+  return `<div class="pfield">
+    <div class="pfield-lbl">${label}</div>
+    <div class="pfield-val ${cls}">${val}</div>
+    <div class="pfield-src">${src}</div>
+  </div>`;
+}
+
+// ─── MAIN RUN ────────────────────────────────
+function run() {
+  const {re,zeb,epi} = S.svcs;
+  if (!re && !zeb && !epi) return;
+
+  const region = document.getElementById('inp-region').value;
+  const use    = document.getElementById('inp-use').value;
+  const area   = parseFloat(document.getElementById('inp-area').value)||12000;
+  const floors = parseInt(document.getElementById('inp-floor').value)||10;
+  const grade  = parseInt(document.getElementById('inp-grade').value)||4;
+  const hvac   = S.hvac;
+
+  const rv  = calcRenewable(area, floors, use, region);
+  const geo = calcGeo(area, use);
+  const zv  = calcZEB(rv, geo, area, grade, use);
+  const ev  = calcEPI(area, hvac);
+
+  let html = '';
+
+  // ── 신재생 ──
+  if (re) {
+    const pctVal = rv.공급비율.toFixed(2);
+    const pctColor = rv.공급비율 >= 30 ? 'c-green' : rv.공급비율 >= 20 ? 'c-amber' : 'c-red';
+    const barW = Math.min(rv.공급비율/30*100,100).toFixed(1);
+    const barCls = rv.공급비율 >= 30 ? 'prog-teal' : rv.공급비율 >= 20 ? 'prog-amber' : 'prog-red';
+    const regionLabel = document.getElementById('inp-region').options[document.getElementById('inp-region').selectedIndex].text;
+    const useLabel = USE_LABEL[use];
+
+    html += `
+    <div class="res-section">
+      <div class="res-header">
+        <div class="res-icon" style="background:rgba(45,212,191,0.10)">☀</div>
+        <div class="res-title">신재생 · 재생에너지 공급 비율</div>
+        <span class="res-sub">PV 최대 생산량 기준</span>
+      </div>
+
+      <div class="formula">
+        <span class="cm">// 예상 에너지사용량</span><br>
+        <span class="hl">예상사용량</span> = <span class="num">${fmt(area)}</span>㎡ × <span class="num">${rv.unitE}</span> kWh/㎡·yr × <span class="num">${rv.regionC}</span> (${regionLabel.split('(')[0].trim()})<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = <span class="hl">${fmt(rv.예상사용량, 0)} kWh/yr</span><br><br>
+        <span class="cm">// PV 지붕 (고정식 45°)</span><br>
+        건축면적 = ${fmt(area)}/${floors} = <span class="num">${fmt(rv.건축면적,1)}</span>㎡<br>
+        지붕면적 = ${fmt(rv.건축면적,1)} × 0.7 = <span class="num">${fmt(rv.지붕면적,1)}</span>㎡ → <span class="num">${fmt(rv.지붕kW,1)}</span> kW<br>
+        지붕생산 = ${fmt(rv.지붕kW,1)} × 1358 × 0.95 = <span class="hl">${fmt(rv.지붕생산,0)}</span> kWh/yr<br><br>
+        <span class="cm">// PV 입면 (BIPV 수직 90°)</span><br>
+        X=√${fmt(rv.건축면적,1)}, Y=3.3×${floors} → 입면면적 = <span class="num">${fmt(rv.입면면적,1)}</span>㎡ → <span class="num">${fmt(rv.입면kW,1)}</span> kW<br>
+        입면생산 = ${fmt(rv.입면kW,1)} × 923 × 6.12 = <span class="hl">${fmt(rv.입면생산,0)}</span> kWh/yr<br><br>
+        <span class="cm">// 공급 비율</span><br>
+        비율 = (${fmt(rv.지붕생산,0)} + ${fmt(rv.입면생산,0)}) / ${fmt(rv.예상사용량,0)} × 100 = <span class="hl">${pctVal}%</span>
+      </div>
+
+      <div class="cards">
+        <div class="card">
+          <div class="card-lbl">예상 에너지사용량</div>
+          <div class="card-val c-text">${fmt(rv.예상사용량/1000000,2)}</div>
+          <div class="card-unit">GWh/yr (${fmt(rv.예상사용량,0)} kWh)</div>
+        </div>
+        <div class="card">
+          <div class="card-lbl">PV 지붕 용량</div>
+          <div class="card-val c-blue">${fmt(rv.지붕kW,1)}</div>
+          <div class="card-unit">kW → ${fmt(rv.지붕생산/1000,1)} MWh/yr</div>
+        </div>
+        <div class="card">
+          <div class="card-lbl">PV 입면(BIPV) 용량</div>
+          <div class="card-val c-blue">${fmt(rv.입면kW,1)}</div>
+          <div class="card-unit">kW → ${fmt(rv.입면생산/1000,1)} MWh/yr</div>
+        </div>
+        <div class="card hl">
+          <div class="card-lbl">PV 총 생산량</div>
+          <div class="card-val c-teal">${fmt(rv.PV총생산/1000,1)}</div>
+          <div class="card-unit">MWh/yr</div>
+          <div class="prog-wrap"><div class="prog-bar prog-teal" style="width:${Math.min(rv.공급비율*3,100).toFixed(1)}%"></div></div>
+        </div>
+        <div class="card hl">
+          <div class="card-lbl">재생에너지 공급 비율</div>
+          <div class="card-val ${pctColor}">${pctVal}</div>
+          <div class="card-unit">% (의무기준 30% 이상)</div>
+          <div class="prog-wrap"><div class="prog-bar ${barCls}" style="width:${barW}%"></div></div>
+        </div>
+      </div>
+    </div>`;
+    if (zeb || epi) html += '<div class="divider"></div>';
+  }
+
+  // ── ZEB ──
+  if (zeb) {
+    const gLabel = ['','100%','80%','60%','40%','20%'][grade];
+    const pvPctZ = Math.min(zv.PV달성률,100).toFixed(1);
+    const statusCls = zv.PV충족 ? 'status-ok' : 'status-fail';
+    const statusMsg = zv.PV충족
+      ? `ZEB ${grade}등급 달성 가능 (PV 단독)`
+      : `PV 단독 불가 · 지열 또는 연료전지 추가 필요 (부족량 ${fmt(zv.부족량/1000,1)} MWh/yr)`;
+
+    // 지열 출력
+    const gC = EQ_COEF[use], gG = GEO_COEF[use];
+    const hCoef = `${gG.hc} × 난방요구량 + ${gG.hd}`, cCoef = `${gG.cc} × 냉방요구량 + ${gG.cd}`;
+    const coefRow = `난방비율 ${(gC.hr*100).toFixed(0)}% / 냉방비율 ${(gC.cr*100).toFixed(0)}%`;
+
+    html += `
+    <div class="res-section">
+      <div class="res-header">
+        <div class="res-icon" style="background:rgba(96,165,250,0.10)">⚡</div>
+        <div class="res-title">ZEB · Step 3 파라미터 주입 (신재생 → ZEB 동기화)</div>
+        <span class="res-sub">ZEB ${grade}등급 · ${gLabel} 이상</span>
+      </div>
+
+      <div class="sync-flow">
+        <span>① 신재생 계산 완료</span><span class="sync-arrow">→</span>
+        <span>② 에너지원별 환산</span><span class="sync-arrow">→</span>
+        <span>③ ZEB Step3 자동 주입</span><span class="sync-arrow">→</span>
+        <span>④ ZEB 성능 분석</span>
+      </div>
+
+      <!-- 공통 기본정보 -->
+      <div class="step3-wrap">
+        <div class="step3-group-title">기본 정보 <span class="badge badge-pass">초기 입력값 참조</span></div>
+        <div class="pfields">
+          ${pf('지역', document.getElementById('inp-region').options[document.getElementById('inp-region').selectedIndex].text.split('(')[0].trim(), 'pv-pass', '← 초기 입력값')}
+          ${pf('용도', USE_LABEL[use], 'pv-pass', '← 초기 입력값')}
+          ${pf('연면적', fmt(area)+' ㎡', 'pv-pass', '← 초기 입력값')}
+          ${pf('층수', floors+' 층', 'pv-pass', '← 초기 입력값')}
+          ${pf('ZEB 목표 등급', grade+'등급 ('+gLabel+'↑)', 'pv-pass', '← 초기 입력값')}
+          ${pf('설비 방식', hvac, 'pv-pass', '← 초기 입력값')}
+        </div>
+      </div>
+
+      <!-- PV 지붕 -->
+      <div class="step3-wrap">
+        <div class="step3-group-title">태양광 PV · Row 1 — 지붕 (고정식) <span class="badge badge-calc">신재생 계산값 환산</span></div>
+        <div class="pfields">
+          ${pf('방위', '남', 'pv-fixed', '← 고정 호출값')}
+          ${pf('기울기', '45° (지붕)', 'pv-fixed', '← 고정 호출값')}
+          ${pf('용량', fmt(rv.지붕kW_zeb,1)+' kW', 'pv-calc', '← 지붕생산/(1358×0.95)')}
+          ${pf('효율', '20%', 'pv-fixed', '← 고정 호출값')}
+        </div>
+        <div class="step3-formula">
+          건축면적 ${fmt(rv.건축면적,1)}㎡ × 0.7 = ${fmt(rv.지붕면적,1)}㎡ &nbsp;→&nbsp;
+          용량 = ${fmt(rv.지붕면적,1)} × 0.20 = <b>${fmt(rv.지붕kW,1)} kW</b> &nbsp;→&nbsp;
+          생산량 = ${fmt(rv.지붕kW,1)} × 1358 × 0.95 = <b>${fmt(rv.지붕생산,0)} kWh/yr</b>
+        </div>
+      </div>
+
+      <!-- PV 입면 -->
+      <div class="step3-wrap">
+        <div class="step3-group-title">태양광 PV · Row 2 — 입면 (BIPV) <span class="badge badge-calc">신재생 계산값 환산</span></div>
+        <div class="pfields">
+          ${pf('방위', '남', 'pv-fixed', '← 고정 호출값')}
+          ${pf('기울기', '90° (수직)', 'pv-fixed', '← 고정 호출값')}
+          ${pf('용량', fmt(rv.입면kW_zeb,1)+' kW', 'pv-calc', '← 입면생산/(923×6.12)')}
+          ${pf('효율', '20%', 'pv-fixed', '← 고정 호출값')}
+        </div>
+        <div class="step3-formula">
+          X=√${fmt(rv.건축면적,1)}, Y=3.3×${floors} → 입면면적=${fmt(rv.입면면적,1)}㎡ &nbsp;→&nbsp;
+          용량 = ${fmt(rv.입면면적,1)} × 0.20 = <b>${fmt(rv.입면kW,1)} kW</b> &nbsp;→&nbsp;
+          생산량 = ${fmt(rv.입면kW,1)} × 923 × 6.12 = <b>${fmt(rv.입면생산,0)} kWh/yr</b>
+        </div>
+      </div>
+
+      <!-- 지열 -->
+      <div class="step3-wrap">
+        <div class="step3-group-title">지열시스템 (수직밀폐형) <span class="badge badge-calc">용도별 선형회귀 자동 산출</span></div>
+        <div class="pfields">
+          ${pf('연료', '전기', 'pv-fixed', '← 환산 호출값')}
+          ${pf('난방 용량', fmt(geo.난방용량,1)+' kW', 'pv-calc', hCoef)}
+          ${pf('냉방 용량', fmt(geo.냉방용량,1)+' kW', 'pv-calc', cCoef)}
+          ${pf('난방 COP', '4.2', 'pv-fixed', '← 디폴트 고정값')}
+          ${pf('냉방 COP', '5.0', 'pv-fixed', '← 디폴트 고정값')}
+          ${pf('보정계수', '1.26', 'pv-fixed', '← 고정값')}
+          ${pf('단위생산량', '864 kWh/kW·yr', 'pv-fixed', '← 고정값')}
+        </div>
+        <div class="step3-formula">
+          전체요구량 = ${gC.a} × ${fmt(area)} + ${fmt(gC.b)} = <b>${fmt(geo.전체요구량,0)} kWh/yr</b><br>
+          난방요구량(신재생연결) = ${fmt(geo.전체요구량,0)} × ${(gC.hr*100).toFixed(0)}% = <b>${fmt(geo.난방요구량,0)} kWh/yr</b><br>
+          냉방요구량(신재생연결) = ${fmt(geo.전체요구량,0)} × ${(gC.cr*100).toFixed(0)}% = <b>${fmt(geo.냉방요구량,0)} kWh/yr</b><br>
+          난방용량 = ${gG.hc} × ${fmt(geo.난방요구량,0)} + ${gG.hd} = <b>${fmt(geo.난방용량,1)} kW</b><br>
+          냉방용량 = ${gG.cc} × ${fmt(geo.냉방요구량,0)} + ${gG.cd} = <b>${fmt(geo.냉방용량,1)} kW</b>
+        </div>
+      </div>
+
+      <!-- 연료전지 -->
+      <div class="step3-wrap">
+        <div class="step3-group-title">연료전지 <span class="badge badge-fixed">유형·효율 고정값</span></div>
+        <div class="pfields">
+          ${pf('유형', 'SOFC', 'pv-fixed', '← 환산 호출값')}
+          ${pf('열효율', '53%', 'pv-fixed', '← 환산 호출값')}
+          ${pf('발전효율', '35.5%', 'pv-fixed', '← 환산 호출값')}
+          ${pf('보정계수', '8.71', 'pv-fixed', '← 고정값')}
+          ${pf('단위생산량', '9,198 kWh/kW·yr', 'pv-fixed', '← 고정값')}
+          ${pf('용량 (kW)', '유저 직접 입력', 'pv-user', '설치공간·급탕 검토')}
+        </div>
+      </div>
+
+      <!-- ZEB 달성 분석 -->
+      <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:12px;margin-top:4px;">ZEB 달성 분석 결과</div>
+      <div class="cards">
+        <div class="card">
+          <div class="card-lbl">예상 에너지사용량</div>
+          <div class="card-val c-text">${fmt(rv.예상사용량/1000,1)}</div>
+          <div class="card-unit">MWh/yr</div>
+        </div>
+        <div class="card hl-amber">
+          <div class="card-lbl">ZEB ${grade}등급 필요 생산량</div>
+          <div class="card-val c-amber">${fmt(zv.필요생산량/1000,1)}</div>
+          <div class="card-unit">MWh/yr (${gLabel})</div>
+        </div>
+        <div class="card hl-blue">
+          <div class="card-lbl">PV 총 생산량</div>
+          <div class="card-val c-blue">${fmt(rv.PV총생산/1000,1)}</div>
+          <div class="card-unit">MWh/yr (지붕+입면)</div>
+        </div>
+      </div>
+      <div class="${statusCls} status-row">
+        ${statusMsg}
+      </div>
+      <div style="font-size:11px;color:var(--text3);margin-top:6px;">
+        PV 달성률 ${pvPctZ}%
+        <div class="prog-wrap" style="margin-top:5px"><div class="prog-bar ${zv.PV충족?'prog-teal':'prog-amber'}" style="width:${pvPctZ}%"></div></div>
+      </div>
+    </div>`;
+    if (epi) html += '<div class="divider"></div>';
+  }
+
+  // ── EPI ──
+  if (epi) {
+    const {규모, idx, coef, 기계, 건축합계, 기계합계, 전기합계, EPI총점} = ev;
+    html += `
+    <div class="res-section">
+      <div class="res-header">
+        <div class="res-icon" style="background:rgba(251,191,36,0.10)">📊</div>
+        <div class="res-title">EPI · 기준 모델 추천</div>
+        <span class="res-sub">배점계수 ${coef} 적용</span>
+      </div>
+      <div class="epi-type-badge">
+        ${규모} (연면적 ${규모==='대형'?'≥':'<'} 3,000㎡) · ${hvac}
+        → EPI 타입: ${규모}_${hvac}
+      </div>
+      <div class="warn-box">
+        ⚠ 신재생 부문(난방/냉방/급탕/조명 신재생)은 배점계수 미정의로 아래 합계에서 제외됩니다.
+      </div>
+      <div class="cards" style="margin-bottom:20px">
+        <div class="card">
+          <div class="card-lbl">건축 부문</div>
+          <div class="card-val c-blue">${건축합계.toFixed(1)}</div>
+          <div class="card-unit">점 (기본배점 × ${coef})</div>
+        </div>
+        <div class="card">
+          <div class="card-lbl">기계 부문</div>
+          <div class="card-val c-blue">${기계합계.toFixed(1)}</div>
+          <div class="card-unit">점 (${hvac} 항목)</div>
+        </div>
+        <div class="card">
+          <div class="card-lbl">전기 부문</div>
+          <div class="card-val c-blue">${전기합계.toFixed(1)}</div>
+          <div class="card-unit">점</div>
+        </div>
+        <div class="card hl">
+          <div class="card-lbl">EPI 기준 모델 총점</div>
+          <div class="card-val c-teal">${EPI총점.toFixed(1)}</div>
+          <div class="card-unit">점 (신재생 제외)</div>
+        </div>
+      </div>
+      ${epiTable('건축 부문', EPI_ARCH, idx, coef)}
+      ${epiTable(`기계 부문 (${hvac})`, 기계, idx, coef)}
+      ${epiTable('전기 부문', EPI_ELEC, idx, coef)}
+    </div>`;
+  }
+
+  document.getElementById('empty-state').style.display = 'none';
+  const r = document.getElementById('results');
+  r.style.display = 'block';
+  r.innerHTML = html;
+}
+
+// init
+updateFieldVis();
+</script>
+</body>
+</html>

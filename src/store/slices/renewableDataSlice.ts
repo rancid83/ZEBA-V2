@@ -15,6 +15,12 @@ export interface RenewableDataSlice extends RenewableDataState {
 export const createRenewableDataSlice = (set: any) => ({
   renewableData: [],
   renewableDataCost: [],
+  grade: 0,
+  renewable: 0,
+  active: 0,
+  passive: 0,
+  increase: 0,
+  benefit: 0,
 
   setRenewableData: (data: BuildingDataItem[]) => set({ renewableData: data }),
 

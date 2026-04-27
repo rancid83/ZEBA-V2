@@ -66,7 +66,6 @@ const FuelCell = () => {
           </div>
         </Flex>
         {(filteredData[0].children || []).map((item) => {
-          console.log(item);
           return (
             <div key={item.id} className={styles.editorSliderWrap}>
               <EditSlider {...item} />

@@ -1,14 +1,7 @@
-import apiInstance from '@/services/api';
 import type { ZebStep1Response } from '@/types/zebStep1';
 
-const ZEB_API_BASE = '/admin/api/zeb';
+const ZEB_PROXY_BASE = '/api/zeb';
 
-/**
- * 백엔드 Swagger 스펙에 맞춘 ZEB 단계별 API
- * - step1: GET /admin/api/zeb/step1 (region, totalArea, floorCount)
- * - step2: GET /admin/api/zeb/step2 (+ targetGrade)
- * - step3: GET /admin/api/zeb/step3 (+ 성능 조합 선택 파라미터)
- */
 function buildStepParams(params: Record<string, unknown>, step: string): Record<string, unknown> {
   const { step: _step, ...rest } = params;
 
@@ -29,7 +22,6 @@ function buildStepParams(params: Record<string, unknown>, step: string): Record<
     };
   }
 
-  // step3: 필수 + 선택(성능 조합) 파라미터만 전달 (undefined/null 제외)
   const filtered: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(rest)) {
     if (value !== undefined && value !== null) {
@@ -39,7 +31,6 @@ function buildStepParams(params: Record<string, unknown>, step: string): Record<
   return filtered;
 }
 
-/** 백엔드가 등급·성능 데이터만 반환할 경우 { status, data } 형태로 정규화 */
 function normalizeResponse(raw: unknown): ZebStep1Response {
   if (raw && typeof raw === 'object' && 'status' in raw && 'data' in raw) {
     return raw as ZebStep1Response;
@@ -55,11 +46,26 @@ export const analyzeStep1 = {
   get: async (params?: Record<string, unknown>): Promise<ZebStep1Response> => {
     try {
       const step = (params?.step as string) || 'step1';
-      const path = `${ZEB_API_BASE}/${step}`;
       const queryParams = buildStepParams(params ?? {}, step);
 
-      const response = await apiInstance.get(path, { params: queryParams });
-      return normalizeResponse(response);
+      const searchParams = new URLSearchParams({ step });
+      Object.entries(queryParams).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          searchParams.set(key, String(value));
+        }
+      });
+
+      const response = await fetch(`${ZEB_PROXY_BASE}?${searchParams.toString()}`, {
+        cache: 'no-store',
+      });
+
+      if (!response.ok) {
+        const errorBody = await response.json().catch(() => ({}));
+        throw new Error((errorBody as any)?.error || '분석 요청에 실패했습니다.');
+      }
+
+      const result = await response.json();
+      return normalizeResponse(result);
     } catch (error) {
       console.error('ZEB Step API 호출 에러:', error);
       throw error;

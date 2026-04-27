@@ -1,6 +1,12 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -32,6 +38,7 @@ import {
   landingNavSlideStart,
   type LandingNavSlideSection,
 } from './landingData';
+import { useStore } from '@/store';
 
 const CUSTOM_EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -63,7 +70,7 @@ const staggerContainer = {
 };
 
 const inputClassName =
-  'w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-[15px] text-slate-800 outline-none transition focus:border-teal-400 focus:ring-2 focus:ring-teal-100';
+  'w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-[15px] text-slate-800 outline-none transition focus:border-teal-400 focus:ring-2 focus:ring-teal-100 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400 disabled:placeholder:text-slate-300 disabled:shadow-inner';
 
 type DiagnosisCard = {
   label: string;
@@ -99,6 +106,7 @@ type FieldProps = {
   label: string;
   children: React.ReactNode;
   className?: string;
+  disabled?: boolean;
 };
 
 const QUICK_USAGE_OPTIONS = [
@@ -187,7 +195,13 @@ function mapGradeCard(
   emphasis: DiagnosisCard['emphasis'],
   display: Pick<
     DiagnosisCard,
-    'label' | 'subtitle' | 'metricLabel' | 'badgeLabel' | 'gradeLabel' | 'metaLabel' | 'metaValue'
+    | 'label'
+    | 'subtitle'
+    | 'metricLabel'
+    | 'badgeLabel'
+    | 'gradeLabel'
+    | 'metaLabel'
+    | 'metaValue'
   >,
 ): DiagnosisCard & { icon: LucideIcon } {
   return {
@@ -261,26 +275,37 @@ function buildQuickDiagnosisPayload(
 
 export default function Landing() {
   const router = useRouter();
+  const user = useStore((state) => state.user);
+  const [pendingOpenDiagnosis, setPendingOpenDiagnosis] = useState(false);
   const [showQuickModal, setShowQuickModal] = useState(false);
   const [showQuickAddressSearch, setShowQuickAddressSearch] = useState(false);
   const [showResult, setShowResult] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [quickDiagnosis, setQuickDiagnosis] = useState<QuickDiagnosisPayload | null>(null);
-  const [quickDiagnosisError, setQuickDiagnosisError] = useState<string | null>(null);
+  const [quickDiagnosis, setQuickDiagnosis] =
+    useState<QuickDiagnosisPayload | null>(null);
+  const [quickDiagnosisError, setQuickDiagnosisError] = useState<string | null>(
+    null,
+  );
   const [showTransitionModal, setShowTransitionModal] = useState(false);
   const [area, setArea] = useState('서울');
-  const [usage, setUsage] = useState<(typeof QUICK_USAGE_OPTIONS)[number]>('업무시설(공공용)');
+  const [usage, setUsage] =
+    useState<(typeof QUICK_USAGE_OPTIONS)[number]>('업무시설(공공용)');
   const [officeSystem, setOfficeSystem] =
     useState<(typeof OFFICE_SYSTEM_OPTIONS)[number]['value']>('individual');
   const [grossFloorArea, setGrossFloorArea] = useState('12000');
   const [floors, setFloors] = useState('10');
   const [targetGrade, setTargetGrade] = useState('4등급');
-  const [selectedServices, setSelectedServices] = useState<Set<'신재생' | 'ZEB' | 'EPI'>>(new Set(['ZEB']));
+  const [selectedServices, setSelectedServices] = useState<
+    Set<'신재생' | 'ZEB' | 'EPI'>
+  >(new Set(['ZEB']));
   const [authModalOpen, setAuthModalOpen] = useState(false);
-  const [authModalMode, setAuthModalMode] = useState<'login' | 'signup'>('login');
+  const [authModalMode, setAuthModalMode] = useState<'login' | 'signup'>(
+    'login',
+  );
   const [slidesOpen, setSlidesOpen] = useState(false);
   const [slidesSessionId, setSlidesSessionId] = useState(0);
-  const [slidesSection, setSlidesSection] = useState<LandingNavSlideSection>('service');
+  const [slidesSection, setSlidesSection] =
+    useState<LandingNavSlideSection>('service');
   const analysisTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const openSlides = useCallback((section: LandingNavSlideSection) => {
@@ -324,19 +349,24 @@ export default function Landing() {
     });
   }, []);
 
-  const showRegionField = selectedServices.has('신재생') || selectedServices.has('ZEB');
-  const showUsageField = selectedServices.has('신재생') || selectedServices.has('ZEB');
+  const showRegionField =
+    selectedServices.has('신재생') || selectedServices.has('ZEB');
+  const showUsageField =
+    selectedServices.has('신재생') || selectedServices.has('ZEB');
   const showFloorsField = selectedServices.has('ZEB');
   const showTargetGradeField = selectedServices.has('ZEB');
-  const showEquipmentField = selectedServices.has('ZEB') || selectedServices.has('EPI');
+  const showEquipmentField =
+    selectedServices.has('ZEB') || selectedServices.has('EPI');
 
   const normalizedRegion = useMemo(() => normalizeRegionInput(area), [area]);
   const officeSystemLabel =
-    OFFICE_SYSTEM_OPTIONS.find((item) => item.value === officeSystem)?.label || '개별식';
+    OFFICE_SYSTEM_OPTIONS.find((item) => item.value === officeSystem)?.label ||
+    '개별식';
   const draftProjectName = `${area}_${usage}${isOfficeUsage ? `_${officeSystemLabel}` : ''}_${safeArea}㎡`;
 
   const handleQuickAddressComplete = useCallback((data: any) => {
-    const selectedAddress = data?.roadAddress || data?.jibunAddress || data?.address || '';
+    const selectedAddress =
+      data?.roadAddress || data?.jibunAddress || data?.address || '';
     if (!selectedAddress) return;
 
     setArea(selectedAddress);
@@ -379,14 +409,18 @@ export default function Landing() {
       });
 
       await ensureMinimumLoading();
-      setQuickDiagnosis(buildQuickDiagnosisPayload(response, targetGradeNumber));
+      setQuickDiagnosis(
+        buildQuickDiagnosisPayload(response, targetGradeNumber),
+      );
       setIsAnalyzing(false);
       setShowResult(true);
     } catch (error) {
       await ensureMinimumLoading();
       setQuickDiagnosis(null);
       setIsAnalyzing(false);
-      setQuickDiagnosisError('분석 요청에 실패했습니다. 입력값 또는 백엔드 연결 상태를 확인해주세요.');
+      setQuickDiagnosisError(
+        '분석 요청에 실패했습니다. 입력값 또는 백엔드 연결 상태를 확인해주세요.',
+      );
     }
   }, [normalizedRegion, safeArea, safeFloors, targetGrade]);
 
@@ -431,7 +465,8 @@ export default function Landing() {
     return {
       benchmarkScore,
       meetsThreshold: benchmarkScore >= EPI_PASS_SCORE,
-      sizeLabel: sizeKey === 'large' ? '대형 (3,000㎡ 이상)' : '소형 (3,000㎡ 미만)',
+      sizeLabel:
+        sizeKey === 'large' ? '대형 (3,000㎡ 이상)' : '소형 (3,000㎡ 미만)',
       hvacLabel: hvacKey === 'central' ? '중앙식' : '개별식',
       modelLabel: `비주거 ${sizeKey === 'large' ? '대형' : '소형'} · ${
         hvacKey === 'central' ? '중앙식' : '개별식'
@@ -446,9 +481,24 @@ export default function Landing() {
   const diagnosisCards = quickDiagnosis?.cards ?? [];
 
   const identityCards = [
-    { icon: Shield, title: '설계 판단', body: '초기 판단값을 먼저 고정', color: 'indigo' as const },
-    { icon: FileSearch, title: '판단 확장', body: '필요 시 법규 리스크 확장', color: 'violet' as const },
-    { icon: Link2, title: '실행 연결', body: '전문가 연계와 내역 전달', color: 'emerald' as const },
+    {
+      icon: Shield,
+      title: '설계 판단',
+      body: '초기 판단값을 먼저 고정',
+      color: 'indigo' as const,
+    },
+    {
+      icon: FileSearch,
+      title: '판단 확장',
+      body: '필요 시 법규 리스크 확장',
+      color: 'violet' as const,
+    },
+    {
+      icon: Link2,
+      title: '실행 연결',
+      body: '전문가 연계와 내역 전달',
+      color: 'emerald' as const,
+    },
   ];
 
   const flow = [
@@ -496,6 +546,29 @@ export default function Landing() {
     '협업 기록과 파일 축적 구조로 이어짐',
   ];
 
+  const handleDiagnosisButtonClick = useCallback(() => {
+    if (!user) {
+      setPendingOpenDiagnosis(true);
+      setAuthModalMode('login');
+      setAuthModalOpen(true);
+      return;
+    }
+    setShowQuickModal(true);
+  }, [user]);
+
+  const handleAuthSuccess = useCallback(() => {
+    setAuthModalOpen(false);
+    if (pendingOpenDiagnosis) {
+      setPendingOpenDiagnosis(false);
+      setShowQuickModal(true);
+    }
+  }, [pendingOpenDiagnosis]);
+
+  const handleAuthModalCancel = useCallback(() => {
+    setAuthModalOpen(false);
+    setPendingOpenDiagnosis(false);
+  }, []);
+
   const goMain = () => {
     setShowTransitionModal(false);
     router.push('/project-hub');
@@ -516,7 +589,10 @@ export default function Landing() {
       />
 
       <div className="mx-auto max-w-[1480px] px-6 pb-6 pt-20 lg:px-10">
-        <section id="diagnosis" className="mt-8 grid items-start gap-8 lg:grid-cols-[1.08fr_0.92fr]">
+        <section
+          id="diagnosis"
+          className="mt-8 grid items-start gap-8 lg:grid-cols-[1.08fr_0.92fr]"
+        >
           {/* Hero Left */}
           <motion.div
             id="service"
@@ -538,8 +614,8 @@ export default function Landing() {
             </h1>
 
             <p className="mt-5 max-w-[700px] text-[14px] leading-8 text-slate-600">
-              ZEBA는 설계 초기의 불확실성을 줄이기 위해 입력값을 구조화하고, 기준 모델을 생성한 뒤,
-              핵심 판단값을 먼저 고정하는 플랫폼입니다.
+              ZEBA는 설계 초기의 불확실성을 줄이기 위해 입력값을 구조화하고,
+              기준 모델을 생성한 뒤, 핵심 판단값을 먼저 고정하는 플랫폼입니다.
             </p>
 
             <motion.div
@@ -564,7 +640,9 @@ export default function Landing() {
                     <div className="mt-4 text-[14px] font-semibold text-slate-800">
                       {item.title}
                     </div>
-                    <div className="mt-2 text-sm leading-6 text-slate-500">{item.body}</div>
+                    <div className="mt-2 text-sm leading-6 text-slate-500">
+                      {item.body}
+                    </div>
                   </motion.div>
                 );
               })}
@@ -622,7 +700,9 @@ export default function Landing() {
                   <div className="mt-3 flex flex-wrap items-center gap-3 text-sm font-medium text-slate-700">
                     {serviceLine.map((item, idx) => (
                       <React.Fragment key={item}>
-                        <span className="rounded-full bg-slate-100 px-3 py-2">{item}</span>
+                        <span className="rounded-full bg-slate-100 px-3 py-2">
+                          {item}
+                        </span>
                         {idx < serviceLine.length - 1 ? (
                           <ArrowRight className="h-4 w-4 text-slate-400" />
                         ) : null}
@@ -645,7 +725,9 @@ export default function Landing() {
 
                 <div className="mt-5 space-y-6">
                   <div>
-                    <div className="text-sm font-semibold text-slate-700">현재 제공 기능</div>
+                    <div className="text-sm font-semibold text-slate-700">
+                      현재 제공 기능
+                    </div>
                     <motion.div
                       variants={staggerContainer}
                       initial="hidden"
@@ -671,7 +753,9 @@ export default function Landing() {
                             <div className="mt-3 text-[14px] font-semibold text-slate-900">
                               {item.title}
                             </div>
-                            <div className="mt-2 text-sm leading-7 text-slate-500">{item.body}</div>
+                            <div className="mt-2 text-sm leading-7 text-slate-500">
+                              {item.body}
+                            </div>
                           </motion.div>
                         );
                       })}
@@ -679,9 +763,13 @@ export default function Landing() {
                   </div>
 
                   <div className="border-t border-slate-200 pt-6">
-                    <div className="text-sm font-semibold text-slate-700">이후 확장 구조</div>
+                    <div className="text-sm font-semibold text-slate-700">
+                      이후 확장 구조
+                    </div>
                     <div className="mt-4 text-sm leading-7 text-slate-500">
-                      현재는 설계 판단과 인허가 전 검토에 집중하지만, 판단 결과 저장과 파일 축적 구조는 이후 협업과 실행 전달의 기반이 됩니다.
+                      현재는 설계 판단과 인허가 전 검토에 집중하지만, 판단 결과
+                      저장과 파일 축적 구조는 이후 협업과 실행 전달의 기반이
+                      됩니다.
                     </div>
                     <motion.div
                       variants={staggerContainer}
@@ -697,7 +785,9 @@ export default function Landing() {
                           className="flex items-start gap-3 rounded-[18px] border border-slate-200 bg-white px-4 py-4"
                         >
                           <div className="mt-1 h-2.5 w-2.5 rounded-full bg-teal-700" />
-                          <div className="text-sm leading-6 text-slate-600">{text}</div>
+                          <div className="text-sm leading-6 text-slate-600">
+                            {text}
+                          </div>
                         </motion.div>
                       ))}
                     </motion.div>
@@ -728,10 +818,10 @@ export default function Landing() {
               <motion.button
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.98 }}
-                onClick={() => setShowQuickModal(true)}
+                onClick={handleDiagnosisButtonClick}
                 className="rounded-full bg-[#0F2044] px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-[#1a3066]"
               >
-                간편 진단
+                {user ? '간편 진단' : '로그인 후 진단'}
               </motion.button>
             </div>
 
@@ -759,16 +849,22 @@ export default function Landing() {
                       >
                         <div className="min-h-[64px]">
                           <div className="flex items-center gap-2">
-                            <IconContainer variant={strong ? 'strong' : 'default'}>
+                            <IconContainer
+                              variant={strong ? 'strong' : 'default'}
+                            >
                               <CardIcon className="h-4 w-4" />
                             </IconContainer>
                             <div className="text-[14px] font-semibold leading-6 text-slate-800">
                               {item.label}
                             </div>
                           </div>
-                          <div className="mt-1 text-xs text-slate-400">{item.subtitle}</div>
+                          <div className="mt-1 text-xs text-slate-400">
+                            {item.subtitle}
+                          </div>
                         </div>
-                        <div className="mt-3 text-sm text-slate-500">{item.metricLabel}</div>
+                        <div className="mt-3 text-sm text-slate-500">
+                          {item.metricLabel}
+                        </div>
                         <div
                           className={`mt-6 flex items-end gap-1 text-[30px] font-semibold tracking-[-0.04em] ${
                             strong ? 'text-teal-700' : 'text-slate-700'
@@ -801,7 +897,10 @@ export default function Landing() {
                           {item.grade}
                         </div>
                         <div className="mt-7 space-y-3 text-sm text-slate-600">
-                          <MetricRow label={item.metaLabel} value={item.metaValue} />
+                          <MetricRow
+                            label={item.metaLabel}
+                            value={item.metaValue}
+                          />
                           {item.detailRows?.map((row) => (
                             <MetricRow
                               key={`${item.label}-${row.label}`}
@@ -824,7 +923,8 @@ export default function Landing() {
                       표준모델 분석 중입니다
                     </div>
                     <div className="mt-2 text-sm text-slate-400">
-                      입력한 연면적과 조건을 기준으로 3개 결과 카드를 준비하고 있습니다
+                      입력한 연면적과 조건을 기준으로 3개 결과 카드를 준비하고
+                      있습니다
                     </div>
                   </div>
                 </div>
@@ -834,7 +934,9 @@ export default function Landing() {
                     <div className="text-sm font-semibold text-rose-700">
                       간편 진단을 완료하지 못했습니다
                     </div>
-                    <div className="mt-2 text-sm text-rose-600">{quickDiagnosisError}</div>
+                    <div className="mt-2 text-sm text-rose-600">
+                      {quickDiagnosisError}
+                    </div>
                   </div>
                 </div>
               ) : (
@@ -865,7 +967,8 @@ export default function Landing() {
                   {quickDiagnosis.summary}
                 </div>
                 <div className="mt-3 text-sm leading-6 text-slate-500">
-                  본 결과는 기존 백엔드 분석 API 응답 기반 간편 진단입니다. 상세 시나리오 비교 및 저장은 프로젝트 생성 후 가능합니다.
+                  본 결과는 기존 백엔드 분석 API 응답 기반 간편 진단입니다. 상세
+                  시나리오 비교 및 저장은 프로젝트 생성 후 가능합니다.
                 </div>
                 <div className="mt-6 flex flex-nowrap items-center gap-3 overflow-x-auto">
                   <motion.button
@@ -903,7 +1006,7 @@ export default function Landing() {
 
       <Modal
         open={authModalOpen}
-        onCancel={() => setAuthModalOpen(false)}
+        onCancel={handleAuthModalCancel}
         footer={null}
         width={440}
         centered
@@ -916,10 +1019,13 @@ export default function Landing() {
           <LoginForm
             embedded
             onSwitchToSignup={() => setAuthModalMode('signup')}
-            onSuccess={() => setAuthModalOpen(false)}
+            onSuccess={handleAuthSuccess}
           />
         ) : (
-          <SignupForm embedded onSwitchToLogin={() => setAuthModalMode('login')} />
+          <SignupForm
+            embedded
+            onSwitchToLogin={() => setAuthModalMode('login')}
+          />
         )}
       </Modal>
 
@@ -936,7 +1042,8 @@ export default function Landing() {
                     표준모델 결과를 프로젝트로 이어갑니다
                   </div>
                   <div className="mt-3 text-sm leading-6 text-slate-500">
-                    현재 입력값과 간편 진단 결과를 프로젝트 초안으로 전환합니다. 이후 다중 시나리오 비교와 상세 검토가 가능합니다.
+                    현재 입력값과 간편 진단 결과를 프로젝트 초안으로 전환합니다.
+                    이후 다중 시나리오 비교와 상세 검토가 가능합니다.
                   </div>
                 </div>
                 <IconButton onClick={() => setShowTransitionModal(false)}>
@@ -964,7 +1071,9 @@ export default function Landing() {
                     className="flex items-start gap-3 rounded-[16px] border border-slate-200 bg-slate-50 px-4 py-3"
                   >
                     <div className="mt-1 h-2.5 w-2.5 rounded-full bg-teal-700" />
-                    <div className="text-sm leading-6 text-slate-600">{item}</div>
+                    <div className="text-sm leading-6 text-slate-600">
+                      {item}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -1000,7 +1109,8 @@ export default function Landing() {
                     간편 진단
                   </div>
                   <div className="mt-2 text-sm leading-6 text-slate-500">
-                    프로젝트 생성 없이, 랜딩 화면에서 핵심 판단값 3개를 바로 확인합니다.
+                    프로젝트 생성 없이, 랜딩 화면에서 핵심 판단값 3개를 바로
+                    확인합니다.
                   </div>
                 </div>
                 <IconButton onClick={() => setShowQuickModal(false)}>
@@ -1011,7 +1121,10 @@ export default function Landing() {
               {/* STEP 1: 서비스 선택 */}
               <div className="mt-6">
                 <div className="mb-3 text-xs font-semibold tracking-[0.18em] text-slate-400">
-                  STEP 1 · 서비스 선택 <span className="font-normal text-slate-400">(다중 선택)</span>
+                  STEP 1 · 서비스 선택{' '}
+                  <span className="font-normal text-slate-400">
+                    (다중 선택)
+                  </span>
                 </div>
                 <div className="flex gap-3">
                   {(['신재생', 'ZEB', 'EPI'] as const).map((svc) => (
@@ -1032,152 +1145,163 @@ export default function Landing() {
               </div>
 
               {/* STEP 2: 서비스별 입력 필드 */}
-              {selectedServices.size > 0 ? (
-                <>
-                  <div className="mt-5 mb-3 text-xs font-semibold tracking-[0.18em] text-slate-400">
-                    STEP 2 · 입력 정보
-                  </div>
-                  <motion.div
-                    variants={staggerContainer}
-                    initial="hidden"
-                    animate="show"
-                    className="grid gap-4 md:grid-cols-2"
-                  >
-                    {showRegionField ? (
-                      <Field label="지역 / 주소" className="md:col-span-2">
-                        <div className="space-y-3">
-                          <div className="flex gap-2">
-                            <input
-                              value={area}
-                              onChange={(e) => setArea(e.target.value)}
-                              className={`${inputClassName} flex-1`}
-                              placeholder="주소 검색 또는 직접 입력"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => setShowQuickAddressSearch((prev) => !prev)}
-                              className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 transition hover:border-teal-300 hover:text-teal-700"
-                            >
-                              주소 검색
-                            </button>
-                          </div>
-                          {showQuickAddressSearch ? (
-                            <div className="overflow-hidden rounded-[20px] border border-slate-200 bg-white">
-                              <DaumPostcodeEmbed
-                                onComplete={handleQuickAddressComplete}
-                                onClose={() => setShowQuickAddressSearch(false)}
-                                style={{ height: '360px' }}
-                              />
-                            </div>
-                          ) : null}
-                        </div>
-                      </Field>
-                    ) : null}
-
-                    {showUsageField ? (
-                      <Field label="용도">
-                        <select
-                          value={usage}
-                          onChange={(e) => setUsage(e.target.value as (typeof QUICK_USAGE_OPTIONS)[number])}
-                          className={inputClassName}
-                        >
-                          {QUICK_USAGE_OPTIONS.map((option) => (
-                            <option key={option} value={option}>
-                              {option}
-                            </option>
-                          ))}
-                        </select>
-                      </Field>
-                    ) : null}
-
-                    <Field label="연면적(㎡)" className={!showUsageField ? 'md:col-span-2' : ''}>
+              <div className="mt-5 mb-3 text-xs font-semibold tracking-[0.18em] text-slate-400">
+                STEP 2 · 입력 정보
+              </div>
+              <motion.div
+                variants={staggerContainer}
+                initial="hidden"
+                animate="show"
+                className="grid gap-4 md:grid-cols-2"
+              >
+                <Field
+                  label="지역 / 주소"
+                  className="md:col-span-2"
+                  disabled={!showRegionField}
+                >
+                  <div className="space-y-3">
+                    <div className="flex gap-2">
                       <input
-                        value={grossFloorArea}
-                        onChange={(e) => setGrossFloorArea(e.target.value)}
-                        className={inputClassName}
+                        value={area}
+                        onChange={(e) => setArea(e.target.value)}
+                        className={`${inputClassName} flex-1`}
+                        placeholder="주소 검색 또는 직접 입력"
+                        disabled={!showRegionField}
                       />
-                    </Field>
-
-                    {showFloorsField ? (
-                      <Field label="층수">
-                        <div className="flex items-center gap-2">
-                          <button
-                            type="button"
-                            onClick={() => setFloors(String(Math.max(1, Number(floors) - 1)))}
-                            className="flex h-[50px] w-[50px] shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-xl font-medium text-slate-600 transition hover:border-teal-300 hover:text-teal-700"
-                          >
-                            −
-                          </button>
-                          <input
-                            value={floors}
-                            onChange={(e) => setFloors(e.target.value)}
-                            className={`${inputClassName} text-center`}
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setFloors(String(Number(floors) + 1))}
-                            className="flex h-[50px] w-[50px] shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-xl font-medium text-slate-600 transition hover:border-teal-300 hover:text-teal-700"
-                          >
-                            +
-                          </button>
-                        </div>
-                      </Field>
-                    ) : null}
-
-                    {showEquipmentField ? (
-                      <Field label="설비 방식">
-                        <div className="relative flex rounded-2xl border border-slate-200 bg-slate-100 p-1">
-                          <div
-                            className="pointer-events-none absolute inset-y-1 rounded-xl bg-[#0F2044] transition-all duration-200"
-                            style={{
-                              width: 'calc(50% - 4px)',
-                              left: officeSystem === 'individual' ? '4px' : 'calc(50%)',
-                            }}
-                          />
-                          {OFFICE_SYSTEM_OPTIONS.map((option) => (
-                            <button
-                              key={option.value}
-                              type="button"
-                              onClick={() =>
-                                setOfficeSystem(
-                                  option.value as (typeof OFFICE_SYSTEM_OPTIONS)[number]['value'],
-                                )
-                              }
-                              className={`relative z-10 flex-1 rounded-xl py-2.5 text-sm font-medium transition-colors duration-200 ${
-                                officeSystem === option.value ? 'text-white' : 'text-slate-500'
-                              }`}
-                            >
-                              {option.label}
-                            </button>
-                          ))}
-                        </div>
-                      </Field>
-                    ) : null}
-                  </motion.div>
-
-                  {showTargetGradeField ? (
-                    <div className="mt-4">
-                      <Field label="ZEB 목표 등급">
-                        <select
-                          value={targetGrade}
-                          onChange={(e) => setTargetGrade(e.target.value)}
-                          className={inputClassName}
-                        >
-                          <option>5등급</option>
-                          <option>4등급</option>
-                          <option>3등급</option>
-                          <option>2등급</option>
-                          <option>1등급</option>
-                        </select>
-                      </Field>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setShowQuickAddressSearch((prev) => !prev)
+                        }
+                        disabled={!showRegionField}
+                        className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 transition hover:border-teal-300 hover:text-teal-700 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 disabled:hover:border-slate-200"
+                      >
+                        주소 검색
+                      </button>
                     </div>
-                  ) : null}
-                </>
-              ) : (
-                <div className="mt-5 flex min-h-[100px] items-center justify-center rounded-[20px] border border-dashed border-slate-300 bg-white text-sm text-slate-400">
-                  서비스를 선택하면 입력 항목이 표시됩니다
-                </div>
-              )}
+                    {showRegionField && showQuickAddressSearch ? (
+                      <div className="overflow-hidden rounded-[20px] border border-slate-200 bg-white">
+                        <DaumPostcodeEmbed
+                          onComplete={handleQuickAddressComplete}
+                          onClose={() => setShowQuickAddressSearch(false)}
+                          style={{ height: '360px' }}
+                        />
+                      </div>
+                    ) : null}
+                  </div>
+                </Field>
+
+                <Field label="용도" disabled={!showUsageField}>
+                  <select
+                    value={usage}
+                    onChange={(e) =>
+                      setUsage(
+                        e.target.value as (typeof QUICK_USAGE_OPTIONS)[number],
+                      )
+                    }
+                    className={inputClassName}
+                    disabled={!showUsageField}
+                  >
+                    {QUICK_USAGE_OPTIONS.map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+
+                <Field label="연면적(㎡)">
+                  <input
+                    value={grossFloorArea}
+                    onChange={(e) => setGrossFloorArea(e.target.value)}
+                    className={inputClassName}
+                  />
+                </Field>
+
+                <Field label="층수" disabled={!showFloorsField}>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setFloors(String(Math.max(1, Number(floors) - 1)))
+                      }
+                      disabled={!showFloorsField}
+                      className="flex h-[50px] w-[50px] shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-xl font-medium text-slate-600 transition hover:border-teal-300 hover:text-teal-700 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 disabled:hover:border-slate-200"
+                    >
+                      −
+                    </button>
+                    <input
+                      value={floors}
+                      onChange={(e) => setFloors(e.target.value)}
+                      className={`${inputClassName} text-center`}
+                      disabled={!showFloorsField}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setFloors(String(Number(floors) + 1))}
+                      disabled={!showFloorsField}
+                      className="flex h-[50px] w-[50px] shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-xl font-medium text-slate-600 transition hover:border-teal-300 hover:text-teal-700 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 disabled:hover:border-slate-200"
+                    >
+                      +
+                    </button>
+                  </div>
+                </Field>
+
+                <Field label="설비 방식" disabled={!showEquipmentField}>
+                  <div
+                    className={`relative flex rounded-2xl border p-1 transition ${
+                      showEquipmentField
+                        ? 'border-slate-200 bg-slate-100'
+                        : 'border-slate-200 bg-slate-100 opacity-60'
+                    }`}
+                  >
+                    <div
+                      className={`pointer-events-none absolute inset-y-1 rounded-xl transition-all duration-200 ${
+                        showEquipmentField ? 'bg-[#0F2044]' : 'bg-slate-300'
+                      }`}
+                      style={{
+                        width: 'calc(50% - 4px)',
+                        left:
+                          officeSystem === 'individual' ? '4px' : 'calc(50%)',
+                      }}
+                    />
+                    {OFFICE_SYSTEM_OPTIONS.map((option) => (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() =>
+                          setOfficeSystem(
+                            option.value as (typeof OFFICE_SYSTEM_OPTIONS)[number]['value'],
+                          )
+                        }
+                        disabled={!showEquipmentField}
+                        className={`relative z-10 flex-1 rounded-xl py-2.5 text-sm font-medium transition-colors duration-200 disabled:cursor-not-allowed ${
+                          officeSystem === option.value && showEquipmentField
+                            ? 'text-white'
+                            : 'text-slate-500'
+                        }`}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                </Field>
+
+                <Field label="ZEB 목표 등급" disabled={!showTargetGradeField}>
+                  <select
+                    value={targetGrade}
+                    onChange={(e) => setTargetGrade(e.target.value)}
+                    className={inputClassName}
+                    disabled={!showTargetGradeField}
+                  >
+                    <option>5등급</option>
+                    <option>4등급</option>
+                    <option>3등급</option>
+                    <option>2등급</option>
+                    <option>1등급</option>
+                  </select>
+                </Field>
+              </motion.div>
 
               <motion.div
                 initial={{ opacity: 0, y: 8 }}
@@ -1185,7 +1309,8 @@ export default function Landing() {
                 transition={{ duration: 0.25, delay: 0.18 }}
                 className="mt-4 rounded-[18px] bg-white px-4 py-3 text-sm leading-6 text-slate-600 shadow-sm"
               >
-                생성 후 결과는 랜딩 화면 내 결과 박스에 출력되며, 유저 계정에는 저장되지 않습니다.
+                생성 후 결과는 랜딩 화면 내 결과 박스에 출력되며, 유저 계정에는
+                저장되지 않습니다.
               </motion.div>
 
               <div className="mt-6 flex items-center justify-end gap-3">
@@ -1242,28 +1367,40 @@ type IconColor = 'teal' | 'indigo' | 'violet' | 'emerald' | 'amber' | 'sky';
 
 const iconColorMap: Record<IconColor, { default: string; strong: string }> = {
   teal: {
-    default: 'border-teal-100 bg-gradient-to-br from-teal-50 to-teal-100/60 text-teal-700',
-    strong: 'border-teal-200 bg-gradient-to-br from-teal-50 to-teal-100/60 text-teal-700',
+    default:
+      'border-teal-100 bg-gradient-to-br from-teal-50 to-teal-100/60 text-teal-700',
+    strong:
+      'border-teal-200 bg-gradient-to-br from-teal-50 to-teal-100/60 text-teal-700',
   },
   indigo: {
-    default: 'border-indigo-100 bg-gradient-to-br from-indigo-50 to-indigo-100/60 text-indigo-700',
-    strong: 'border-indigo-200 bg-gradient-to-br from-indigo-50 to-indigo-100/60 text-indigo-700',
+    default:
+      'border-indigo-100 bg-gradient-to-br from-indigo-50 to-indigo-100/60 text-indigo-700',
+    strong:
+      'border-indigo-200 bg-gradient-to-br from-indigo-50 to-indigo-100/60 text-indigo-700',
   },
   violet: {
-    default: 'border-violet-100 bg-gradient-to-br from-violet-50 to-violet-100/60 text-violet-700',
-    strong: 'border-violet-200 bg-gradient-to-br from-violet-50 to-violet-100/60 text-violet-700',
+    default:
+      'border-violet-100 bg-gradient-to-br from-violet-50 to-violet-100/60 text-violet-700',
+    strong:
+      'border-violet-200 bg-gradient-to-br from-violet-50 to-violet-100/60 text-violet-700',
   },
   emerald: {
-    default: 'border-emerald-100 bg-gradient-to-br from-emerald-50 to-emerald-100/60 text-emerald-700',
-    strong: 'border-emerald-200 bg-gradient-to-br from-emerald-50 to-emerald-100/60 text-emerald-700',
+    default:
+      'border-emerald-100 bg-gradient-to-br from-emerald-50 to-emerald-100/60 text-emerald-700',
+    strong:
+      'border-emerald-200 bg-gradient-to-br from-emerald-50 to-emerald-100/60 text-emerald-700',
   },
   amber: {
-    default: 'border-amber-100 bg-gradient-to-br from-amber-50 to-amber-100/60 text-amber-700',
-    strong: 'border-amber-200 bg-gradient-to-br from-amber-50 to-amber-100/60 text-amber-700',
+    default:
+      'border-amber-100 bg-gradient-to-br from-amber-50 to-amber-100/60 text-amber-700',
+    strong:
+      'border-amber-200 bg-gradient-to-br from-amber-50 to-amber-100/60 text-amber-700',
   },
   sky: {
-    default: 'border-sky-100 bg-gradient-to-br from-sky-50 to-sky-100/60 text-sky-700',
-    strong: 'border-sky-200 bg-gradient-to-br from-sky-50 to-sky-100/60 text-sky-700',
+    default:
+      'border-sky-100 bg-gradient-to-br from-sky-50 to-sky-100/60 text-sky-700',
+    strong:
+      'border-sky-200 bg-gradient-to-br from-sky-50 to-sky-100/60 text-sky-700',
   },
 };
 
@@ -1278,7 +1415,8 @@ function IconContainer({
   size?: 'md' | 'lg';
   color?: IconColor;
 }) {
-  const sizeClass = size === 'lg' ? 'h-12 w-12 rounded-2xl' : 'h-10 w-10 rounded-xl';
+  const sizeClass =
+    size === 'lg' ? 'h-12 w-12 rounded-2xl' : 'h-10 w-10 rounded-xl';
   const colorClass = iconColorMap[color][variant];
   return (
     <div
@@ -1357,10 +1495,23 @@ function IconButton({
   );
 }
 
-function Field({ label, children, className }: FieldProps) {
+function Field({ label, children, className, disabled = false }: FieldProps) {
   return (
-    <motion.label variants={slideUpFast} className={['block', className].filter(Boolean).join(' ')}>
-      <div className="mb-2 text-sm font-semibold text-slate-700">{label}</div>
+    <motion.label
+      variants={slideUpFast}
+      className={[
+        'block transition-opacity',
+        disabled ? 'opacity-70' : '',
+        className,
+      ]
+        .filter(Boolean)
+        .join(' ')}
+    >
+      <div
+        className={`mb-2 text-sm font-semibold ${disabled ? 'text-slate-400' : 'text-slate-700'}`}
+      >
+        {label}
+      </div>
       {children}
     </motion.label>
   );

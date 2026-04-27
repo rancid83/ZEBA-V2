@@ -31,5 +31,5 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules", "reactapp"]
+  "exclude": ["node_modules", "reactapp", "docs"]
 }
