@@ -172,6 +172,7 @@ const MandatoryGrade = () => {
         region: formData.roadName,
         totalArea: formData.bld_al_area,
         floorCount: formData.bld_floor_esurf,
+        buildingType: formData.buildingType, // 미지정 시 백엔드가 '초중고'로 폴백
         ...(step === 'step2' ? { targetGrade: values.zebGrade } : {}),
         ...(step === 'step3'
           ? {

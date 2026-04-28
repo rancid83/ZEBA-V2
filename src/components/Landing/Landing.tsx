@@ -30,6 +30,7 @@ import SignupForm from '@/components/Auth/SignupForm';
 import PresentationSlides from '@/components/Slides/PresentationSlides';
 import DaumPostcodeEmbed from 'react-daum-postcode';
 import { analyzeStep1 } from '@/services/steps';
+import { resolveBuildingType } from '@/utils/buildingType';
 import type { ZebGradeData, ZebStep1Response } from '@/types/zebStep1';
 import landingStyles from './LandingStyleA.module.scss';
 import LandingHeader from './LandingHeader';
@@ -276,6 +277,7 @@ function buildQuickDiagnosisPayload(
 export default function Landing() {
   const router = useRouter();
   const user = useStore((state) => state.user);
+  const updateFormData = useStore((state) => state.updateFormData);
   const [pendingOpenDiagnosis, setPendingOpenDiagnosis] = useState(false);
   const [showQuickModal, setShowQuickModal] = useState(false);
   const [showQuickAddressSearch, setShowQuickAddressSearch] = useState(false);
@@ -406,6 +408,7 @@ export default function Landing() {
         totalArea: safeArea,
         floorCount: safeFloors,
         targetGrade: targetGradeNumber,
+        buildingType: resolveBuildingType(usage, officeSystem),
       });
 
       await ensureMinimumLoading();
@@ -422,7 +425,7 @@ export default function Landing() {
         '분석 요청에 실패했습니다. 입력값 또는 백엔드 연결 상태를 확인해주세요.',
       );
     }
-  }, [normalizedRegion, safeArea, safeFloors, targetGrade]);
+  }, [normalizedRegion, safeArea, safeFloors, targetGrade, usage, officeSystem]);
 
   const summary = useMemo(() => {
     const selfSufficiency = Math.max(
@@ -564,6 +567,10 @@ export default function Landing() {
   }, []);
 
   const goMain = () => {
+    // 본 분석에서도 동일한 알고리즘 분기를 쓰도록 buildingType을 영속화
+    updateFormData({
+      buildingType: resolveBuildingType(usage, officeSystem),
+    });
     setShowTransitionModal(false);
     router.push('/project-hub');
   };

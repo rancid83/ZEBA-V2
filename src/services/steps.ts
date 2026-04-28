@@ -10,6 +10,7 @@ function buildStepParams(params: Record<string, unknown>, step: string): Record<
       region: rest.region,
       totalArea: rest.totalArea,
       floorCount: rest.floorCount,
+      buildingType: rest.buildingType,
     };
   }
 
@@ -19,9 +20,11 @@ function buildStepParams(params: Record<string, unknown>, step: string): Record<
       totalArea: rest.totalArea,
       floorCount: rest.floorCount,
       targetGrade: rest.targetGrade,
+      buildingType: rest.buildingType,
     };
   }
 
+  // step3 및 그 외 (성능조합 포함): 모든 키를 통과시키되 buildingType 보장
   const filtered: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(rest)) {
     if (value !== undefined && value !== null) {
