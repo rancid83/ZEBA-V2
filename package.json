@@ -5,7 +5,9 @@
   "scripts": {
     "build": "next build",
     "dev": "next dev -p 3838 -H 0.0.0.0",
-    "start": "next start -p 3838 -H 0.0.0.0"
+    "dev:remote": "ZEBAGATEWAY_MAC=http://49.50.134.60:1218 next dev -p 3838 -H 0.0.0.0",
+    "start": "next start -p 3838 -H 0.0.0.0",
+    "start:remote": "ZEBAGATEWAY_MAC=http://49.50.134.60:1218 next start -p 3838 -H 0.0.0.0"
   },
   "dependencies": {
     "@ant-design/cssinjs": "^2.1.2",

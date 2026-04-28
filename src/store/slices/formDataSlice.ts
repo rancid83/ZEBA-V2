@@ -1,3 +1,5 @@
+import type { BuildingType } from '@/utils/buildingType';
+
 interface FormData {
   // 주소 정보
   roadName: string;
@@ -16,6 +18,10 @@ interface FormData {
 
   // ZEB 등급
   zebGrade: string;
+
+  // 분석 알고리즘 분기용 건물용도
+  // (백엔드 BUILDING_CODE_DIRS와 1:1 매칭, 미지정 시 '초중고' 폴백)
+  buildingType?: BuildingType;
 }
 
 export interface FormDataSlice {

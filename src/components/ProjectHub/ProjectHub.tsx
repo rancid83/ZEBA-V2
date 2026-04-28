@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import CollaborationPanel from '@/components/Collaboration/CollaborationPanel';
 import ZEBAMultiScenario from '@/components/ProjectHub/ZEBAMultiScenario';
-import EPIStandardModel from '@/components/ProjectHub/EPIStandardModel';
+import EPIScenarioCompare from '@/components/ProjectHub/EPIScenarioCompare';
 import RenewableInstallRateReview from '@/components/ProjectHub/RenewableInstallRateReview';
 import ConsultingConnection from '@/components/ProjectHub/ConsultingConnection';
 import { useStore } from '@/store';
@@ -1032,17 +1032,7 @@ function ProjectWorkspace(props: {
               onPersist={onPersistZebWorkspace}
             />
           ) : null}
-          {activeTab === 'epi' ? (
-            <EPIStandardModel
-              project={{
-                name: selected.name,
-                region: selected.region,
-                usage: selected.use,
-                gfa: selected.gfa,
-                floors: selected.floors,
-              }}
-            />
-          ) : null}
+          {activeTab === 'epi' ? <EPIScenarioCompare /> : null}
           {activeTab === 'ren' ? (
             <RenewableInstallRateReview
               project={{
